@@ -130,13 +130,6 @@ export interface TournamentRegistration {
   tableId?: string;
   seatNumber?: number;
   
-  // Financial Breakdown (Legacy - kept for migration safety but Transactions should be primary)
-  rebuyDiscount?: number;
-  membershipDiscount?: number;
-  voucherDiscount?: number;
-  campaignDiscount?: number;
-  depositPaid?: number;
-
   // Granular History
   transactions?: TournamentTransaction[];
 }

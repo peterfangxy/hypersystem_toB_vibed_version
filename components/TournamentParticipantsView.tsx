@@ -8,273 +8,18 @@ import {
   Clock,
   User,
   Plus,
-  Users,
-  DollarSign,
   Coins,
-  Minus,
   Banknote,
   Lock,
   Trophy,
   AlertTriangle,
-  Loader2,
-  Save,
-  Calculator
+  Loader2
 } from 'lucide-react';
 import { Tournament, TournamentRegistration, Member, RegistrationStatus, PokerTable, TournamentTransaction } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
-import { Modal } from './Modal';
-
-// --- Internal Component: Add Player Picker (Modal) ---
-
-interface AddPlayerModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onAdd: (memberId: string) => void;
-  existingMemberIds: Set<string>;
-}
-
-const AddPlayerModal: React.FC<AddPlayerModalProps> = ({ isOpen, onClose, onAdd, existingMemberIds }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [members, setMembers] = useState<Member[]>([]);
-
-  useEffect(() => {
-    if (isOpen) {
-      setMembers(DataService.getMembers());
-      setSearchTerm('');
-    }
-  }, [isOpen]);
-
-  const availableMembers = useMemo(() => {
-    const term = searchTerm.toLowerCase();
-    return members.filter(m => 
-      !existingMemberIds.has(m.id) && 
-      (m.fullName.toLowerCase().includes(term) || m.email.toLowerCase().includes(term))
-    );
-  }, [members, existingMemberIds, searchTerm]);
-
-  return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      size="sm"
-      zIndex={60}
-      title={
-        <div className="flex items-center gap-2">
-            <UserPlusIcon size={20} className="text-brand-green"/>
-            Add Player
-        </div>
-      }
-    >
-        <div className="p-4 border-b border-[#222]">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
-             <input 
-                autoFocus
-                type="text"
-                placeholder="Search available members..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className={`w-full ${THEME.input} rounded-xl pl-10 pr-4 py-3 text-sm outline-none shadow-inner`}
-            />
-          </div>
-        </div>
-
-        <div className="overflow-y-auto flex-1 p-2 space-y-1 max-h-[50vh]">
-          {availableMembers.map(member => (
-            <button 
-              key={member.id} 
-              onClick={() => { onAdd(member.id); onClose(); }} 
-              className="w-full flex items-center justify-between p-3 hover:bg-[#333] rounded-xl group transition-all border border-transparent hover:border-[#333]"
-            >
-               <div className="flex items-center gap-3 text-left">
-                  <div className="w-10 h-10 rounded-full bg-[#222] flex items-center justify-center text-xs font-bold text-gray-400 overflow-hidden">
-                      {member.avatarUrl ? <img src={member.avatarUrl} className="w-full h-full object-cover"/> : member.fullName.charAt(0)}
-                  </div>
-                  <div>
-                      <div className="text-sm font-bold text-gray-200 group-hover:text-white">{member.fullName}</div>
-                      <div className="text-xs text-gray-500">{member.tier} Member</div>
-                  </div>
-              </div>
-              <div className="w-8 h-8 rounded-full bg-[#222] flex items-center justify-center text-brand-green opacity-0 group-hover:opacity-100 transition-all transform group-hover:scale-110">
-                <Plus size={18} />
-              </div>
-            </button>
-          ))}
-          
-          {availableMembers.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-               <Users size={32} className="opacity-20 mb-2" />
-               <p className="text-sm">No available members found</p>
-            </div>
-          )}
-        </div>
-    </Modal>
-  );
-};
-
-// --- Internal Component: Payment Details Modal (Table View) ---
-
-interface EnrichedRegistration extends TournamentRegistration {
-    member?: Member;
-    assignedTable?: PokerTable;
-    netPayable?: number;
-    totalDepositPaid?: number;
-}
-
-interface PaymentDetailsModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    registration: EnrichedRegistration | null;
-    tournament: Tournament | null;
-    onSave: (regId: string, transactions: TournamentTransaction[]) => void;
-}
-
-const PaymentDetailsModal: React.FC<PaymentDetailsModalProps> = ({ isOpen, onClose, registration, tournament, onSave }) => {
-    const [transactions, setTransactions] = useState<TournamentTransaction[]>([]);
-
-    useEffect(() => {
-        if (isOpen && registration) {
-            // Load transactions or create defaults if missing (migration)
-            const txs = registration.transactions && registration.transactions.length > 0 
-                ? [...registration.transactions] 
-                : [];
-            
-            // Sync fallback: if length mismatch, just take what we have or ensure consistency in parent
-            setTransactions(txs);
-        }
-    }, [isOpen, registration]);
-
-    if (!registration || !tournament) return null;
-
-    const baseCost = tournament.buyIn + tournament.fee;
-
-    const handleTransactionChange = (index: number, field: keyof TournamentTransaction, value: number) => {
-        const updated = [...transactions];
-        updated[index] = { ...updated[index], [field]: value };
-        setTransactions(updated);
-    };
-
-    const handleSave = (e: React.FormEvent) => {
-        e.preventDefault();
-        onSave(registration.id, transactions);
-        onClose();
-    };
-
-    const calculateRowNet = (tx: TournamentTransaction) => {
-        const totalDiscount = (tx.rebuyDiscount || 0) + (tx.membershipDiscount || 0) + (tx.voucherDiscount || 0) + (tx.campaignDiscount || 0);
-        return Math.max(0, baseCost - totalDiscount);
-    };
-
-    const calculateRowCash = (tx: TournamentTransaction) => {
-        const net = calculateRowNet(tx);
-        return Math.max(0, net - (tx.depositPaid || 0));
-    };
-
-    // Summaries
-    const totalNetPayable = transactions.reduce((sum, tx) => sum + calculateRowNet(tx), 0);
-    const totalDepositPaid = transactions.reduce((sum, tx) => sum + (tx.depositPaid || 0), 0);
-    const totalCashOutstanding = transactions.reduce((sum, tx) => sum + calculateRowCash(tx), 0);
-
-    return (
-        <Modal
-            isOpen={isOpen}
-            onClose={onClose}
-            title={`${registration.member?.fullName || 'Player'} - Payment Breakdown`}
-            size="4xl"
-            zIndex={70}
-        >
-            <form onSubmit={handleSave} className="flex flex-col flex-1 overflow-hidden h-[80vh]">
-                <div className="flex-1 overflow-x-auto overflow-y-auto bg-[#111]">
-                    <table className="w-full text-left border-collapse min-w-[1000px]">
-                        <thead className="sticky top-0 bg-[#1A1A1A] z-10 shadow-sm text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            <tr>
-                                <th className="px-4 py-3 border-b border-[#333]">#</th>
-                                <th className="px-4 py-3 border-b border-[#333]">Type</th>
-                                <th className="px-4 py-3 border-b border-[#333] text-right">Base Cost</th>
-                                <th className="px-2 py-3 border-b border-[#333] text-right text-orange-400">Re-buy Disc</th>
-                                <th className="px-2 py-3 border-b border-[#333] text-right text-blue-400">Mem Disc</th>
-                                <th className="px-2 py-3 border-b border-[#333] text-right text-purple-400">Voucher</th>
-                                <th className="px-2 py-3 border-b border-[#333] text-right text-yellow-400">Campaign</th>
-                                <th className="px-2 py-3 border-b border-[#333] text-right text-brand-green">Deposit Pay</th>
-                                <th className="px-4 py-3 border-b border-[#333] text-right text-white">Net Payable</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#262626]">
-                            {transactions.length === 0 ? (
-                                <tr><td colSpan={9} className="p-8 text-center text-gray-500">No buy-ins recorded yet.</td></tr>
-                            ) : (
-                                transactions.map((tx, idx) => {
-                                    const net = calculateRowNet(tx);
-                                    return (
-                                        <tr key={tx.id} className="hover:bg-[#1A1A1A] transition-colors">
-                                            <td className="px-4 py-3 text-gray-500 font-mono text-xs">{idx + 1}</td>
-                                            <td className="px-4 py-3">
-                                                <span className={`text-xs font-bold uppercase px-2 py-1 rounded border ${
-                                                    tx.type === 'BuyIn' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 'bg-orange-500/10 text-orange-500 border-orange-500/20'
-                                                }`}>
-                                                    {tx.type}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-right text-gray-300 font-mono text-sm">
-                                                ${baseCost.toLocaleString()}
-                                            </td>
-                                            
-                                            {/* Inputs with right alignment */}
-                                            {['rebuyDiscount', 'membershipDiscount', 'voucherDiscount', 'campaignDiscount', 'depositPaid'].map((field) => (
-                                                <td key={field} className="px-2 py-3 text-right">
-                                                    <input 
-                                                        type="number"
-                                                        min="0"
-                                                        value={(tx as any)[field]}
-                                                        onChange={(e) => handleTransactionChange(idx, field as keyof TournamentTransaction, parseFloat(e.target.value) || 0)}
-                                                        className="w-24 bg-[#222] border border-[#333] rounded px-2 py-1 text-right text-sm text-white outline-none focus:border-brand-green focus:bg-[#111] transition-colors"
-                                                        onFocus={e => e.target.select()}
-                                                    />
-                                                </td>
-                                            ))}
-
-                                            <td className="px-4 py-3 text-right">
-                                                <div className="font-bold text-white font-mono">${net.toLocaleString()}</div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div className="p-6 border-t border-[#222] bg-[#171717] flex justify-between items-center shrink-0">
-                    <div className="flex gap-8">
-                        <div>
-                            <span className="text-gray-500 text-xs font-bold uppercase block mb-1">Total Net Payable</span>
-                            <span className="text-xl font-bold text-white font-mono">${totalNetPayable.toLocaleString()}</span>
-                        </div>
-                        <div>
-                            <span className="text-gray-500 text-xs font-bold uppercase block mb-1">Total Deposit Paid</span>
-                            <span className="text-xl font-bold text-brand-green font-mono">${totalDepositPaid.toLocaleString()}</span>
-                        </div>
-                        <div className="pl-8 border-l border-[#333]">
-                            <span className="text-gray-500 text-xs font-bold uppercase block mb-1">Outstanding (Cash)</span>
-                            <span className="text-2xl font-bold text-white font-mono">${totalCashOutstanding.toLocaleString()}</span>
-                        </div>
-                    </div>
-                    <button 
-                        type="submit"
-                        className={`px-8 py-3 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 ${THEME.buttonPrimary}`}
-                    >
-                        <Save size={20} />
-                        Save Changes
-                    </button>
-                </div>
-            </form>
-        </Modal>
-    );
-};
-
-
-// --- Main Page Component ---
+import { BuyinMgmtModal, EnrichedRegistration } from './BuyinMgmtModal';
+import AddPlayerModal from './AddPlayerModal';
 
 interface TournamentParticipantsViewProps {
   tournamentId: string;
@@ -374,16 +119,6 @@ const TournamentParticipantsView: React.FC<TournamentParticipantsViewProps> = ({
       DataService.updateRegistrationSeat(regId, tableId, validSeat);
       setRegistrations(DataService.getTournamentRegistrations(tournament.id));
   };
-
-  const handleBuyInChange = (regId: string, newCount: number) => {
-    if (!tournament) return;
-    if (newCount < 0) return;
-    const maxBuyIns = 1 + tournament.rebuyLimit;
-    if (newCount > maxBuyIns) return; 
-
-    DataService.updateRegistrationBuyIn(regId, newCount);
-    setRegistrations(DataService.getTournamentRegistrations(tournament.id));
-  };
   
   const handleChipChange = (regId: string, chips: number) => {
       if (!tournament) return;
@@ -393,6 +128,10 @@ const TournamentParticipantsView: React.FC<TournamentParticipantsViewProps> = ({
 
   const handleTransactionsSave = (regId: string, transactions: TournamentTransaction[]) => {
       DataService.updateRegistrationTransactions(regId, transactions);
+      // Sync buyInCount
+      const buyInCount = transactions.length;
+      DataService.updateRegistrationBuyIn(regId, buyInCount);
+      
       setRegistrations(DataService.getTournamentRegistrations(tournamentId));
   };
 
@@ -619,19 +358,19 @@ const TournamentParticipantsView: React.FC<TournamentParticipantsViewProps> = ({
 
             {/* Table Container */}
             <div className="flex-1 overflow-auto relative">
-                <table className="w-full text-left border-collapse min-w-[1300px]">
+                <table className="w-full text-left border-collapse min-w-[1000px]">
                     <thead className="sticky top-0 bg-[#171717] z-10 shadow-sm">
                       <tr className="text-xs uppercase text-gray-500 font-bold tracking-wider">
-                        <th className="px-6 py-4 w-[20%]">Player</th>
+                        <th className="px-6 py-4 w-[15%]">Player</th>
                         <th className="px-6 py-4 w-[10%]">Status</th>
-                        <th className="px-6 py-4 w-[15%]">Table / Seat</th>
+                        <th className="px-6 py-4 w-[20%]">Table / Seat</th>
                         <th className="px-6 py-4 text-center w-[10%]">Buy-ins</th>
-                        <th className="px-6 py-4 text-right w-[15%]">Net Payable</th>
-                        <th className="px-6 py-4 text-right w-[15%]">Chips In/Out</th>
+                        <th className="px-6 py-4 text-right w-[10%]">Net Payable</th>
+                        <th className="px-6 py-4 text-right w-[10%]">Chips In/Out</th>
                         {isTournamentLocked && (
                              <th className="px-6 py-4 text-right text-brand-green w-[10%]">Winnings</th>
                         )}
-                        <th className="px-6 py-4 text-right w-[5%]"></th>
+                        <th className="px-6 py-4 text-right w-[15%]">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#262626]">
@@ -694,7 +433,7 @@ const TournamentParticipantsView: React.FC<TournamentParticipantsViewProps> = ({
                                         <select 
                                             value={reg.seatNumber || ''}
                                             onChange={(e) => handleSeatChange(reg.id, reg.tableId || '', parseInt(e.target.value))}
-                                            className="bg-[#111] border border-[#333] rounded px-2 py-1.5 text-xs text-white outline-none focus:border-brand-green w-[70px] shrink-0"
+                                            className="bg-[#111] border border-[#333] rounded px-2 py-1.5 text-xs text-white outline-none focus:border-brand-green w-[50px] shrink-0"
                                             disabled={!reg.tableId || isTournamentLocked}
                                         >
                                             <option value="" disabled>Seat</option>
@@ -715,61 +454,18 @@ const TournamentParticipantsView: React.FC<TournamentParticipantsViewProps> = ({
                                 )}
                             </td>
 
-                            {/* Buy-ins Column */}
-                            <td className="px-6 py-4">
-                                <div className="flex justify-center">
-                                    {reg.buyInCount === 0 ? (
-                                        <button 
-                                            onClick={() => handleBuyInChange(reg.id, 1)}
-                                            disabled={isTournamentLocked}
-                                            className={`px-4 py-1.5 rounded-full border font-semibold text-xs transition-all flex items-center gap-1.5 ${
-                                                isTournamentLocked 
-                                                ? 'bg-[#222] text-gray-500 border-gray-600 cursor-not-allowed'
-                                                : 'bg-brand-green/20 text-brand-green border-brand-green/30 hover:bg-brand-green hover:text-black'
-                                            }`}
-                                        >
-                                            <DollarSign size={12} />
-                                            Pay Buy-in
-                                        </button>
-                                    ) : (
-                                        <div className="flex items-center gap-3 bg-[#111] rounded-lg p-1 border border-[#333]">
-                                            <button 
-                                                onClick={() => handleBuyInChange(reg.id, reg.buyInCount - 1)}
-                                                className="w-6 h-6 flex items-center justify-center rounded bg-[#222] text-gray-400 hover:text-white hover:bg-[#333] transition-colors disabled:opacity-50"
-                                                disabled={reg.buyInCount <= 0 || isTournamentLocked}
-                                                title="Decrease"
-                                            >
-                                                <Minus size={12} />
-                                            </button>
-                                            
-                                            <span className="text-sm font-bold text-white w-4 text-center">
-                                                {reg.buyInCount}
-                                            </span>
-
-                                            <button 
-                                                onClick={() => handleBuyInChange(reg.id, reg.buyInCount + 1)}
-                                                disabled={reg.buyInCount >= maxAllowedBuyIns || isTournamentLocked}
-                                                className={`flex items-center gap-1 px-2 h-6 rounded text-xs font-medium transition-colors ${
-                                                    reg.buyInCount >= maxAllowedBuyIns || isTournamentLocked
-                                                    ? 'bg-[#1A1A1A] text-gray-600 cursor-not-allowed' 
-                                                    : 'bg-[#222] text-brand-green hover:bg-brand-green/20 cursor-pointer'
-                                                }`}
-                                                title={reg.buyInCount >= maxAllowedBuyIns ? "Max buy-ins reached" : "Add Re-buy"}
-                                            >
-                                                <Plus size={10} />
-                                                Rebuy
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
+                            {/* Buy-ins Column (Reduced) */}
+                            <td className="px-6 py-4 text-center">
+                                <span className={`font-mono font-bold ${reg.buyInCount > 0 ? 'text-white' : 'text-gray-500'}`}>
+                                    {reg.buyInCount}
+                                </span>
                             </td>
 
-                             {/* Net Payable Column (Transaction View) */}
+                             {/* Net Payable Column */}
                              <td className="px-6 py-4 text-right">
                                 <button 
                                     onClick={() => setPaymentModalReg(reg)}
-                                    className="font-mono font-bold text-white hover:text-brand-green hover:underline decoration-brand-green decoration-2 underline-offset-4 transition-all"
-                                    title="Edit Payment Details"
+                                    className="font-mono font-bold text-white text-sm hover:text-brand-green hover:underline decoration-brand-green decoration-2 underline-offset-4 transition-all"
                                 >
                                     ${reg.netPayable.toLocaleString()}
                                 </button>
@@ -794,7 +490,7 @@ const TournamentParticipantsView: React.FC<TournamentParticipantsViewProps> = ({
                                             placeholder="0"
                                             disabled={isTournamentLocked}
                                             id={`chips-${reg.id}`}
-                                            className={`w-24 bg-[#111] border rounded px-2 py-1 text-right text-white text-sm outline-none transition-colors placeholder:text-gray-700 font-mono ${
+                                            className={`w-20 bg-[#111] border rounded px-2 py-1 text-right text-white text-sm outline-none transition-colors placeholder:text-gray-700 font-mono ${
                                             isTournamentLocked 
                                             ? 'border-[#333] opacity-50 cursor-not-allowed' 
                                             : 'border-[#333] focus:border-brand-green focus:bg-[#1A1A1A]'
@@ -821,6 +517,19 @@ const TournamentParticipantsView: React.FC<TournamentParticipantsViewProps> = ({
                             {/* Actions Column */}
                             <td className="px-6 py-4 text-right">
                               <div className="flex justify-end gap-2">
+                                {/* Manage Payment Button */}
+                                <button 
+                                    onClick={() => setPaymentModalReg(reg)}
+                                    className={`p-2 rounded-full transition-colors ${
+                                        reg.buyInCount === 0 
+                                        ? 'bg-brand-green/20 text-brand-green hover:bg-brand-green hover:text-black animate-pulse'
+                                        : 'text-gray-500 hover:text-white hover:bg-[#333]'
+                                    }`}
+                                    title="Manage Buy-ins & Payments"
+                                >
+                                    <Coins size={16} />
+                                </button>
+
                                 {!isTournamentLocked && (
                                     <>
                                         {reg.status === 'Registered' && (
@@ -911,7 +620,7 @@ const TournamentParticipantsView: React.FC<TournamentParticipantsViewProps> = ({
         existingMemberIds={new Set(registrations.map(r => r.memberId))}
       />
 
-      <PaymentDetailsModal 
+      <BuyinMgmtModal 
         isOpen={!!paymentModalReg}
         onClose={() => setPaymentModalReg(null)}
         registration={paymentModalReg}
@@ -921,15 +630,5 @@ const TournamentParticipantsView: React.FC<TournamentParticipantsViewProps> = ({
     </div>
   );
 };
-
-// Helper Icons
-const UserPlusIcon = ({ size, className }: { size: number, className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-    <circle cx="8.5" cy="7" r="4"></circle>
-    <line x1="20" y1="8" x2="20" y2="14"></line>
-    <line x1="23" y1="11" x2="17" y2="11"></line>
-  </svg>
-);
 
 export default TournamentParticipantsView;

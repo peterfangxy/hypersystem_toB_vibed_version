@@ -17,15 +17,20 @@ A premium Point-of-Sale and management system for high-end poker clubs, built wi
 
 ### 3. Modules (Components)
 
+#### Dashboard
+*   **`components/DashboardView.tsx`**: The landing page displaying high-level club statistics (Revenue, Active Members) and recent tournament winners.
+
 #### Members Management
 *   **`components/MembersView.tsx`**: Main view for Members. Displays a sortable/filterable data table.
 *   **`components/MemberForm.tsx`**: Modal for creating and editing member profiles.
 *   **`components/MemberWalletModal.tsx`**: Financial dashboard for individual members. Handles transaction history (wins, buy-ins, withdrawals) and processes new withdrawal requests (Cash/Crypto/Bank).
 
 #### Tournaments Management
-*   **`components/TournamentsView.tsx`**: Lists events with status workflow capabilities (Scheduled -> Registration -> In Progress -> Completed).
+*   **`components/TournamentsView.tsx`**: Lists events with status workflow capabilities (Scheduled -> Registration -> In Progress -> Completed) and manages Tournament Templates.
 *   **`components/TournamentForm.tsx`**: Comprehensive wizard for creating events, selecting blind structures, and assigning payout models.
-*   **`components/TournamentRegistrationModal.tsx`**: The "Tournament Director" view. Handles player registration, tracks buy-ins/re-buys, manages chip counts, and executes final prize allocation logic based on the selected payout model.
+*   **`components/TournamentParticipantsView.tsx`**: The "Tournament Director" view. Handles player registration, seating, and chip counts.
+*   **`components/BuyinMgmtModal.tsx`**: A detailed modal for managing tournament transactions (Buy-ins, Re-buys, Add-ons) and discounts per player.
+*   **`components/AddPlayerModal.tsx`**: Modal for searching and registering new players to a tournament.
 
 #### Structures & Payouts
 *   **`components/StructuresView.tsx`**: Centralized management for reusable Tournament Structures (Blind Levels) and Payout Matrices.
