@@ -17,11 +17,7 @@ import {
   Trophy,
   AlertTriangle,
   Loader2,
-  Armchair,
   Save,
-  CreditCard,
-  Ticket,
-  Percent,
   Calculator
 } from 'lucide-react';
 import { Tournament, TournamentRegistration, Member, RegistrationStatus, PokerTable, TournamentTransaction } from '../types';
@@ -144,13 +140,7 @@ const PaymentDetailsModal: React.FC<PaymentDetailsModalProps> = ({ isOpen, onClo
                 ? [...registration.transactions] 
                 : [];
             
-            // Fixup: Ensure transactions array length matches buyInCount
-            // In a real scenario DataService.updateRegistrationBuyIn handles this, but for viewing safety:
-            if (txs.length !== registration.buyInCount) {
-               // If there is a mismatch (e.g. data loaded before sync), we just display what we have or pad it. 
-               // For now assume DataService sync is correct.
-            }
-            
+            // Sync fallback: if length mismatch, just take what we have or ensure consistency in parent
             setTransactions(txs);
         }
     }, [isOpen, registration]);
@@ -230,15 +220,15 @@ const PaymentDetailsModal: React.FC<PaymentDetailsModalProps> = ({ isOpen, onClo
                                                 ${baseCost.toLocaleString()}
                                             </td>
                                             
-                                            {/* Inputs */}
+                                            {/* Inputs with right alignment */}
                                             {['rebuyDiscount', 'membershipDiscount', 'voucherDiscount', 'campaignDiscount', 'depositPaid'].map((field) => (
-                                                <td key={field} className="px-2 py-3">
+                                                <td key={field} className="px-2 py-3 text-right">
                                                     <input 
                                                         type="number"
                                                         min="0"
                                                         value={(tx as any)[field]}
                                                         onChange={(e) => handleTransactionChange(idx, field as keyof TournamentTransaction, parseFloat(e.target.value) || 0)}
-                                                        className="w-20 bg-[#222] border border-[#333] rounded px-2 py-1 text-right text-sm text-white outline-none focus:border-brand-green focus:bg-[#111] transition-colors"
+                                                        className="w-24 bg-[#222] border border-[#333] rounded px-2 py-1 text-right text-sm text-white outline-none focus:border-brand-green focus:bg-[#111] transition-colors"
                                                         onFocus={e => e.target.select()}
                                                     />
                                                 </td>
@@ -434,8 +424,7 @@ const TournamentParticipantsView: React.FC<TournamentParticipantsViewProps> = ({
               totalDepositPaid += (tx.depositPaid || 0);
           });
       } else {
-          // Fallback logic if needed (legacy), though dataService.addRegistration creates empty array now
-          // and buyIn change creates default transactions.
+          // Fallback logic if needed (legacy)
           const count = reg.buyInCount || 0;
           netPayable = count * baseCost;
       }
@@ -485,6 +474,7 @@ const TournamentParticipantsView: React.FC<TournamentParticipantsViewProps> = ({
   const totalFees = totalBuyIns * tournament.fee;
   const maxAllowedBuyIns = 1 + tournament.rebuyLimit;
 
+  // --- Chip Reconciliation Logic ---
   const totalChipsInPlay = totalBuyIns * tournament.startingChips;
   const totalChipsCounted = enrichedRegistrations.reduce((sum, reg) => sum + (reg.finalChipCount || 0), 0);
   const chipDifference = totalChipsInPlay - totalChipsCounted;
@@ -774,7 +764,7 @@ const TournamentParticipantsView: React.FC<TournamentParticipantsViewProps> = ({
                                 </div>
                             </td>
 
-                             {/* Net Payable Column (New) */}
+                             {/* Net Payable Column (Transaction View) */}
                              <td className="px-6 py-4 text-right">
                                 <button 
                                     onClick={() => setPaymentModalReg(reg)}
@@ -788,7 +778,7 @@ const TournamentParticipantsView: React.FC<TournamentParticipantsViewProps> = ({
                                 </div>
                             </td>
 
-                            {/* Chips Column */}
+                            {/* Chips Column (In / Out) */}
                             <td className="px-6 py-4 text-right">
                                 <div className="flex flex-col items-end gap-1">
                                    <div className="text-xs text-gray-500 uppercase tracking-wide">
@@ -940,21 +930,6 @@ const UserPlusIcon = ({ size, className }: { size: number, className?: string })
     <line x1="20" y1="8" x2="20" y2="14"></line>
     <line x1="23" y1="11" x2="17" y2="11"></line>
   </svg>
-);
-
-const WalletIcon = ({ size, className }: { size: number, className?: string }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4" />
-      <path d="M4 6v12c0 1.1.9 2 2 2h14v-4" />
-      <path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z" />
-    </svg>
-);
-
-const MegaphoneIcon = ({ size, className }: { size: number, className?: string }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="m3 11 18-5v12L3 14v-3z" />
-      <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
-    </svg>
 );
 
 export default TournamentParticipantsView;
