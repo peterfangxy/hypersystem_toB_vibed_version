@@ -1,0 +1,169 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Plus, 
+  Edit2, 
+  Trash2, 
+  Circle, 
+  Power,
+  Users2
+} from 'lucide-react';
+import { PokerTable, TableStatus } from '../types';
+import * as DataService from '../services/dataService';
+import { THEME } from '../theme';
+import TableForm from './TableForm';
+
+const TablesView = () => {
+  const [tables, setTables] = useState<PokerTable[]>([]);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingTable, setEditingTable] = useState<PokerTable | undefined>(undefined);
+
+  useEffect(() => {
+    setTables(DataService.getTables());
+  }, []);
+
+  const handleCreateOrUpdate = (table: PokerTable) => {
+    DataService.saveTable(table);
+    setTables(DataService.getTables());
+    setIsFormOpen(false);
+    setEditingTable(undefined);
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('Are you sure you want to remove this table?')) {
+      DataService.deleteTable(id);
+      setTables(DataService.getTables());
+    }
+  };
+
+  const handleToggleStatus = (e: React.MouseEvent, table: PokerTable) => {
+    // Toggle logic: If Active -> Inactive. If Inactive/Archived -> Active.
+    const newStatus: TableStatus = table.status === 'Active' ? 'Inactive' : 'Active';
+    const updated = { ...table, status: newStatus };
+    DataService.saveTable(updated);
+    setTables(DataService.getTables());
+  };
+
+  const openCreate = () => {
+    setEditingTable(undefined);
+    setIsFormOpen(true);
+  };
+
+  const openEdit = (table: PokerTable) => {
+    setEditingTable(table);
+    setIsFormOpen(true);
+  };
+
+  const getStatusColor = (status: TableStatus) => {
+    switch(status) {
+      case 'Active': return THEME.statusActive;
+      case 'Inactive': return THEME.statusInactive;
+      case 'Archived': return THEME.statusArchived;
+    }
+  };
+
+  return (
+    <div className="h-full flex flex-col max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex justify-between items-end mb-8">
+        <div>
+          <h2 className="text-4xl font-bold text-white mb-2">Tables</h2>
+          <p className="text-gray-400">Configure floor layout and seat capacity</p>
+        </div>
+        <button 
+          onClick={openCreate}
+          className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95`}
+        >
+          <Plus size={20} strokeWidth={2.5} />
+          Add Table
+        </button>
+      </div>
+
+      {/* Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
+        {tables.map((table) => (
+          <div 
+            key={table.id} 
+            className={`${THEME.card} p-6 rounded-3xl flex flex-col border border-transparent hover:border-[#333] transition-all group relative overflow-hidden`}
+          >
+            {/* Table Top Surface Visual */}
+            <div className={`absolute top-0 right-0 p-20 rounded-full translate-x-1/3 -translate-y-1/3 opacity-5 pointer-events-none ${table.status === 'Active' ? 'bg-brand-green' : 'bg-gray-500'}`} />
+
+            <div className="flex justify-between items-start mb-4 relative z-10">
+              <div className="flex flex-col">
+                <h3 className="text-xl font-bold text-white tracking-tight">{table.name}</h3>
+                <div className="flex items-center gap-2 mt-1">
+                  <Circle size={8} className={`fill-current ${getStatusColor(table.status)}`} />
+                  <span className={`text-xs font-medium uppercase tracking-wide ${getStatusColor(table.status)}`}>
+                    {table.status}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button 
+                  onClick={() => openEdit(table)}
+                  className="p-2 text-gray-400 hover:text-white hover:bg-[#333] rounded-full transition-colors"
+                >
+                  <Edit2 size={16} />
+                </button>
+                <button 
+                  onClick={() => handleDelete(table.id)}
+                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-[#333] rounded-full transition-colors"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 relative z-10">
+               <div className="flex items-center gap-2 text-gray-400 mb-2">
+                 <Users2 size={16} />
+                 <span className="text-sm">{table.capacity} Seats</span>
+               </div>
+               {table.notes && (
+                 <p className="text-sm text-gray-600 line-clamp-2">{table.notes}</p>
+               )}
+            </div>
+
+            {/* Bottom decoration */}
+            <div className="mt-4 pt-4 border-t border-[#222] flex justify-between items-center text-xs text-gray-600 relative z-10">
+               <span>ID: {table.id.slice(0,4)}</span>
+               
+               <button 
+                 onClick={(e) => handleToggleStatus(e, table)}
+                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                    table.status === 'Active'
+                      ? 'bg-brand-green text-black shadow-[0_0_12px_rgba(6,193,103,0.6)] hover:scale-110 hover:shadow-[0_0_20px_rgba(6,193,103,0.8)]'
+                      : 'bg-[#222] text-gray-600 hover:text-gray-300 hover:bg-[#333] hover:scale-110'
+                 }`}
+                 title={table.status === 'Active' ? "Turn Off" : "Turn On"}
+               >
+                  <Power size={16} strokeWidth={2.5} />
+               </button>
+            </div>
+          </div>
+        ))}
+        
+        {/* Empty State Card/Button */}
+        <button 
+          onClick={openCreate}
+          className="border-2 border-dashed border-[#222] rounded-3xl p-6 flex flex-col items-center justify-center text-gray-600 hover:border-brand-green/50 hover:text-brand-green/80 transition-all min-h-[180px]"
+        >
+          <div className="w-12 h-12 rounded-full bg-[#111] flex items-center justify-center mb-3">
+            <Plus size={24} />
+          </div>
+          <span className="font-medium">New Table</span>
+        </button>
+      </div>
+
+      <TableForm 
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSubmit={handleCreateOrUpdate}
+        initialData={editingTable}
+      />
+    </div>
+  );
+};
+
+export default TablesView;
