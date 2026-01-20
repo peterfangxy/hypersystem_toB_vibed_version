@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   Trash2, 
   Plus, 
-  Save 
+  Save,
+  AlertCircle
 } from 'lucide-react';
 import { Tournament, TournamentRegistration, Member, PokerTable, TournamentTransaction } from '../types';
 import { THEME } from '../theme';
@@ -40,6 +41,8 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
     if (!registration || !tournament) return null;
 
     const baseCost = tournament.buyIn + tournament.fee;
+    const maxBuyIns = 1 + (tournament.rebuyLimit || 0);
+    const canAdd = transactions.length < maxBuyIns;
 
     const handleTransactionChange = (index: number, field: keyof TournamentTransaction, value: number) => {
         const updated = [...transactions];
@@ -48,6 +51,8 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
     };
 
     const handleAddTransaction = () => {
+        if (!canAdd) return;
+
         const type = transactions.length === 0 ? 'BuyIn' : 'Rebuy';
         const newTx: TournamentTransaction = {
             id: crypto.randomUUID(),
@@ -106,6 +111,7 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                         <thead className="sticky top-0 bg-[#1A1A1A] z-10 shadow-sm text-xs font-bold text-gray-500 uppercase tracking-wider">
                             <tr>
                                 <th className="px-4 py-3 border-b border-[#333]">#</th>
+                                <th className="px-4 py-3 border-b border-[#333]">Time</th>
                                 <th className="px-4 py-3 border-b border-[#333]">Type</th>
                                 <th className="px-4 py-3 border-b border-[#333] text-right">Base Cost</th>
                                 <th className="px-2 py-3 border-b border-[#333] text-right text-orange-400">Re-buy Disc</th>
@@ -119,13 +125,16 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                         </thead>
                         <tbody className="divide-y divide-[#262626]">
                             {transactions.length === 0 ? (
-                                <tr><td colSpan={10} className="p-8 text-center text-gray-500">No transactions recorded. Click "Add" below.</td></tr>
+                                <tr><td colSpan={11} className="p-8 text-center text-gray-500">No transactions recorded. Click "Add" below.</td></tr>
                             ) : (
                                 transactions.map((tx, idx) => {
                                     const net = calculateRowNet(tx);
                                     return (
                                         <tr key={tx.id} className="hover:bg-[#1A1A1A] transition-colors group">
                                             <td className="px-4 py-3 text-gray-500 font-mono text-xs">{idx + 1}</td>
+                                            <td className="px-4 py-3 text-gray-500 font-mono text-xs">
+                                                {new Date(tx.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                            </td>
                                             <td className="px-4 py-3">
                                                 <span className={`text-xs font-bold uppercase px-2 py-1 rounded border ${
                                                     tx.type === 'BuyIn' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 'bg-orange-500/10 text-orange-500 border-orange-500/20'
@@ -172,15 +181,26 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                 </div>
 
                 {/* Add Button Bar */}
-                <div className="p-3 bg-[#171717] border-t border-[#222] flex justify-center">
+                <div className="p-3 bg-[#171717] border-t border-[#222] flex flex-col items-center justify-center gap-2">
                     <button 
                         type="button" 
                         onClick={handleAddTransaction}
-                        className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-white px-4 py-2 rounded-lg hover:bg-[#222] transition-colors"
+                        disabled={!canAdd}
+                        className={`flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-lg transition-colors ${
+                            canAdd 
+                            ? 'text-gray-400 hover:text-white hover:bg-[#222]' 
+                            : 'text-gray-600 cursor-not-allowed opacity-50'
+                        }`}
                     >
-                        <Plus size={16} className="text-brand-green" />
+                        <Plus size={16} className={canAdd ? "text-brand-green" : "text-gray-600"} />
                         Add {transactions.length === 0 ? 'Buy-In' : 'Re-buy / Add-on'}
                     </button>
+                    {!canAdd && (
+                        <span className="text-xs text-red-400 font-medium bg-red-900/10 px-3 py-1 rounded-full border border-red-900/20 flex items-center gap-2">
+                            <AlertCircle size={12} />
+                            Tournament Limit Reached (Max {maxBuyIns})
+                        </span>
+                    )}
                 </div>
 
                 <div className="p-6 border-t border-[#222] bg-[#171717] flex justify-between items-center shrink-0">

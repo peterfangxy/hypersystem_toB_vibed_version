@@ -13,7 +13,9 @@ import {
   Lock,
   Trophy,
   AlertTriangle,
-  Loader2
+  Loader2,
+  Ticket,
+  Repeat
 } from 'lucide-react';
 import { Tournament, TournamentRegistration, Member, RegistrationStatus, PokerTable, TournamentTransaction } from '../types';
 import * as DataService from '../services/dataService';
@@ -294,14 +296,26 @@ const TournamentParticipantsView: React.FC<TournamentParticipantsViewProps> = ({
           <div className="flex-1">
               <h1 className="text-3xl font-bold text-white leading-tight">{tournament.name}</h1>
               <div className="flex items-center gap-6 text-sm text-gray-400 mt-1">
-                  <span className="flex items-center gap-1.5">
+                  <span className="flex items-center gap-1.5" title="Start Date">
                     <Clock size={16} className="text-gray-500"/>
                     {new Date(tournament.startDate || '').toLocaleDateString()}
                   </span>
-                  <span className="flex items-center gap-1.5">
-                    <User size={16} className="text-gray-500"/>
-                    {registrations.filter(r => r.status !== 'Cancelled').length} / {tournament.maxPlayers} Players
+
+                  <span className="flex items-center gap-1.5" title="Buy-in + Fee">
+                    <Ticket size={16} className="text-gray-500"/>
+                    ${tournament.buyIn} + ${tournament.fee}
                   </span>
+
+                  <span className="flex items-center gap-1.5" title="Max Buy-ins">
+                    <Repeat size={16} className="text-gray-500"/>
+                     {tournament.rebuyLimit === 0 ? 'Freezeout' : `Max ${maxAllowedBuyIns} Buy-ins`}
+                  </span>
+
+                  <span className="flex items-center gap-1.5" title="Registered / Cap">
+                    <User size={16} className="text-gray-500"/>
+                    {registrations.filter(r => r.status !== 'Cancelled').length} / {tournament.maxPlayers}
+                  </span>
+
                   <span className="flex items-center gap-1.5 text-brand-green font-medium pl-2 border-l border-[#333]">
                     <Coins size={16} />
                     Prize Pool: ${totalPrizePool.toLocaleString()}
@@ -384,7 +398,7 @@ const TournamentParticipantsView: React.FC<TournamentParticipantsViewProps> = ({
                         enrichedRegistrations.map((reg) => (
                           <tr key={reg.id} className="group hover:bg-[#222] transition-colors">
                             {/* Player Column */}
-                            <td className="px-6 py-4 truncate pr-2">
+                            <td className="px-6 py-4 pr-2 max-w-[200px]">
                               <div className="flex items-center gap-3">
                                 {isTournamentLocked && reg.rank && (
                                     <div className={`w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-xs font-bold mr-1 ${
@@ -400,8 +414,8 @@ const TournamentParticipantsView: React.FC<TournamentParticipantsViewProps> = ({
                                   alt="" 
                                   className="w-10 h-10 rounded-full object-cover bg-gray-800 shrink-0"
                                 />
-                                <div className="min-w-0">
-                                  <div className="font-bold text-white truncate">{reg.member?.fullName || 'Unknown Member'}</div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="font-bold text-white truncate" title={reg.member?.fullName || 'Unknown Member'}>{reg.member?.fullName || 'Unknown Member'}</div>
                                   <div className="text-xs text-gray-500">{reg.member?.tier} Member</div>
                                 </div>
                               </div>

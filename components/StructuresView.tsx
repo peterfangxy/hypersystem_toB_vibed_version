@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layers, DollarSign, Plus, Clock, Hash, Coins, Edit2, Trash2, Coffee, Timer, Cpu, Table, ArrowRight, Calculator } from 'lucide-react';
+import { Layers, DollarSign, Plus, Clock, Hash, Coins, Edit2, Trash2, Coffee, Timer, Cpu, Table, ArrowRight, Calculator, Repeat } from 'lucide-react';
 import { THEME } from '../theme';
 import { TournamentStructure, PayoutStructure } from '../types';
 import * as DataService from '../services/dataService';
@@ -164,7 +164,7 @@ const StructuresView = () => {
                             <th className="px-4 py-3">Start Chips</th>
                             <th className="px-4 py-3">Start Blinds</th>
                             <th className="px-4 py-3">Levels</th>
-                            <th className="px-4 py-3">Breaks</th>
+                            <th className="px-4 py-3">Re-buys</th>
                             <th className="px-4 py-3">Est. Length</th>
                             <th className="px-4 py-3 pr-6 text-right">Actions</th>
                         </tr>
@@ -172,7 +172,6 @@ const StructuresView = () => {
                     <tbody className="divide-y divide-[#262626]">
                         {structures.map(structure => {
                             const firstLevel = getFirstLevel(structure);
-                            const breaks = structure.items.filter(i => i.type === 'Break');
                             const levels = structure.items.filter(i => i.type === 'Level');
 
                             return (
@@ -201,14 +200,10 @@ const StructuresView = () => {
                                         </div>
                                     </td>
                                     <td className="px-4 py-3">
-                                        {breaks.length > 0 ? (
-                                            <div className="flex items-center gap-2 text-gray-300 font-medium text-sm">
-                                                <Coffee size={16} className="text-gray-500" />
-                                                {breaks.length} Scheduled
-                                            </div>
-                                        ) : (
-                                            <span className="text-gray-600 text-sm">No breaks</span>
-                                        )}
+                                        <div className="flex items-center gap-2 text-gray-300 font-medium text-sm">
+                                            <Repeat size={16} className="text-gray-500" />
+                                            {structure.rebuyLimit === 0 ? 'Freezeout' : `${structure.rebuyLimit} Limit`}
+                                        </div>
                                     </td>
                                     <td className="px-4 py-3">
                                         <div className="flex items-center gap-2 text-white font-bold text-base">
