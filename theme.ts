@@ -1,14 +1,15 @@
+
 export const THEME = {
   bg: 'bg-brand-black', // #000000
   card: 'bg-brand-dark', // #171717
   cardHover: 'hover:bg-[#262626]',
-  border: 'border-[#333333]',
+  border: 'border-brand-border',
   textPrimary: 'text-brand-white',
   textSecondary: 'text-brand-gray',
   accent: 'text-brand-green', // #06C167
   buttonPrimary: 'bg-brand-green text-black hover:bg-[#05a357]',
   buttonSecondary: 'bg-[#333333] text-white hover:bg-[#444444]',
-  input: 'bg-[#262626] border-[#333333] text-white focus:border-brand-green',
+  input: 'bg-[#262626] border-brand-border text-white focus:border-brand-green',
   
   // Status Colors
   statusActive: 'text-brand-green',

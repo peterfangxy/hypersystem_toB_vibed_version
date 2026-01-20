@@ -203,4 +203,36 @@ export interface MemberFinancials {
   transactions: FinancialTransaction[];
 }
 
-export type ViewState = 'dashboard' | 'members' | 'tables' | 'tournaments' | 'structures';
+// --- Settings & Access ---
+
+export type AccessRole = 'Owner' | 'Admin' | 'Operator' | 'Viewer';
+
+export interface TeamMember {
+    id: string;
+    fullName: string;
+    email: string;
+    role: AccessRole;
+    status: 'Active' | 'Pending' | 'Deactivated';
+    lastActive?: string;
+    avatarUrl?: string;
+}
+
+export interface ClubTheme {
+    primaryColor: string; // brand-green
+    backgroundColor: string; // brand-black
+    cardColor: string; // brand-dark
+    textColor: string; // brand-white (Primary Font Color)
+    secondaryTextColor: string; // brand-gray (Secondary Font Color)
+    borderColor: string; // brand-border
+}
+
+export interface ClubSettings {
+    name: string;
+    address: string;
+    contactEmail: string;
+    contactPhone: string;
+    logoUrl: string;
+    theme: ClubTheme;
+}
+
+export type ViewState = 'dashboard' | 'members' | 'tables' | 'tournaments' | 'structures' | 'settings';

@@ -1,4 +1,4 @@
-import { Member, MembershipTier, PokerTable, Tournament, PayoutModel, TournamentRegistration, RegistrationStatus, TournamentStructure, PayoutStructure, Withdrawal, Deposit, MemberFinancials, FinancialTransaction, PaymentMethod, StructureItem, TournamentTransaction } from '../types';
+import { Member, MembershipTier, PokerTable, Tournament, PayoutModel, TournamentRegistration, RegistrationStatus, TournamentStructure, PayoutStructure, Withdrawal, Deposit, MemberFinancials, FinancialTransaction, PaymentMethod, StructureItem, TournamentTransaction, ClubSettings, ClubTheme, TeamMember } from '../types';
 
 const MEMBERS_KEY = 'royal_flush_members';
 const TABLES_KEY = 'royal_flush_tables';
@@ -9,6 +9,8 @@ const STRUCTURES_KEY = 'royal_flush_structures_v2';
 const PAYOUTS_KEY = 'royal_flush_payouts';
 const WITHDRAWALS_KEY = 'royal_flush_withdrawals';
 const DEPOSITS_KEY = 'royal_flush_deposits';
+const SETTINGS_KEY = 'royal_flush_settings';
+const TEAM_KEY = 'royal_flush_team';
 
 // --- Helpers ---
 
@@ -733,4 +735,65 @@ export const addDeposit = (memberId: string, amount: number, method: PaymentMeth
     };
     financials.transactions.unshift(tx);
     saveMemberFinancials(memberId, financials);
+};
+
+// --- Club Settings & Team ---
+
+const DEFAULT_THEME: ClubTheme = {
+    primaryColor: '#06C167',
+    backgroundColor: '#000000',
+    cardColor: '#171717',
+    textColor: '#FFFFFF',
+    secondaryTextColor: '#A3A3A3',
+    borderColor: '#333333'
+};
+
+const DEFAULT_SETTINGS: ClubSettings = {
+    name: 'Royal Flush Club',
+    address: '123 Poker Blvd, Las Vegas, NV',
+    contactEmail: 'manager@royalflush.com',
+    contactPhone: '+1 (555) 123-4567',
+    logoUrl: '',
+    theme: DEFAULT_THEME
+};
+
+const SEED_TEAM: TeamMember[] = [
+    { id: '1', fullName: 'Tony G', email: 'tony@royalflush.com', role: 'Owner', status: 'Active', lastActive: new Date().toISOString(), avatarUrl: 'https://ui-avatars.com/api/?name=Tony+G&background=06C167&color=fff' },
+    { id: '2', fullName: 'Mike Matusow', email: 'mike@royalflush.com', role: 'Operator', status: 'Active', lastActive: new Date(Date.now() - 86400000).toISOString(), avatarUrl: 'https://ui-avatars.com/api/?name=Mike+M&background=333&color=fff' }
+];
+
+export const getClubSettings = (): ClubSettings => {
+    const data = getLocalData<ClubSettings>(SETTINGS_KEY);
+    // Backward compatibility for themes without new fields
+    const settings = data || DEFAULT_SETTINGS;
+    if (settings.theme && !settings.theme.textColor) {
+        settings.theme = { ...DEFAULT_THEME, ...settings.theme };
+    }
+    return settings;
+};
+
+export const saveClubSettings = (settings: ClubSettings): void => {
+    setLocalData(SETTINGS_KEY, settings);
+};
+
+export const getTeamMembers = (): TeamMember[] => {
+    const data = getLocalData<TeamMember[]>(TEAM_KEY);
+    if (!data) {
+        setLocalData(TEAM_KEY, SEED_TEAM);
+        return SEED_TEAM;
+    }
+    return data;
+};
+
+export const saveTeamMember = (member: TeamMember): void => {
+    const members = getTeamMembers();
+    const idx = members.findIndex(m => m.id === member.id);
+    if (idx >= 0) members[idx] = member;
+    else members.push(member);
+    setLocalData(TEAM_KEY, members);
+};
+
+export const deleteTeamMember = (id: string): void => {
+    const members = getTeamMembers().filter(m => m.id !== id);
+    setLocalData(TEAM_KEY, members);
 };

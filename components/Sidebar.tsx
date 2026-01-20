@@ -5,7 +5,8 @@ import {
   Trophy, 
   Armchair, 
   User,
-  Sliders
+  Sliders,
+  Settings
 } from 'lucide-react';
 import { ViewState } from '../types';
 import { THEME } from '../theme';
@@ -22,6 +23,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView }) => {
     { id: 'tables', label: 'Tables', icon: Armchair },
     { id: 'tournaments', label: 'Tournaments', icon: Trophy },
     { id: 'structures', label: 'Structures', icon: Sliders },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (
