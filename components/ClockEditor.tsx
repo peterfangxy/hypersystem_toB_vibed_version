@@ -30,7 +30,8 @@ import {
   Grid,
   Magnet,
   Calendar,
-  Timer
+  Timer,
+  Copy
 } from 'lucide-react';
 import { ClockConfig, ClockField, ClockFieldType } from '../types';
 import { THEME } from '../theme';
@@ -81,6 +82,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
   const [isAddWidgetOpen, setIsAddWidgetOpen] = useState(false);
   const [draggedFieldId, setDraggedFieldId] = useState<string | null>(null);
+  const [clipboard, setClipboard] = useState<ClockField | null>(null);
   
   // Editor Settings
   const [showGrid, setShowGrid] = useState(false);
@@ -103,6 +105,44 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
           setConfig(initialConfig);
       }
   }, [initialConfig]);
+
+  // --- Keyboard Shortcuts (Copy/Paste/Delete) ---
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+        // Ignore if typing in input
+        if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName || '')) return;
+
+        // Delete / Backspace
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+            if (selectedFieldId) {
+                removeField(selectedFieldId);
+            }
+            return;
+        }
+
+        // Copy (Ctrl+C / Cmd+C)
+        if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+            if (selectedFieldId) {
+                const field = config.fields.find(f => f.id === selectedFieldId);
+                if (field) {
+                    e.preventDefault();
+                    setClipboard(field);
+                }
+            }
+        }
+
+        // Paste (Ctrl+V / Cmd+V)
+        if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+            if (clipboard) {
+                e.preventDefault();
+                duplicateField(clipboard);
+            }
+        }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedFieldId, config.fields, clipboard]);
 
   const addField = (type: ClockFieldType) => {
       const isShape = type.startsWith('shape_');
@@ -138,6 +178,21 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
       setConfig(prev => ({ ...prev, fields: [...prev.fields, newField] }));
       setSelectedFieldId(newField.id);
       setIsAddWidgetOpen(false);
+  };
+
+  const duplicateField = (field: ClockField) => {
+      const newField = {
+          ...field,
+          id: crypto.randomUUID(),
+          x: Math.min(field.x + 2, 98), // Offset position slightly
+          y: Math.min(field.y + 2, 98)
+      };
+      
+      setConfig(prev => ({
+          ...prev,
+          fields: [...prev.fields, newField]
+      }));
+      setSelectedFieldId(newField.id);
   };
 
   const removeField = (id: string) => {
@@ -794,7 +849,15 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                             </div>
                          </div>
 
-                         <div className="pt-8 mt-auto">
+                         <div className="pt-8 mt-auto space-y-3">
+                             {/* Duplicate Button */}
+                             <button 
+                                onClick={() => duplicateField(selectedField)}
+                                className="w-full py-3 bg-[#1A1A1A] hover:bg-[#222] text-gray-300 border border-[#333] hover:border-gray-500 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors"
+                             >
+                                 <Copy size={18} /> Duplicate Widget
+                             </button>
+
                              <button 
                                 onClick={() => removeField(selectedField.id)}
                                 className="w-full py-3 bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-colors"
