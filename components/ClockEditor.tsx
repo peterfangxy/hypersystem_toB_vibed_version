@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   ArrowLeft, 
@@ -32,7 +33,8 @@ import {
   Calendar,
   Timer,
   Copy,
-  CheckCircle2
+  CheckCircle2,
+  Repeat
 } from 'lucide-react';
 import { ClockConfig, ClockField, ClockFieldType } from '../types';
 import { THEME } from '../theme';
@@ -52,6 +54,8 @@ const AVAILABLE_FIELDS: { type: ClockFieldType; label: string; icon: any }[] = [
     { type: 'next_blinds', label: 'Next Blinds', icon: Layers },
     { type: 'ante', label: 'Ante', icon: Layers },
     { type: 'next_ante', label: 'Next Ante', icon: Layers },
+    { type: 'starting_chips', label: 'Starting Chips', icon: Coins },
+    { type: 'rebuy_limit', label: 'Rebuy Limit', icon: Repeat },
     { type: 'players_count', label: 'Players Count', icon: Users },
     { type: 'entries_count', label: 'Total Entries', icon: Users },
     { type: 'total_chips', label: 'Total Chips', icon: Coins },
@@ -168,6 +172,8 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                      type === 'avg_stack' ? 'AVG STACK' : 
                      type === 'next_blinds' ? 'NEXT BLINDS' :
                      type === 'est_end_time' ? 'EST END' :
+                     type === 'starting_chips' ? 'STARTING CHIPS' :
+                     type === 'rebuy_limit' ? 'REBUYS' :
                      undefined,
           // Shape defaults
           width: isLine ? 300 : isShape ? 100 : undefined,
@@ -324,6 +330,8 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
           case 'next_blinds': return '200 / 400';
           case 'ante': return '200';
           case 'next_ante': return '400';
+          case 'starting_chips': return '10,000';
+          case 'rebuy_limit': return '1 Limit';
           case 'players_count': return '45 / 100';
           case 'entries_count': return '62';
           case 'total_chips': return '1,240,000';

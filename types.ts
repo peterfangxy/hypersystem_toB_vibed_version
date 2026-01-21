@@ -252,6 +252,8 @@ export type ClockFieldType =
   | 'entries_count'
   | 'total_chips' 
   | 'avg_stack' 
+  | 'starting_chips'
+  | 'rebuy_limit'
   | 'next_break'
   | 'payout_total'
   | 'custom_text'

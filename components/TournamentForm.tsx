@@ -194,8 +194,10 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
   };
 
   const selectedStruct = structures.find(s => s.id === formData.structureId);
-  // Get first level for preview
-  const previewLevel = selectedStruct?.items.find(i => i.type === 'Level');
+  // Get levels for preview logic
+  const levels = selectedStruct?.items.filter(i => i.type === 'Level') || [];
+  const level1 = levels[0];
+  const level2 = levels[1];
 
   return (
     <Modal
@@ -324,12 +326,12 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
             </div>
 
             {/* Structure & Payout Selection */}
-            <div className="space-y-4 pt-2 border-t border-[#222]">
+            <div className="space-y-6 pt-2 border-t border-[#222]">
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2 mt-4">
                 <Trophy size={14} /> Structure & Payouts
                 </h3>
                 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-6">
                     {/* Tournament Structure Selector */}
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-300">Tournament Structure</label>
@@ -356,7 +358,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-400">Blinds:</span>
-                                    <span className="text-white">{previewLevel ? `${previewLevel.smallBlind}/${previewLevel.bigBlind}` : 'N/A'}</span>
+                                    <span className="text-white">{level1 ? `${level1.smallBlind}/${level1.bigBlind}` : 'N/A'}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-400">Rebuys:</span>
@@ -404,51 +406,144 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                             </div>
                         )}
                     </div>
+                </div>
 
-                    {/* Clock Config Selector */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-300">Clock Layout</label>
-                        <div className="relative">
-                            <select
-                                value={formData.clockConfigId || ''}
-                                onChange={(e) => setFormData({...formData, clockConfigId: e.target.value})}
-                                className={`w-full ${THEME.input} rounded-xl pl-4 pr-10 py-3 outline-none appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed text-sm`}
-                            >
-                                <option value="">Select a layout...</option>
-                                {clockConfigs.map(c => (
-                                    <option key={c.id} value={c.id}>{c.name} {c.isDefault ? '(Default)' : ''}</option>
-                                ))}
-                            </select>
-                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" size={16} />
+                {/* Clock Config Selector Section */}
+                <div className="bg-[#1A1A1A] border border-[#333] rounded-xl p-4">
+                    <div className="flex justify-between items-center mb-4">
+                        <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                            <MonitorPlay size={16} className="text-brand-green"/>
+                            Tournament Clock Layout
+                        </label>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Left: Selector */}
+                        <div className="md:col-span-1 space-y-2">
+                             <label className="text-xs text-gray-500 font-bold uppercase">Select Theme</label>
+                             <div className="relative">
+                                <select
+                                    value={formData.clockConfigId || ''}
+                                    onChange={(e) => setFormData({...formData, clockConfigId: e.target.value})}
+                                    className={`w-full ${THEME.input} rounded-xl pl-4 pr-10 py-3 outline-none appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed text-sm`}
+                                >
+                                    <option value="">Select a layout...</option>
+                                    {clockConfigs.map(c => (
+                                        <option key={c.id} value={c.id}>{c.name} {c.isDefault ? '(Default)' : ''}</option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" size={16} />
+                            </div>
+                            
+                            {/* Clock Info Description */}
+                            {formData.clockConfigId && (
+                                <div className="text-xs text-gray-500 mt-2">
+                                    {(() => {
+                                        const c = clockConfigs.find(config => config.id === formData.clockConfigId);
+                                        return c ? `${c.fields.length} active widgets configured.` : '';
+                                    })()}
+                                </div>
+                            )}
                         </div>
 
-                        {/* Preview info for Clock */}
-                        {formData.clockConfigId && (
-                            <div className="bg-[#1A1A1A] border border-[#333] rounded-xl p-3 text-sm animate-in fade-in slide-in-from-top-2">
-                                {(() => {
-                                    const c = clockConfigs.find(config => config.id === formData.clockConfigId);
-                                    if (!c) return null;
-                                    return (
-                                        <div className="flex items-start gap-3">
-                                            <div className="mt-1 text-blue-400">
-                                                <MonitorPlay size={16} />
-                                            </div>
-                                            <div className="w-full">
-                                                <div className="font-bold text-white text-xs uppercase truncate">{c.name}</div>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <div 
-                                                        className="w-3 h-3 rounded-full border border-gray-600" 
-                                                        style={{ backgroundColor: c.backgroundColor }}
-                                                        title="Background Color"
-                                                    />
-                                                    <div className="text-gray-400 text-[10px]">{c.fields.length} Widgets</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })()}
-                            </div>
-                        )}
+                        {/* Right: Visual Preview */}
+                        <div className="md:col-span-2">
+                             <label className="text-xs text-gray-500 font-bold uppercase mb-2 block">Live Preview</label>
+                             {formData.clockConfigId ? (
+                                 <div className="aspect-video w-full rounded-lg border border-[#333] overflow-hidden relative shadow-inner" style={{backgroundColor: clockConfigs.find(c => c.id === formData.clockConfigId)?.backgroundColor || '#000'}}>
+                                     {/* Mini render of clock fields */}
+                                     {(() => {
+                                         const c = clockConfigs.find(config => config.id === formData.clockConfigId);
+                                         if (!c) return null;
+                                         
+                                         return (
+                                             <div className="w-full h-full relative transform scale-[0.5] origin-top-left" style={{ width: '200%', height: '200%' }}>
+                                                 {c.fields.map(field => {
+                                                     // Rendering logic from ClockEditor for preview
+                                                     // We map field types to real form data
+                                                     let displayValue = '---';
+                                                     
+                                                     // Data Mappings
+                                                     if (field.type === 'tournament_name') displayValue = formData.name || 'Tournament Name';
+                                                     else if (field.type === 'tournament_desc') displayValue = formData.description || '';
+                                                     else if (field.type === 'timer') displayValue = '20:00';
+                                                     else if (field.type === 'blind_countdown') displayValue = '20:00';
+                                                     
+                                                     // --- BLINDS & ANTES MAPPING ---
+                                                     else if (field.type === 'blind_level') {
+                                                         displayValue = level1 ? `${level1.smallBlind}/${level1.bigBlind}` : (formData.startingBlinds || '100/200');
+                                                     }
+                                                     else if (field.type === 'ante') {
+                                                         displayValue = level1 ? (level1.ante || 0).toString() : '0';
+                                                     }
+                                                     else if (field.type === 'next_blinds') {
+                                                         displayValue = level2 ? `${level2.smallBlind}/${level2.bigBlind}` : '---';
+                                                     }
+                                                     else if (field.type === 'next_ante') {
+                                                         displayValue = level2 ? (level2.ante || 0).toString() : '---';
+                                                     }
+                                                     // ------------------------------
+
+                                                     else if (field.type === 'players_count') displayValue = `0 / ${formData.maxPlayers || 50}`;
+                                                     else if (field.type === 'entries_count') displayValue = '0';
+                                                     else if (field.type === 'total_chips') displayValue = '0'; // Would be entries * startingChips
+                                                     else if (field.type === 'avg_stack') displayValue = (formData.startingChips || 0).toLocaleString(); // Initially same as starting chips
+                                                     else if (field.type === 'starting_chips') displayValue = (formData.startingChips || 0).toLocaleString();
+                                                     else if (field.type === 'rebuy_limit') displayValue = formData.rebuyLimit === 0 ? 'Freezeout' : `${formData.rebuyLimit} Limit`;
+                                                     else if (field.type === 'payout_total') displayValue = `$0`;
+                                                     else if (field.type === 'start_time') displayValue = formData.startTime || '19:00';
+                                                     else if (field.type === 'start_date') displayValue = formData.startDate ? new Date(formData.startDate).toLocaleDateString() : 'Today';
+                                                     else if (field.type === 'current_time') displayValue = '12:00';
+                                                     
+                                                     // Basic style application
+                                                     const style: React.CSSProperties = {
+                                                         position: 'absolute',
+                                                         left: `${field.x}%`,
+                                                         top: `${field.y}%`,
+                                                         transform: 'translate(-50%, -50%)',
+                                                         color: field.color,
+                                                         fontSize: `${field.fontSize}px`,
+                                                         fontWeight: field.fontWeight,
+                                                         textAlign: field.align,
+                                                         whiteSpace: 'nowrap'
+                                                     };
+                                                     
+                                                     return (
+                                                         <div key={field.id} style={style}>
+                                                             {field.showLabel && field.labelText && <div className="text-[0.4em] opacity-70 mb-[0.1em]">{field.labelText}</div>}
+                                                             {field.type.startsWith('shape_') ? (
+                                                                 <div style={{
+                                                                     width: field.width, 
+                                                                     height: field.height, 
+                                                                     backgroundColor: field.color,
+                                                                     border: `${field.borderWidth}px solid ${field.borderColor}`,
+                                                                     borderRadius: field.type.includes('circle') ? '50%' : '0'
+                                                                 }}/>
+                                                             ) : (
+                                                                 field.type === 'custom_text' ? field.customText : 
+                                                                 field.type === 'line' ? (
+                                                                     <div style={{
+                                                                         width: field.width,
+                                                                         height: field.height,
+                                                                         backgroundColor: field.color,
+                                                                         borderRadius: '999px'
+                                                                     }} />
+                                                                 ) :
+                                                                 displayValue
+                                                             )}
+                                                         </div>
+                                                     )
+                                                 })}
+                                             </div>
+                                         )
+                                     })()}
+                                 </div>
+                             ) : (
+                                 <div className="aspect-video w-full rounded-lg border border-dashed border-[#333] bg-[#111] flex items-center justify-center text-gray-600 text-xs">
+                                     No layout selected
+                                 </div>
+                             )}
+                        </div>
                     </div>
                 </div>
             </div>
