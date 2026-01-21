@@ -1,876 +1,622 @@
 
-// ... (Previous imports and keys remain unchanged)
-import { Member, MembershipTier, PokerTable, Tournament, PayoutModel, TournamentRegistration, RegistrationStatus, TournamentStructure, PayoutStructure, Withdrawal, Deposit, MemberFinancials, FinancialTransaction, PaymentMethod, StructureItem, TournamentTransaction, ClubSettings, ClubTheme, TeamMember, ClockConfig, ClockField } from '../types';
+import {
+  Member,
+  PokerTable,
+  Tournament,
+  TournamentStructure,
+  PayoutStructure,
+  TournamentRegistration,
+  ClubSettings,
+  TeamMember,
+  MemberFinancials,
+  FinancialTransaction,
+  RegistrationStatus,
+  TournamentTransaction,
+  PaymentMethod,
+  ClockConfig,
+  MembershipTier,
+  PayoutModel
+} from '../types';
 
-const MEMBERS_KEY = 'royal_flush_members';
-const TABLES_KEY = 'royal_flush_tables';
-const TOURNAMENTS_KEY = 'royal_flush_tournaments_v3';
-const TOURNAMENT_TEMPLATES_KEY = 'royal_flush_tournament_templates';
-const REGISTRATIONS_KEY = 'royal_flush_registrations';
-const STRUCTURES_KEY = 'royal_flush_structures_v2';
-const PAYOUTS_KEY = 'royal_flush_payouts';
-const WITHDRAWALS_KEY = 'royal_flush_withdrawals';
-const DEPOSITS_KEY = 'royal_flush_deposits';
-const SETTINGS_KEY = 'royal_flush_settings';
-const TEAM_KEY = 'royal_flush_team';
-const CLOCKS_KEY = 'royal_flush_clocks';
+// Storage Keys
+const SETTINGS_KEY = 'rf_settings';
+const MEMBERS_KEY = 'rf_members';
+const TABLES_KEY = 'rf_tables';
+const STRUCTURES_KEY = 'rf_structures';
+const PAYOUTS_KEY = 'rf_payouts';
+const TOURNAMENTS_KEY = 'rf_tournaments';
+const TEMPLATES_KEY = 'rf_templates';
+const REGISTRATIONS_KEY = 'rf_registrations';
+const FINANCIALS_KEY = 'rf_financials';
+const TEAM_KEY = 'rf_team';
+const CLOCKS_KEY = 'rf_clocks';
 
-// ... (Helpers and other sections remain unchanged until SEED_TOURNAMENTS)
+// Helpers
+function getLocalData<T>(key: string): T | null {
+  const str = localStorage.getItem(key);
+  return str ? JSON.parse(str) : null;
+}
 
-const getLocalData = <T>(key: string): T | null => {
-  const data = localStorage.getItem(key);
-  return data ? JSON.parse(data) : null;
+function setLocalData<T>(key: string, data: T): void {
+  localStorage.setItem(key, JSON.stringify(data));
+}
+
+// --- SEED DATA ---
+
+const SEED_MEMBERS: Member[] = [
+  { id: 'm1', fullName: 'Daniel Negreanu', email: 'dnegs@gg.com', phone: '555-0101', age: 48, gender: 'Male', joinDate: '2023-01-15', tier: MembershipTier.DIAMOND, status: 'Activated', avatarUrl: 'https://ui-avatars.com/api/?name=Daniel+Negreanu&background=random' },
+  { id: 'm2', fullName: 'Phil Ivey', email: 'ivey@poker.com', phone: '555-0102', age: 46, gender: 'Male', joinDate: '2023-01-20', tier: MembershipTier.PLATINUM, status: 'Activated', avatarUrl: 'https://ui-avatars.com/api/?name=Phil+Ivey&background=random' },
+  { id: 'm3', fullName: 'Vanessa Selbst', email: 'v.selbst@law.com', phone: '555-0103', age: 38, gender: 'Female', joinDate: '2023-02-10', tier: MembershipTier.GOLD, status: 'Activated', avatarUrl: 'https://ui-avatars.com/api/?name=Vanessa+Selbst&background=random' },
+  { id: 'm4', fullName: 'Tom Dwan', email: 'durrrr@online.com', phone: '555-0104', age: 36, gender: 'Male', joinDate: '2023-03-05', tier: MembershipTier.SILVER, status: 'Activated', avatarUrl: 'https://ui-avatars.com/api/?name=Tom+Dwan&background=random' },
+  { id: 'm5', fullName: 'Jennifer Tilly', email: 'jtilly@hollywood.com', phone: '555-0105', age: 64, gender: 'Female', joinDate: '2023-04-12', tier: MembershipTier.GOLD, status: 'Activated', avatarUrl: 'https://ui-avatars.com/api/?name=Jennifer+Tilly&background=random' },
+  { id: 'm6', fullName: 'Doyle Brunson', email: 'doyle@legend.com', phone: '555-0106', age: 89, gender: 'Male', joinDate: '2022-12-01', tier: MembershipTier.DIAMOND, status: 'Activated', avatarUrl: 'https://ui-avatars.com/api/?name=Doyle+Brunson&background=random' },
+  { id: 'm7', fullName: 'Liv Boeree', email: 'liv@science.com', phone: '555-0107', age: 38, gender: 'Female', joinDate: '2023-05-20', tier: MembershipTier.SILVER, status: 'Activated', avatarUrl: 'https://ui-avatars.com/api/?name=Liv+Boeree&background=random' },
+  { id: 'm8', fullName: 'Erik Seidel', email: 'seiborg@quiet.com', phone: '555-0108', age: 63, gender: 'Male', joinDate: '2023-01-05', tier: MembershipTier.PLATINUM, status: 'Activated', avatarUrl: 'https://ui-avatars.com/api/?name=Erik+Seidel&background=random' },
+];
+
+const SEED_TABLES: PokerTable[] = [
+  { id: 't1', name: 'Table 1 (Feature)', capacity: 9, status: 'Active', notes: 'RFID Equipped' },
+  { id: 't2', name: 'Table 2', capacity: 9, status: 'Active' },
+  { id: 't3', name: 'Table 3', capacity: 9, status: 'Active' },
+  { id: 't4', name: 'Table 4', capacity: 9, status: 'Active' },
+  { id: 't5', name: 'Table 5 (High Roller)', capacity: 6, status: 'Inactive', notes: 'Private Room' },
+];
+
+const SEED_STRUCTURES: TournamentStructure[] = [
+    {
+        id: 'struct_turbo',
+        name: 'Turbo Daily (BB Ante)',
+        startingChips: 20000,
+        rebuyLimit: 1,
+        lastRebuyLevel: 6,
+        items: [
+            { type: 'Level', duration: 15, smallBlind: 100, bigBlind: 200, ante: 200, level: 1 },
+            { type: 'Level', duration: 15, smallBlind: 200, bigBlind: 400, ante: 400, level: 2 },
+            { type: 'Level', duration: 15, smallBlind: 300, bigBlind: 600, ante: 600, level: 3 },
+            { type: 'Level', duration: 15, smallBlind: 400, bigBlind: 800, ante: 800, level: 4 },
+            { type: 'Level', duration: 15, smallBlind: 600, bigBlind: 1200, ante: 1200, level: 5 },
+            { type: 'Break', duration: 10 },
+            { type: 'Level', duration: 15, smallBlind: 1000, bigBlind: 2000, ante: 2000, level: 6 },
+            { type: 'Level', duration: 15, smallBlind: 1500, bigBlind: 3000, ante: 3000, level: 7 },
+            { type: 'Level', duration: 15, smallBlind: 2000, bigBlind: 4000, ante: 4000, level: 8 },
+            { type: 'Level', duration: 15, smallBlind: 3000, bigBlind: 6000, ante: 6000, level: 9 },
+        ]
+    },
+    {
+        id: 'struct_deep',
+        name: 'Deepstack Weekend',
+        startingChips: 50000,
+        rebuyLimit: 0,
+        lastRebuyLevel: 8,
+        items: [
+            { type: 'Level', duration: 40, smallBlind: 50, bigBlind: 100, ante: 0, level: 1 },
+            { type: 'Level', duration: 40, smallBlind: 75, bigBlind: 150, ante: 0, level: 2 },
+            { type: 'Level', duration: 40, smallBlind: 100, bigBlind: 200, ante: 0, level: 3 },
+            { type: 'Level', duration: 40, smallBlind: 150, bigBlind: 300, ante: 0, level: 4 },
+            { type: 'Break', duration: 15 },
+            { type: 'Level', duration: 40, smallBlind: 200, bigBlind: 400, ante: 400, level: 5 },
+            { type: 'Level', duration: 40, smallBlind: 250, bigBlind: 500, ante: 500, level: 6 },
+            { type: 'Level', duration: 40, smallBlind: 300, bigBlind: 600, ante: 600, level: 7 },
+            { type: 'Level', duration: 40, smallBlind: 400, bigBlind: 800, ante: 800, level: 8 },
+        ]
+    }
+];
+
+const SEED_PAYOUTS: PayoutStructure[] = [
+    { id: 'algo_1', name: 'Standard Fixed (15%)', type: 'Algorithm', description: 'Top 15% of field paid. Standard steepness.', isSystemDefault: true },
+    { id: 'algo_icm', name: 'ICM Calculator', type: 'Algorithm', description: 'Calculates equity based on stack sizes.', isSystemDefault: true },
+    { 
+        id: 'custom_1', 
+        name: 'Final Table Only', 
+        type: 'Custom Matrix', 
+        description: 'Pays top 3 for small fields, top 9 for large fields.',
+        rules: [
+            { minPlayers: 2, maxPlayers: 8, placesPaid: 2, percentages: [70, 30] },
+            { minPlayers: 9, maxPlayers: 20, placesPaid: 3, percentages: [50, 30, 20] },
+            { minPlayers: 21, maxPlayers: 100, placesPaid: 9, percentages: [30, 20, 14, 10, 8, 6, 5, 4, 3] },
+        ]
+    },
+    {
+        id: 'custom_2',
+        name: 'Top 3 Heavy',
+        type: 'Custom Matrix', 
+        description: 'Aggressive payout structure rewarding the podium finishers.',
+        rules: [
+            { minPlayers: 2, maxPlayers: 10, placesPaid: 2, percentages: [75, 25] },
+            { minPlayers: 11, maxPlayers: 30, placesPaid: 3, percentages: [60, 30, 10] },
+            { minPlayers: 31, maxPlayers: 100, placesPaid: 5, percentages: [50, 25, 15, 7, 3] },
+        ]
+    }
+];
+
+const SEED_TOURNAMENTS: Tournament[] = [
+    {
+        id: 'tour_1',
+        name: 'Friday Night Turbo',
+        startDate: new Date().toISOString().split('T')[0],
+        startTime: '19:00',
+        estimatedDurationMinutes: 240,
+        buyIn: 100,
+        fee: 20,
+        maxPlayers: 45,
+        startingChips: 20000,
+        startingBlinds: '100/200',
+        blindLevelMinutes: 15,
+        blindIncreasePercent: 20,
+        rebuyLimit: 1,
+        lastRebuyLevel: 6,
+        payoutModel: PayoutModel.FIXED,
+        structureId: 'struct_turbo',
+        payoutStructureId: 'algo_1',
+        clockConfigId: 'default_clock',
+        status: 'Scheduled',
+        description: 'Fast paced action with BB Ante from level 1.',
+        tableIds: ['t1', 't2', 't3']
+    },
+    {
+        id: 'tour_2',
+        name: 'Sunday Deepstack',
+        startDate: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0], // 2 days from now
+        startTime: '14:00',
+        estimatedDurationMinutes: 480,
+        buyIn: 250,
+        fee: 30,
+        maxPlayers: 100,
+        startingChips: 50000,
+        startingBlinds: '50/100',
+        blindLevelMinutes: 40,
+        blindIncreasePercent: 15,
+        rebuyLimit: 0,
+        lastRebuyLevel: 8,
+        payoutModel: PayoutModel.FIXED,
+        structureId: 'struct_deep',
+        payoutStructureId: 'algo_icm',
+        clockConfigId: 'default_clock',
+        status: 'Scheduled',
+        description: 'Deep structure with 40min levels. Great value.',
+        tableIds: ['t1', 't2', 't3', 't4']
+    },
+    {
+        id: 'tour_3',
+        name: 'Wednesday Rebuy Madness',
+        startDate: new Date(Date.now() + 86400000 * 5).toISOString().split('T')[0], // 5 days from now
+        startTime: '19:30',
+        estimatedDurationMinutes: 180,
+        buyIn: 50,
+        fee: 10,
+        maxPlayers: 30,
+        startingChips: 10000,
+        startingBlinds: '100/200',
+        blindLevelMinutes: 10,
+        blindIncreasePercent: 25,
+        rebuyLimit: 99, // Unlimited
+        lastRebuyLevel: 6,
+        payoutModel: PayoutModel.FIXED,
+        structureId: 'struct_turbo',
+        payoutStructureId: 'custom_1',
+        clockConfigId: 'default_clock',
+        status: 'Scheduled',
+        description: 'Unlimited rebuys for the first hour.',
+        tableIds: ['t2', 't3']
+    }
+];
+
+const SEED_CLOCKS: ClockConfig[] = [
+    {
+        id: 'default_clock',
+        name: 'Standard Tournament Clock',
+        description: 'High visibility layout designed for 1080p screens. Includes blinds, ante, and average stack tracking.',
+        backgroundColor: '#050505',
+        fontColor: '#FFFFFF',
+        isDefault: true,
+        fields: [
+            { id: 't1', type: 'timer', label: 'Timer', x: 50, y: 42, fontSize: 40, fontWeight: 'bold', color: '#06C167', align: 'center', showLabel: false },
+            
+            { id: 'h1', type: 'tournament_name', label: 'Title', x: 50, y: 10, fontSize: 40, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: false },
+            { id: 'div1', type: 'line', label: 'Divider', x: 50, y: 18, width: 900, height: 2, color: '#333333', align: 'center', showLabel: false, fontSize: 40, fontWeight: 'normal' },
+
+            { id: 'l1', type: 'blind_level', label: 'Blinds', x: 20, y: 40, fontSize: 40, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: true, labelText: 'CURRENT BLINDS' },
+            { id: 'l2', type: 'ante', label: 'Ante', x: 20, y: 65, fontSize: 40, fontWeight: 'bold', color: '#A3A3A3', align: 'center', showLabel: true, labelText: 'ANTE' },
+
+            { id: 'r1', type: 'next_blinds', label: 'Next Blinds', x: 80, y: 40, fontSize: 40, fontWeight: 'bold', color: '#666666', align: 'center', showLabel: true, labelText: 'NEXT BLINDS' },
+            { id: 'r2', type: 'next_ante', label: 'Next Ante', x: 80, y: 65, fontSize: 40, fontWeight: 'bold', color: '#666666', align: 'center', showLabel: true, labelText: 'NEXT ANTE' },
+
+            { id: 'b1', type: 'players_count', label: 'Players', x: 20, y: 88, fontSize: 40, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: true, labelText: 'ENTRIES' },
+            { id: 'b2', type: 'avg_stack', label: 'Avg', x: 50, y: 88, fontSize: 40, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: true, labelText: 'AVG STACK' },
+            { id: 'b3', type: 'next_break', label: 'Break', x: 80, y: 88, fontSize: 40, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: true, labelText: 'NEXT BREAK' },
+        ]
+    }
+];
+
+// --- Club Settings ---
+export const getClubSettings = (): ClubSettings => {
+  const defaults: ClubSettings = {
+    name: 'Royal Flush Club',
+    address: '123 Poker Blvd, Las Vegas, NV',
+    contactEmail: 'info@royalflush.com',
+    contactPhone: '+1 (555) 123-4567',
+    logoUrl: '',
+    theme: {
+      primaryColor: '#06C167',
+      backgroundColor: '#000000',
+      cardColor: '#171717',
+      textColor: '#FFFFFF',
+      secondaryTextColor: '#A3A3A3',
+      borderColor: '#333333'
+    }
+  };
+  return getLocalData<ClubSettings>(SETTINGS_KEY) || defaults;
 };
 
-const setLocalData = <T>(key: string, data: T): void => {
-  localStorage.setItem(key, JSON.stringify(data));
+export const saveClubSettings = (settings: ClubSettings): void => {
+  setLocalData(SETTINGS_KEY, settings);
 };
 
 // --- Members ---
-const SEED_MEMBERS: Member[] = [
-  {
-    id: '1',
-    fullName: 'Daniel Negreanu',
-    email: 'kidpoker@example.com',
-    phone: '555-0101',
-    age: 49,
-    gender: 'Male',
-    joinDate: '2023-01-15',
-    tier: MembershipTier.DIAMOND,
-    status: 'Activated',
-    notes: 'Reads souls. Very chatty at the table.',
-    avatarUrl: 'https://ui-avatars.com/api/?name=Daniel+Negreanu&background=ef4444&color=fff'
-  },
-  {
-    id: '2',
-    fullName: 'Phil Ivey',
-    email: 'polarize@example.com',
-    phone: '555-0102',
-    age: 47,
-    gender: 'Male',
-    joinDate: '2023-02-20',
-    tier: MembershipTier.PLATINUM,
-    status: 'Activated',
-    notes: 'Intimidating stare. Plays baccarat.',
-    avatarUrl: 'https://ui-avatars.com/api/?name=Phil+Ivey&background=000&color=fff'
-  },
-  {
-    id: '3',
-    fullName: 'Doyle Brunson',
-    email: 'texasdolly@example.com',
-    phone: '555-0103',
-    age: 89,
-    gender: 'Male',
-    joinDate: '2022-11-10',
-    tier: MembershipTier.DIAMOND,
-    status: 'Activated',
-    notes: 'The Godfather of Poker. Respect the legend.',
-    avatarUrl: 'https://ui-avatars.com/api/?name=Doyle+Brunson&background=f59e0b&color=fff'
-  },
-  {
-    id: '4',
-    fullName: 'Vanessa Selbst',
-    email: 'v.selbst@example.com',
-    phone: '555-0104',
-    age: 39,
-    gender: 'Female',
-    joinDate: '2023-03-05',
-    tier: MembershipTier.GOLD,
-    status: 'Activated',
-    notes: 'Aggressive style. Law school graduate.',
-    avatarUrl: 'https://ui-avatars.com/api/?name=Vanessa+Selbst&background=3b82f6&color=fff'
-  },
-  {
-    id: '5',
-    fullName: 'Tom Dwan',
-    email: 'durrrr@example.com',
-    phone: '555-0105',
-    age: 37,
-    gender: 'Male',
-    joinDate: '2023-04-12',
-    tier: MembershipTier.PLATINUM,
-    status: 'Activated',
-    notes: 'Loose aggressive. Loves high stakes cash games.',
-    avatarUrl: 'https://ui-avatars.com/api/?name=Tom+Dwan&background=8b5cf6&color=fff'
-  },
-  {
-    id: '6',
-    fullName: 'Fedor Holz',
-    email: 'crownupguy@example.com',
-    phone: '555-0106',
-    age: 30,
-    gender: 'Male',
-    joinDate: '2023-06-20',
-    tier: MembershipTier.GOLD,
-    status: 'Activated',
-    notes: 'German wizard. Retired but still crushing.',
-    avatarUrl: 'https://ui-avatars.com/api/?name=Fedor+Holz&background=10b981&color=fff'
-  },
-  {
-    id: '7',
-    fullName: 'Justin Bonomo',
-    email: 'zeejustin@example.com',
-    phone: '555-0107',
-    age: 38,
-    gender: 'Male',
-    joinDate: '2023-01-30',
-    tier: MembershipTier.SILVER,
-    status: 'Activated',
-    notes: 'All-time money list contender.',
-    avatarUrl: 'https://ui-avatars.com/api/?name=Justin+Bonomo&background=ec4899&color=fff'
-  }
-];
-
 export const getMembers = (): Member[] => {
-  const members = getLocalData<Member[]>(MEMBERS_KEY);
-  if (!members) {
-    setLocalData(MEMBERS_KEY, SEED_MEMBERS);
-    return SEED_MEMBERS;
+  const data = getLocalData<Member[]>(MEMBERS_KEY);
+  if (!data || data.length === 0) {
+      setLocalData(MEMBERS_KEY, SEED_MEMBERS);
+      return SEED_MEMBERS;
   }
-  return members;
+  return data;
 };
 
 export const saveMember = (member: Member): void => {
   const members = getMembers();
-  const index = members.findIndex(m => m.id === member.id);
-  if (index >= 0) {
-    members[index] = member;
-  } else {
-    members.push(member);
-  }
+  const idx = members.findIndex(m => m.id === member.id);
+  if (idx >= 0) members[idx] = member;
+  else members.push(member);
   setLocalData(MEMBERS_KEY, members);
 };
 
 // --- Tables ---
-
-const SEED_TABLES: PokerTable[] = [
-  { id: '1', name: 'Table 1', capacity: 9, status: 'Active', notes: 'Main feature table with RFID' },
-  { id: '2', name: 'Table 2', capacity: 9, status: 'Active', notes: 'Standard play' },
-  { id: '3', name: 'Table 3', capacity: 9, status: 'Active', notes: 'Standard play' },
-  { id: '4', name: 'Table 4 (VIP)', capacity: 6, status: 'Active', notes: 'High stakes area, secluded' },
-  { id: '5', name: 'Table 5 (Stream)', capacity: 9, status: 'Inactive', notes: 'Live stream setup' },
-];
-
 export const getTables = (): PokerTable[] => {
-  const tables = getLocalData<PokerTable[]>(TABLES_KEY);
-  if (!tables) {
-    setLocalData(TABLES_KEY, SEED_TABLES);
-    return SEED_TABLES;
+  const data = getLocalData<PokerTable[]>(TABLES_KEY);
+  if (!data || data.length === 0) {
+      setLocalData(TABLES_KEY, SEED_TABLES);
+      return SEED_TABLES;
   }
-  return tables;
+  return data;
 };
 
 export const saveTable = (table: PokerTable): void => {
   const tables = getTables();
-  const index = tables.findIndex(t => t.id === table.id);
-  if (index >= 0) {
-    tables[index] = table;
-  } else {
-    tables.push(table);
-  }
+  const idx = tables.findIndex(t => t.id === table.id);
+  if (idx >= 0) tables[idx] = table;
+  else tables.push(table);
   setLocalData(TABLES_KEY, tables);
 };
 
 export const deleteTable = (id: string): void => {
-    const tables = getTables().filter(t => t.id !== id);
-    setLocalData(TABLES_KEY, tables);
+  const tables = getTables().filter(t => t.id !== id);
+  setLocalData(TABLES_KEY, tables);
 };
 
 export const getNextTableName = (): string => {
-    const tables = getTables();
-    return `Table ${tables.length + 1}`;
+  const tables = getTables();
+  return `Table ${tables.length + 1}`;
 };
 
 // --- Structures ---
-
-const SEED_STRUCTURES: TournamentStructure[] = [
-    {
-        id: 'struct_1',
-        name: 'Standard Deepstack',
-        startingChips: 20000,
-        rebuyLimit: 1,
-        lastRebuyLevel: 6,
-        items: [
-            { type: 'Level', level: 1, duration: 20, smallBlind: 100, bigBlind: 200, ante: 0 },
-            { type: 'Level', level: 2, duration: 20, smallBlind: 200, bigBlind: 400, ante: 0 },
-            { type: 'Level', level: 3, duration: 20, smallBlind: 300, bigBlind: 600, ante: 600 },
-            { type: 'Break', duration: 10 },
-            { type: 'Level', level: 4, duration: 20, smallBlind: 400, bigBlind: 800, ante: 800 },
-            { type: 'Level', level: 5, duration: 20, smallBlind: 500, bigBlind: 1000, ante: 1000 },
-            { type: 'Level', level: 6, duration: 20, smallBlind: 600, bigBlind: 1200, ante: 1200 },
-            { type: 'Break', duration: 10 },
-            { type: 'Level', level: 7, duration: 20, smallBlind: 800, bigBlind: 1600, ante: 1600 },
-            { type: 'Level', level: 8, duration: 20, smallBlind: 1000, bigBlind: 2000, ante: 2000 },
-        ]
-    },
-    {
-        id: 'struct_2',
-        name: 'Turbo Freezeout',
-        startingChips: 15000,
-        rebuyLimit: 0,
-        lastRebuyLevel: 0,
-        items: [
-            { type: 'Level', level: 1, duration: 10, smallBlind: 100, bigBlind: 200, ante: 200 },
-            { type: 'Level', level: 2, duration: 10, smallBlind: 200, bigBlind: 400, ante: 400 },
-            { type: 'Level', level: 3, duration: 10, smallBlind: 300, bigBlind: 600, ante: 600 },
-            { type: 'Level', level: 4, duration: 10, smallBlind: 500, bigBlind: 1000, ante: 1000 },
-            { type: 'Break', duration: 5 },
-            { type: 'Level', level: 5, duration: 10, smallBlind: 800, bigBlind: 1600, ante: 1600 },
-            { type: 'Level', level: 6, duration: 10, smallBlind: 1000, bigBlind: 2000, ante: 2000 },
-            { type: 'Level', level: 7, duration: 10, smallBlind: 1500, bigBlind: 3000, ante: 3000 },
-            { type: 'Level', level: 8, duration: 10, smallBlind: 2000, bigBlind: 4000, ante: 4000 },
-        ]
-    },
-    {
-        id: 'struct_3',
-        name: 'Hyper Turbo',
-        startingChips: 10000,
-        rebuyLimit: 99,
-        lastRebuyLevel: 10,
-        items: [
-            { type: 'Level', level: 1, duration: 5, smallBlind: 100, bigBlind: 200, ante: 200 },
-            { type: 'Level', level: 2, duration: 5, smallBlind: 200, bigBlind: 400, ante: 400 },
-            { type: 'Level', level: 3, duration: 5, smallBlind: 400, bigBlind: 800, ante: 800 },
-            { type: 'Level', level: 4, duration: 5, smallBlind: 600, bigBlind: 1200, ante: 1200 },
-            { type: 'Level', level: 5, duration: 5, smallBlind: 1000, bigBlind: 2000, ante: 2000 },
-            { type: 'Level', level: 6, duration: 5, smallBlind: 1500, bigBlind: 3000, ante: 3000 },
-        ]
-    }
-];
-
 export const getTournamentStructures = (): TournamentStructure[] => {
-    const data = getLocalData<TournamentStructure[]>(STRUCTURES_KEY);
-    if (!data) {
-        setLocalData(STRUCTURES_KEY, SEED_STRUCTURES);
-        return SEED_STRUCTURES;
-    }
-    return data;
+  const data = getLocalData<TournamentStructure[]>(STRUCTURES_KEY);
+  if (!data || data.length === 0) {
+      setLocalData(STRUCTURES_KEY, SEED_STRUCTURES);
+      return SEED_STRUCTURES;
+  }
+  return data;
 };
 
-export const saveTournamentStructure = (struct: TournamentStructure): void => {
-    const list = getTournamentStructures();
-    const idx = list.findIndex(s => s.id === struct.id);
-    if (idx >= 0) list[idx] = struct;
-    else list.push(struct);
-    setLocalData(STRUCTURES_KEY, list);
+export const saveTournamentStructure = (structure: TournamentStructure): void => {
+  const structs = getTournamentStructures();
+  const idx = structs.findIndex(s => s.id === structure.id);
+  if (idx >= 0) structs[idx] = structure;
+  else structs.push(structure);
+  setLocalData(STRUCTURES_KEY, structs);
 };
 
 export const deleteTournamentStructure = (id: string): void => {
-    const list = getTournamentStructures().filter(s => s.id !== id);
-    setLocalData(STRUCTURES_KEY, list);
+  const structs = getTournamentStructures().filter(s => s.id !== id);
+  setLocalData(STRUCTURES_KEY, structs);
 };
 
 // --- Payouts ---
-
-const SEED_PAYOUTS: PayoutStructure[] = [
-    { 
-        id: 'algo_1', 
-        name: 'Standard ICM', 
-        type: 'Algorithm', 
-        description: 'Independent Chip Model. Calculates equity based on stack sizes relative to total chips.',
-        isSystemDefault: true 
-    },
-    { 
-        id: 'algo_2', 
-        name: 'Chip EV', 
-        type: 'Algorithm', 
-        description: 'Direct equity calculation based purely on chip count percentage.',
-        isSystemDefault: true 
-    },
-    {
-        id: 'matrix_1',
-        name: 'Standard Top 15%',
-        type: 'Custom Matrix',
-        description: 'Pays out top 15% of the field. Good for standard tourneys.',
-        rules: [
-            { minPlayers: 2, maxPlayers: 4, placesPaid: 1, percentages: [100] },
-            { minPlayers: 5, maxPlayers: 8, placesPaid: 2, percentages: [65, 35] },
-            { minPlayers: 9, maxPlayers: 16, placesPaid: 3, percentages: [50, 30, 20] },
-            { minPlayers: 17, maxPlayers: 24, placesPaid: 4, percentages: [45, 25, 18, 12] },
-            { minPlayers: 25, maxPlayers: 999, placesPaid: 5, percentages: [40, 25, 15, 12, 8] },
-        ]
-    },
-    {
-        id: 'matrix_2',
-        name: 'Top 3 Heavy',
-        type: 'Custom Matrix',
-        description: 'Concentrated payout for the podium finishers.',
-        rules: [
-            { minPlayers: 2, maxPlayers: 100, placesPaid: 3, percentages: [50, 30, 20] },
-        ]
-    },
-    {
-        id: 'matrix_3',
-        name: 'Winner Takes All',
-        type: 'Custom Matrix',
-        description: 'Only first place gets paid.',
-        rules: [
-            { minPlayers: 2, maxPlayers: 999, placesPaid: 1, percentages: [100] },
-        ]
-    }
-];
-
 export const getPayoutStructures = (): PayoutStructure[] => {
-    const data = getLocalData<PayoutStructure[]>(PAYOUTS_KEY);
-    if (!data) {
+    let payouts = getLocalData<PayoutStructure[]>(PAYOUTS_KEY);
+    if (!payouts || payouts.length === 0) {
         setLocalData(PAYOUTS_KEY, SEED_PAYOUTS);
         return SEED_PAYOUTS;
     }
-    return data;
+    return payouts;
 };
 
 export const savePayoutStructure = (payout: PayoutStructure): void => {
-    const list = getPayoutStructures();
-    const idx = list.findIndex(p => p.id === payout.id);
-    if (idx >= 0) list[idx] = payout;
-    else list.push(payout);
-    setLocalData(PAYOUTS_KEY, list);
+  const payouts = getPayoutStructures();
+  const idx = payouts.findIndex(p => p.id === payout.id);
+  if (idx >= 0) payouts[idx] = payout;
+  else payouts.push(payout);
+  setLocalData(PAYOUTS_KEY, payouts);
 };
 
 export const deletePayoutStructure = (id: string): void => {
-    const list = getPayoutStructures().filter(p => p.id !== id);
-    setLocalData(PAYOUTS_KEY, list);
+  const payouts = getPayoutStructures().filter(p => p.id !== id);
+  setLocalData(PAYOUTS_KEY, payouts);
 };
 
 // --- Tournaments ---
-
-const SEED_TOURNAMENTS: Tournament[] = [
-    {
-        id: 'tourney_1',
-        name: 'Daily Deepstack',
-        startDate: new Date().toISOString().split('T')[0],
-        startTime: '19:00',
-        estimatedDurationMinutes: 240,
-        buyIn: 150,
-        fee: 20,
-        maxPlayers: 54,
-        status: 'Registration',
-        structureId: 'struct_1',
-        payoutStructureId: 'matrix_1',
-        clockConfigId: 'default_clock',
-        startingChips: 20000,
-        startingBlinds: '100/200',
-        blindLevelMinutes: 20,
-        blindIncreasePercent: 0,
-        rebuyLimit: 1,
-        lastRebuyLevel: 6,
-        payoutModel: PayoutModel.FIXED,
-        tableIds: ['1', '2', '3']
-    },
-    {
-        id: 'tourney_2',
-        name: 'Turbo Tuesday',
-        startDate: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
-        startTime: '20:00',
-        estimatedDurationMinutes: 180,
-        buyIn: 80,
-        fee: 10,
-        maxPlayers: 36,
-        status: 'Scheduled',
-        structureId: 'struct_2',
-        payoutStructureId: 'matrix_2',
-        clockConfigId: 'default_clock',
-        startingChips: 15000,
-        startingBlinds: '100/200',
-        blindLevelMinutes: 10,
-        blindIncreasePercent: 0,
-        rebuyLimit: 0,
-        lastRebuyLevel: 0,
-        payoutModel: PayoutModel.FIXED
-    },
-    {
-        id: 'tourney_3',
-        name: 'High Roller',
-        startDate: new Date(Date.now() + 172800000).toISOString().split('T')[0], // Day after tomorrow
-        startTime: '18:00',
-        estimatedDurationMinutes: 360,
-        buyIn: 1000,
-        fee: 100,
-        maxPlayers: 18,
-        status: 'Scheduled',
-        structureId: 'struct_1',
-        payoutStructureId: 'matrix_1',
-        clockConfigId: 'default_clock',
-        startingChips: 50000,
-        startingBlinds: '200/400',
-        blindLevelMinutes: 30,
-        blindIncreasePercent: 0,
-        rebuyLimit: 1,
-        lastRebuyLevel: 8,
-        payoutModel: PayoutModel.FIXED,
-        tableIds: ['4']
-    },
-    {
-        id: 'tourney_4',
-        name: 'Midnight Hyper',
-        startDate: new Date().toISOString().split('T')[0],
-        startTime: '23:59',
-        estimatedDurationMinutes: 90,
-        buyIn: 50,
-        fee: 5,
-        maxPlayers: 90,
-        status: 'Scheduled',
-        structureId: 'struct_3',
-        payoutStructureId: 'matrix_3', // Winner takes all
-        clockConfigId: 'default_clock',
-        startingChips: 10000,
-        startingBlinds: '100/200',
-        blindLevelMinutes: 5,
-        blindIncreasePercent: 0,
-        rebuyLimit: 99,
-        lastRebuyLevel: 10,
-        payoutModel: PayoutModel.FIXED
-    }
-];
-
 export const getTournaments = (): Tournament[] => {
   const data = getLocalData<Tournament[]>(TOURNAMENTS_KEY);
-  if (!data) {
-    setLocalData(TOURNAMENTS_KEY, SEED_TOURNAMENTS);
-    return SEED_TOURNAMENTS;
+  if (!data || data.length === 0) {
+      setLocalData(TOURNAMENTS_KEY, SEED_TOURNAMENTS);
+      return SEED_TOURNAMENTS;
   }
   return data;
 };
 
 export const saveTournament = (tournament: Tournament): void => {
   const tournaments = getTournaments();
-  const index = tournaments.findIndex(t => t.id === tournament.id);
-  if (index >= 0) {
-    tournaments[index] = tournament;
-  } else {
-    tournaments.push(tournament);
-  }
+  const idx = tournaments.findIndex(t => t.id === tournament.id);
+  if (idx >= 0) tournaments[idx] = tournament;
+  else tournaments.push(tournament);
   setLocalData(TOURNAMENTS_KEY, tournaments);
 };
 
-export const deleteTournament = (id: string): void => {
-    const list = getTournaments().filter(t => t.id !== id);
-    setLocalData(TOURNAMENTS_KEY, list);
-};
-
-// --- Tournament Templates ---
-
+// --- Templates ---
 export const getTournamentTemplates = (): Tournament[] => {
-    return getLocalData<Tournament[]>(TOURNAMENT_TEMPLATES_KEY) || [];
+  return getLocalData<Tournament[]>(TEMPLATES_KEY) || [];
 };
 
 export const saveTournamentTemplate = (template: Tournament): void => {
     const templates = getTournamentTemplates();
-    const index = templates.findIndex(t => t.id === template.id);
-    const newTemplate = { ...template, isTemplate: true };
-    
-    // Ensure template doesn't have status or dates
-    delete newTemplate.startDate;
-    delete newTemplate.startTime;
-    delete newTemplate.status;
-    
-    if (index >= 0) {
-        templates[index] = newTemplate;
-    } else {
-        templates.push(newTemplate);
-    }
-    setLocalData(TOURNAMENT_TEMPLATES_KEY, templates);
+    const idx = templates.findIndex(t => t.id === template.id);
+    const safeTemplate = { ...template, isTemplate: true };
+    if (idx >= 0) templates[idx] = safeTemplate;
+    else templates.push(safeTemplate);
+    setLocalData(TEMPLATES_KEY, templates);
 };
 
 export const deleteTournamentTemplate = (id: string): void => {
     const templates = getTournamentTemplates().filter(t => t.id !== id);
-    setLocalData(TOURNAMENT_TEMPLATES_KEY, templates);
+    setLocalData(TEMPLATES_KEY, templates);
 };
 
-// ... (Rest of file unchanged)
-// --- Tournament Registrations ---
-
-export const getTournamentRegistrations = (tournamentId: string): TournamentRegistration[] => {
-  const allRegs = getLocalData<TournamentRegistration[]>(REGISTRATIONS_KEY) || [];
-  return allRegs.filter(r => r.tournamentId === tournamentId);
-};
-
+// --- Registrations ---
 export const getAllRegistrations = (): TournamentRegistration[] => {
     return getLocalData<TournamentRegistration[]>(REGISTRATIONS_KEY) || [];
 };
 
-export const addRegistration = (tournamentId: string, memberId: string): void => {
-  const allRegs = getLocalData<TournamentRegistration[]>(REGISTRATIONS_KEY) || [];
-  
-  // Prevent duplicates
-  if (allRegs.some(r => r.tournamentId === tournamentId && r.memberId === memberId)) {
-    return;
-  }
+export const getTournamentRegistrations = (tournamentId: string): TournamentRegistration[] => {
+    return getAllRegistrations().filter(r => r.tournamentId === tournamentId);
+};
 
-  const newReg: TournamentRegistration = {
-    id: crypto.randomUUID(),
-    tournamentId,
-    memberId,
-    status: 'Registered',
-    registeredAt: new Date().toISOString(),
-    buyInCount: 0,
-    transactions: [] // Initialize empty
-  };
-  
-  allRegs.push(newReg);
-  setLocalData(REGISTRATIONS_KEY, allRegs);
+export const addRegistration = (tournamentId: string, memberId: string): void => {
+    const regs = getAllRegistrations();
+    if (regs.some(r => r.tournamentId === tournamentId && r.memberId === memberId && r.status !== 'Cancelled')) {
+        return;
+    }
+    
+    const newReg: TournamentRegistration = {
+        id: crypto.randomUUID(),
+        tournamentId,
+        memberId,
+        status: 'Registered',
+        registeredAt: new Date().toISOString(),
+        buyInCount: 0 
+    };
+    regs.push(newReg);
+    setLocalData(REGISTRATIONS_KEY, regs);
+};
+
+export const deleteRegistration = (regId: string): void => {
+    const regs = getAllRegistrations().filter(r => r.id !== regId);
+    setLocalData(REGISTRATIONS_KEY, regs);
 };
 
 export const updateRegistrationStatus = (regId: string, status: RegistrationStatus): void => {
-  const allRegs = getLocalData<TournamentRegistration[]>(REGISTRATIONS_KEY) || [];
-  const index = allRegs.findIndex(r => r.id === regId);
-  if (index >= 0) {
-    allRegs[index].status = status;
-
-    // --- Auto-Seat Assignment Logic ---
-    if (status === 'Joined' && (!allRegs[index].tableId || !allRegs[index].seatNumber)) {
-        const tournaments = getTournaments();
-        const tournament = tournaments.find(t => t.id === allRegs[index].tournamentId);
-        
-        if (tournament && tournament.tableIds && tournament.tableIds.length > 0) {
-            const tables = getTables();
-            const tournamentTables = tables.filter(t => tournament.tableIds?.includes(t.id));
-            
-            // Get all 'Joined' players in this tournament
-            const activeRegs = allRegs.filter(r => r.tournamentId === tournament.id && r.status === 'Joined');
-            
-            // Try to find the first available seat
-            for (const table of tournamentTables) {
-                const occupiedSeats = new Set(
-                    activeRegs
-                    .filter(r => r.tableId === table.id && r.seatNumber)
-                    .map(r => r.seatNumber!)
-                );
-                
-                for (let i = 1; i <= table.capacity; i++) {
-                    if (!occupiedSeats.has(i)) {
-                        allRegs[index].tableId = table.id;
-                        allRegs[index].seatNumber = i;
-                        setLocalData(REGISTRATIONS_KEY, allRegs);
-                        return; // Seat assigned, exit
-                    }
-                }
-            }
+    const regs = getAllRegistrations();
+    const reg = regs.find(r => r.id === regId);
+    if (reg) {
+        reg.status = status;
+        if (status === 'Joined' && reg.buyInCount === 0) {
+            reg.buyInCount = 1;
         }
+        setLocalData(REGISTRATIONS_KEY, regs);
     }
-    
-    setLocalData(REGISTRATIONS_KEY, allRegs);
-  }
 };
 
 export const updateRegistrationSeat = (regId: string, tableId: string, seatNumber: number): void => {
-    const allRegs = getLocalData<TournamentRegistration[]>(REGISTRATIONS_KEY) || [];
-    const index = allRegs.findIndex(r => r.id === regId);
-    if (index >= 0) {
-        allRegs[index].tableId = tableId;
-        allRegs[index].seatNumber = seatNumber;
-        setLocalData(REGISTRATIONS_KEY, allRegs);
-    }
-};
-
-export const updateRegistrationBuyIn = (regId: string, count: number): void => {
-  const allRegs = getLocalData<TournamentRegistration[]>(REGISTRATIONS_KEY) || [];
-  const index = allRegs.findIndex(r => r.id === regId);
-  if (index >= 0) {
-    const reg = allRegs[index];
-    const currentTxCount = reg.transactions?.length || 0;
-    const diff = count - currentTxCount;
-
-    let newTransactions = reg.transactions ? [...reg.transactions] : [];
-
-    if (diff > 0) {
-        // Add new transactions
-        for(let i=0; i<diff; i++) {
-            newTransactions.push({
-                id: crypto.randomUUID(),
-                type: (currentTxCount + i) === 0 ? 'BuyIn' : 'Rebuy',
-                timestamp: new Date().toISOString(),
-                rebuyDiscount: 0,
-                membershipDiscount: 0,
-                voucherDiscount: 0,
-                campaignDiscount: 0,
-                depositPaid: 0,
-                isPaid: false
-            });
-        }
-    } else if (diff < 0) {
-        // Remove transactions from the end
-        newTransactions = newTransactions.slice(0, count);
-    }
-
-    allRegs[index].buyInCount = count;
-    allRegs[index].transactions = newTransactions;
-    setLocalData(REGISTRATIONS_KEY, allRegs);
-  }
-};
-
-export const updateRegistrationTransactions = (regId: string, transactions: TournamentTransaction[]): void => {
-    const allRegs = getLocalData<TournamentRegistration[]>(REGISTRATIONS_KEY) || [];
-    const index = allRegs.findIndex(r => r.id === regId);
-    
-    if (index >= 0) {
-        const oldReg = allRegs[index];
-        const memberId = oldReg.memberId;
-        
-        // Calculate previous total deposit usage
-        const oldTotalDeposit = oldReg.transactions?.reduce((sum, tx) => sum + (tx.depositPaid || 0), 0) || 0;
-        
-        // Calculate new total deposit usage
-        const newTotalDeposit = transactions.reduce((sum, tx) => sum + (tx.depositPaid || 0), 0);
-        
-        const diff = newTotalDeposit - oldTotalDeposit;
-        
-        if (diff !== 0) {
-            const financials = getMemberFinancials(memberId);
-            
-            const tx: FinancialTransaction = {
-                id: crypto.randomUUID(),
-                type: 'BuyIn', // 'BuyIn' reduces balance in saveMemberFinancials logic
-                amount: diff, // Positive diff means we deduct more. Negative diff means we deduct less (refund).
-                date: new Date().toISOString(),
-                description: `Tournament Entry/Rebuy Adjustment (${oldReg.tournamentId.substring(0,8)})`,
-                referenceId: oldReg.tournamentId
-            };
-            
-            // Add to history
-            financials.transactions.unshift(tx);
-            // Save updates balance automatically
-            saveMemberFinancials(memberId, financials);
-        }
-
-        allRegs[index].transactions = transactions;
-        
-        // Also update buyInCount just in case
-        allRegs[index].buyInCount = transactions.length;
-
-        setLocalData(REGISTRATIONS_KEY, allRegs);
-    }
-};
-
-export const updateRegistrationFinancials = (regId: string, data: Partial<TournamentRegistration>): void => {
-    const allRegs = getLocalData<TournamentRegistration[]>(REGISTRATIONS_KEY) || [];
-    const index = allRegs.findIndex(r => r.id === regId);
-    if (index >= 0) {
-        allRegs[index] = { ...allRegs[index], ...data };
-        setLocalData(REGISTRATIONS_KEY, allRegs);
+    const regs = getAllRegistrations();
+    const reg = regs.find(r => r.id === regId);
+    if (reg) {
+        reg.tableId = tableId;
+        reg.seatNumber = seatNumber;
+        setLocalData(REGISTRATIONS_KEY, regs);
     }
 };
 
 export const updateRegistrationChips = (regId: string, chips: number): void => {
-    const allRegs = getLocalData<TournamentRegistration[]>(REGISTRATIONS_KEY) || [];
-    const index = allRegs.findIndex(r => r.id === regId);
-    if (index >= 0) {
-      allRegs[index].finalChipCount = chips;
-      setLocalData(REGISTRATIONS_KEY, allRegs);
+    const regs = getAllRegistrations();
+    const reg = regs.find(r => r.id === regId);
+    if (reg) {
+        reg.finalChipCount = chips;
+        setLocalData(REGISTRATIONS_KEY, regs);
     }
 };
 
 export const updateRegistrationResult = (regId: string, rank: number, prize: number): void => {
-    const allRegs = getLocalData<TournamentRegistration[]>(REGISTRATIONS_KEY) || [];
-    const index = allRegs.findIndex(r => r.id === regId);
-    if (index >= 0) {
-      allRegs[index].rank = rank;
-      allRegs[index].prize = prize;
-      setLocalData(REGISTRATIONS_KEY, allRegs);
-      
-      // Also Create Financial Transaction for Win
-      if (prize > 0) {
-          const reg = allRegs[index];
-          // Check if transaction exists to avoid duplicates (idempotency key based on tourney)
-          const financials = getMemberFinancials(reg.memberId);
-          if (!financials.transactions.some(t => t.referenceId === reg.tournamentId && t.type === 'Win')) {
-              const tx: FinancialTransaction = {
-                  id: crypto.randomUUID(),
-                  type: 'Win',
-                  amount: prize,
-                  date: new Date().toISOString(),
-                  description: `Tournament Win (Rank ${rank})`,
-                  referenceId: reg.tournamentId
-              };
-              financials.transactions.push(tx);
-              saveMemberFinancials(reg.memberId, financials);
-          }
-      }
+    const regs = getAllRegistrations();
+    const reg = regs.find(r => r.id === regId);
+    if (reg) {
+        reg.rank = rank;
+        reg.prize = prize;
+        if (prize > 0) {
+             // Implicitly handled in financials
+        }
+        setLocalData(REGISTRATIONS_KEY, regs);
     }
 };
 
-export const deleteRegistration = (regId: string): void => {
-    const allRegs = getLocalData<TournamentRegistration[]>(REGISTRATIONS_KEY) || [];
-    const filtered = allRegs.filter(r => r.id !== regId);
-    setLocalData(REGISTRATIONS_KEY, filtered);
+export const updateRegistrationTransactions = (regId: string, transactions: TournamentTransaction[]): void => {
+    const regs = getAllRegistrations();
+    const reg = regs.find(r => r.id === regId);
+    if (reg) {
+        reg.transactions = transactions;
+        setLocalData(REGISTRATIONS_KEY, regs);
+    }
 };
 
-// --- Member Financials ---
+export const updateRegistrationBuyIn = (regId: string, count: number): void => {
+    const regs = getAllRegistrations();
+    const reg = regs.find(r => r.id === regId);
+    if (reg) {
+        reg.buyInCount = count;
+        setLocalData(REGISTRATIONS_KEY, regs);
+    }
+};
 
-const getFinancialsKey = (memberId: string) => `financials_${memberId}`;
+// --- Financials ---
+const getAllTransactions = (): FinancialTransaction[] => {
+    return getLocalData<FinancialTransaction[]>(FINANCIALS_KEY) || [];
+};
 
 export const getMemberFinancials = (memberId: string): MemberFinancials => {
-    const data = getLocalData<MemberFinancials>(getFinancialsKey(memberId));
-    if (data) return data;
-
-    return {
-        balance: 0,
-        totalWinnings: 0,
-        totalDeposited: 0,
-        totalBuyIns: 0,
-        totalWithdrawn: 0,
-        transactions: []
-    };
-};
-
-export const saveMemberFinancials = (memberId: string, data: MemberFinancials): void => {
-    // Re-calculate totals from transactions to ensure consistency
-    let balance = 0;
-    let winnings = 0;
-    let deposited = 0;
-    let buyins = 0;
-    let withdrawn = 0;
-
-    data.transactions.forEach(tx => {
-        if (tx.type === 'Win') {
-            balance += tx.amount;
-            winnings += tx.amount;
-        } else if (tx.type === 'Deposit') {
-            balance += tx.amount;
-            deposited += tx.amount;
-        } else if (tx.type === 'BuyIn') {
-            balance -= tx.amount;
-            buyins += tx.amount;
-        } else if (tx.type === 'Withdrawal') {
-            balance -= tx.amount;
-            withdrawn += tx.amount;
-        }
+    const deposits = getLocalData<any[]>('rf_deposits') || [];
+    const withdrawals = getLocalData<any[]>('rf_withdrawals') || [];
+    const memberDeposits = deposits.filter(d => d.memberId === memberId);
+    const memberWithdrawals = withdrawals.filter(w => w.memberId === memberId);
+    const allRegs = getAllRegistrations().filter(r => r.memberId === memberId);
+    
+    let totalWinnings = 0;
+    let totalBuyInsCost = 0;
+    let totalDeposited = memberDeposits.reduce((sum, d) => sum + d.amount, 0);
+    let totalWithdrawn = memberWithdrawals.reduce((sum, w) => sum + w.amount, 0);
+    
+    const history: FinancialTransaction[] = [];
+    
+    memberDeposits.forEach(d => {
+        history.push({
+            id: d.id,
+            type: 'Deposit',
+            amount: d.amount,
+            date: d.date,
+            description: `Deposit (${d.method})`,
+            method: d.method
+        });
     });
 
-    const updated = {
-        ...data,
+    memberWithdrawals.forEach(w => {
+        history.push({
+            id: w.id,
+            type: 'Withdrawal',
+            amount: w.amount,
+            date: w.date,
+            description: `Withdrawal (${w.method})`,
+            method: w.method
+        });
+    });
+
+    const tournaments = getTournaments();
+    allRegs.forEach(r => {
+        const t = tournaments.find(tour => tour.id === r.tournamentId);
+        const tName = t ? t.name : 'Unknown Tournament';
+        
+        if (r.prize && r.prize > 0) {
+            totalWinnings += r.prize;
+            history.push({
+                id: `win-${r.id}`,
+                type: 'Win',
+                amount: r.prize,
+                date: t?.startDate || r.registeredAt,
+                description: `Win: ${tName} (Rank ${r.rank})`
+            });
+        }
+        
+        if (r.transactions) {
+            r.transactions.forEach(tx => {
+                if (tx.depositPaid && tx.depositPaid > 0) {
+                     totalBuyInsCost += tx.depositPaid;
+                     history.push({
+                        id: `buyin-${tx.id}`,
+                        type: 'BuyIn',
+                        amount: tx.depositPaid,
+                        date: tx.timestamp,
+                        description: `Buy-in: ${tName}`
+                     });
+                }
+            });
+        }
+    });
+    
+    history.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const balance = (totalDeposited + totalWinnings) - (totalWithdrawn + totalBuyInsCost);
+
+    return {
         balance,
-        totalWinnings: winnings,
-        totalDeposited: deposited,
-        totalBuyIns: buyins,
-        totalWithdrawn: withdrawn
+        totalWinnings,
+        totalDeposited,
+        totalBuyIns: totalBuyInsCost,
+        totalWithdrawn,
+        transactions: history
     };
-
-    setLocalData(getFinancialsKey(memberId), updated);
-};
-
-export const addWithdrawal = (memberId: string, amount: number, method: PaymentMethod, note?: string): void => {
-    const financials = getMemberFinancials(memberId);
-    const tx: FinancialTransaction = {
-        id: crypto.randomUUID(),
-        type: 'Withdrawal',
-        amount,
-        date: new Date().toISOString(),
-        description: `Withdrawal (${method})`,
-        method,
-        referenceId: undefined // Could link to a specific withdrawal record ID
-    };
-    financials.transactions.unshift(tx); // Newest first
-    saveMemberFinancials(memberId, financials);
 };
 
 export const addDeposit = (memberId: string, amount: number, method: PaymentMethod, note?: string): void => {
-    const financials = getMemberFinancials(memberId);
-    const tx: FinancialTransaction = {
+    const deposits = getLocalData<any[]>('rf_deposits') || [];
+    deposits.push({
         id: crypto.randomUUID(),
-        type: 'Deposit',
+        memberId,
         amount,
-        date: new Date().toISOString(),
-        description: `Deposit (${method})`,
         method,
-    };
-    financials.transactions.unshift(tx);
-    saveMemberFinancials(memberId, financials);
+        note,
+        date: new Date().toISOString()
+    });
+    setLocalData('rf_deposits', deposits);
 };
 
-// --- Club Settings & Team ---
-
-const DEFAULT_THEME: ClubTheme = {
-    primaryColor: '#06C167',
-    backgroundColor: '#000000',
-    cardColor: '#171717',
-    textColor: '#FFFFFF',
-    secondaryTextColor: '#A3A3A3',
-    borderColor: '#333333'
+export const addWithdrawal = (memberId: string, amount: number, method: PaymentMethod, note?: string): void => {
+     const withdrawals = getLocalData<any[]>('rf_withdrawals') || [];
+    withdrawals.push({
+        id: crypto.randomUUID(),
+        memberId,
+        amount,
+        method,
+        note,
+        date: new Date().toISOString()
+    });
+    setLocalData('rf_withdrawals', withdrawals);
 };
 
-const DEFAULT_SETTINGS: ClubSettings = {
-    name: 'Royal Flush Club',
-    address: '123 Poker Blvd, Las Vegas, NV',
-    contactEmail: 'manager@royalflush.com',
-    contactPhone: '+1 (555) 123-4567',
-    logoUrl: '',
-    theme: DEFAULT_THEME
-};
-
-const SEED_TEAM: TeamMember[] = [
-    { id: '1', fullName: 'Tony G', email: 'tony@royalflush.com', role: 'Owner', status: 'Active', lastActive: new Date().toISOString(), avatarUrl: 'https://ui-avatars.com/api/?name=Tony+G&background=06C167&color=fff' },
-    { id: '2', fullName: 'Mike Matusow', email: 'mike@royalflush.com', role: 'Operator', status: 'Active', lastActive: new Date(Date.now() - 86400000).toISOString(), avatarUrl: 'https://ui-avatars.com/api/?name=Mike+M&background=333&color=fff' }
-];
-
-export const getClubSettings = (): ClubSettings => {
-    const data = getLocalData<ClubSettings>(SETTINGS_KEY);
-    // Backward compatibility for themes without new fields
-    const settings = data || DEFAULT_SETTINGS;
-    if (settings.theme && !settings.theme.textColor) {
-        settings.theme = { ...DEFAULT_THEME, ...settings.theme };
-    }
-    return settings;
-};
-
-export const saveClubSettings = (settings: ClubSettings): void => {
-    setLocalData(SETTINGS_KEY, settings);
-};
-
+// --- Team ---
 export const getTeamMembers = (): TeamMember[] => {
-    const data = getLocalData<TeamMember[]>(TEAM_KEY);
-    if (!data) {
-        setLocalData(TEAM_KEY, SEED_TEAM);
-        return SEED_TEAM;
+    const team = getLocalData<TeamMember[]>(TEAM_KEY);
+    if (!team || team.length === 0) {
+        return [{
+            id: 'owner',
+            fullName: 'Club Owner',
+            email: 'owner@club.com',
+            role: 'Owner',
+            status: 'Active',
+            avatarUrl: ''
+        }];
     }
-    return data;
+    return team;
 };
 
 export const saveTeamMember = (member: TeamMember): void => {
-    const members = getTeamMembers();
-    const idx = members.findIndex(m => m.id === member.id);
-    if (idx >= 0) members[idx] = member;
-    else members.push(member);
-    setLocalData(TEAM_KEY, members);
+    const team = getTeamMembers();
+    const idx = team.findIndex(t => t.id === member.id);
+    if (idx >= 0) team[idx] = member;
+    else team.push(member);
+    setLocalData(TEAM_KEY, team);
 };
 
 export const deleteTeamMember = (id: string): void => {
-    const members = getTeamMembers().filter(m => m.id !== id);
-    setLocalData(TEAM_KEY, members);
+    const team = getTeamMembers().filter(t => t.id !== id);
+    setLocalData(TEAM_KEY, team);
 };
 
-// --- Clock Configs ---
-
-const SEED_CLOCKS: ClockConfig[] = [
-    {
-        id: 'default_clock',
-        name: 'Standard Tournament Clock',
-        backgroundColor: '#050505',
-        fontColor: '#FFFFFF',
-        isDefault: true,
-        fields: [
-            // Center Timer
-            { id: 't1', type: 'timer', label: 'Timer', x: 50, y: 42, fontSize: 40, fontWeight: 'bold', color: '#06C167', align: 'center', showLabel: false },
-            
-            // Top Header
-            { id: 'h1', type: 'tournament_name', label: 'Title', x: 50, y: 10, fontSize: 40, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: false },
-            { id: 'div1', type: 'line', label: 'Divider', x: 50, y: 18, width: 900, height: 2, color: '#333333', align: 'center', showLabel: false, fontSize: 0, fontWeight: 'normal' },
-
-            // Left Side (Current)
-            { id: 'l1', type: 'blind_level', label: 'Blinds', x: 20, y: 40, fontSize: 40, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: true, labelText: 'CURRENT BLINDS' },
-            { id: 'l2', type: 'ante', label: 'Ante', x: 20, y: 65, fontSize: 40, fontWeight: 'bold', color: '#A3A3A3', align: 'center', showLabel: true, labelText: 'ANTE' },
-
-            // Right Side (Next)
-            { id: 'r1', type: 'next_blinds', label: 'Next Blinds', x: 80, y: 40, fontSize: 40, fontWeight: 'bold', color: '#666666', align: 'center', showLabel: true, labelText: 'NEXT BLINDS' },
-            { id: 'r2', type: 'next_ante', label: 'Next Ante', x: 80, y: 65, fontSize: 40, fontWeight: 'bold', color: '#666666', align: 'center', showLabel: true, labelText: 'NEXT ANTE' },
-
-            // Bottom Stats
-            { id: 'b1', type: 'players_count', label: 'Players', x: 20, y: 88, fontSize: 30, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: true, labelText: 'ENTRIES' },
-            { id: 'b2', type: 'avg_stack', label: 'Avg', x: 50, y: 88, fontSize: 30, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: true, labelText: 'AVG STACK' },
-            { id: 'b3', type: 'next_break', label: 'Break', x: 80, y: 88, fontSize: 30, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: true, labelText: 'NEXT BREAK' },
-        ]
-    }
-];
+// --- Clocks ---
 
 export const getClockConfigs = (): ClockConfig[] => {
     const data = getLocalData<ClockConfig[]>(CLOCKS_KEY);

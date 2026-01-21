@@ -79,6 +79,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
   const [config, setConfig] = useState<ClockConfig>({
       id: crypto.randomUUID(),
       name: 'New Clock Layout',
+      description: '',
       backgroundColor: '#111111',
       fontColor: '#FFFFFF',
       fields: []
@@ -454,6 +455,18 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                 
                 {/* Global Settings Group */}
                 <div className="p-5 border-b border-[#222] space-y-5">
+                    
+                    {/* Description Input */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Description</label>
+                        <textarea
+                            value={config.description || ''}
+                            onChange={(e) => setConfig({...config, description: e.target.value})}
+                            className={`w-full ${THEME.input} rounded-lg px-3 py-2 text-xs resize-none h-20 bg-[#1A1A1A]`}
+                            placeholder="Notes about this layout..."
+                        />
+                    </div>
+
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Background</label>
                         <div className="flex gap-2">
@@ -672,6 +685,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                             </div>
                         )}
 
+                        {/* ... (Rest of properties panel remains the same) */}
                         {/* Visibility Toggle for Labels (Text Only) */}
                         {!isShapeOrLine(selectedField.type) && selectedField.type !== 'custom_text' && (
                              <div className="flex items-center justify-between p-3 bg-[#1A1A1A] rounded-xl border border-[#333]">

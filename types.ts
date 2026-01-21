@@ -297,6 +297,7 @@ export interface ClockField {
 export interface ClockConfig {
     id: string;
     name: string;
+    description?: string; // New field for notes
     backgroundColor: string;
     fontColor?: string; // Global default font color
     backgroundImageUrl?: string;

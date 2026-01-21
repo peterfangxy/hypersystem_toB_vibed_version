@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Layers, DollarSign, Plus, Clock, Hash, Coins, Edit2, Trash2, Coffee, Timer, Cpu, Table, ArrowRight, Calculator, Repeat } from 'lucide-react';
 import { THEME } from '../theme';
@@ -74,7 +75,10 @@ const StructuresView = () => {
   };
 
   const getFirstLevel = (s: TournamentStructure) => {
-      return s.items.find(i => i.type === 'Level');
+      // Robustly find the first actual level by sorting by level index
+      const levels = s.items.filter(i => i.type === 'Level');
+      if (levels.length === 0) return undefined;
+      return levels.sort((a, b) => (a.level || 0) - (b.level || 0))[0];
   }
 
   return (
@@ -188,8 +192,10 @@ const StructuresView = () => {
                                     <td className="px-4 py-3">
                                         {firstLevel && (
                                             <div className="font-mono text-gray-300 font-medium text-sm">
-                                                {firstLevel.smallBlind}/{firstLevel.bigBlind}
-                                                {firstLevel.ante && firstLevel.ante > 0 && <span className="text-gray-500 ml-1">({firstLevel.ante})</span>}
+                                                {Number(firstLevel.smallBlind).toLocaleString()}/{Number(firstLevel.bigBlind).toLocaleString()}
+                                                {(firstLevel.ante || 0) > 0 ? (
+                                                    <span className="text-gray-500 ml-1">({Number(firstLevel.ante).toLocaleString()})</span>
+                                                ) : null}
                                             </div>
                                         )}
                                     </td>

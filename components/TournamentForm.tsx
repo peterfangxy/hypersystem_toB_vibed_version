@@ -10,7 +10,8 @@ import {
   Cpu,
   Table,
   Sparkles,
-  MonitorPlay
+  MonitorPlay,
+  Loader2
 } from 'lucide-react';
 import { Tournament, PayoutModel, TournamentStatus, PokerTable, TournamentStructure, PayoutStructure, ClockConfig } from '../types';
 import * as DataService from '../services/dataService';
@@ -54,6 +55,9 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
   const [payoutStructures, setPayoutStructures] = useState<PayoutStructure[]>([]);
   const [clockConfigs, setClockConfigs] = useState<ClockConfig[]>([]);
   const [templates, setTemplates] = useState<Tournament[]>([]);
+  
+  // Preview loading state
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
   // Check if form should be read-only
   const isReadOnly = !isTemplateMode && initialData && (initialData.status === 'Completed' || initialData.status === 'Cancelled');
@@ -96,6 +100,23 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
       }
     }
   }, [initialData, isOpen, isTemplateMode]);
+
+  // Effect to trigger loading animation on relevant changes
+  useEffect(() => {
+      if (isOpen) {
+          setIsPreviewLoading(true);
+          const timer = setTimeout(() => setIsPreviewLoading(false), 600);
+          return () => clearTimeout(timer);
+      }
+  }, [
+      formData.clockConfigId, 
+      formData.structureId, 
+      formData.startingChips, 
+      formData.startingBlinds,
+      formData.name,
+      formData.description,
+      isOpen
+  ]);
 
   const toggleTable = (tableId: string) => {
     if (isReadOnly) return;
@@ -437,10 +458,10 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                             
                             {/* Clock Info Description */}
                             {formData.clockConfigId && (
-                                <div className="text-xs text-gray-500 mt-2">
+                                <div className="text-xs text-gray-500 mt-2 p-3 bg-[#222] rounded-lg border border-[#333] italic">
                                     {(() => {
                                         const c = clockConfigs.find(config => config.id === formData.clockConfigId);
-                                        return c ? `${c.fields.length} active widgets configured.` : '';
+                                        return c?.description ? c.description : `${c?.fields.length || 0} active widgets configured.`;
                                     })()}
                                 </div>
                             )}
@@ -451,6 +472,14 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                              <label className="text-xs text-gray-500 font-bold uppercase mb-2 block">Live Preview</label>
                              {formData.clockConfigId ? (
                                  <div className="aspect-video w-full rounded-lg border border-[#333] overflow-hidden relative shadow-inner" style={{backgroundColor: clockConfigs.find(c => c.id === formData.clockConfigId)?.backgroundColor || '#000'}}>
+                                     
+                                     {/* Loading Overlay */}
+                                     {isPreviewLoading && (
+                                         <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-sm flex items-center justify-center animate-in fade-in duration-200">
+                                             <Loader2 className="text-brand-green animate-spin" size={32} />
+                                         </div>
+                                     )}
+
                                      {/* Mini render of clock fields */}
                                      {(() => {
                                          const c = clockConfigs.find(config => config.id === formData.clockConfigId);
