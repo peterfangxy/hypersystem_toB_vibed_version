@@ -16,7 +16,17 @@ import {
   Eye,
   EyeOff,
   Plus,
-  X
+  X,
+  Square,
+  Circle,
+  Triangle,
+  Minus,
+  ArrowUp,
+  ArrowDown,
+  ChevronsUp,
+  ChevronsDown,
+  Palette,
+  GripVertical
 } from 'lucide-react';
 import { ClockConfig, ClockField, ClockFieldType } from '../types';
 import { THEME } from '../theme';
@@ -40,6 +50,11 @@ const AVAILABLE_FIELDS: { type: ClockFieldType; label: string; icon: any }[] = [
     { type: 'next_break', label: 'Next Break', icon: Clock },
     { type: 'current_time', label: 'Real Time', icon: Clock },
     { type: 'custom_text', label: 'Custom Text', icon: Type },
+    // Widgets
+    { type: 'line', label: 'Line / Divider', icon: Minus },
+    { type: 'shape_rect', label: 'Rectangle', icon: Square },
+    { type: 'shape_circle', label: 'Circle', icon: Circle },
+    { type: 'shape_triangle', label: 'Triangle', icon: Triangle },
 ];
 
 const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClose }) => {
@@ -53,8 +68,9 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
   
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
   const [isAddWidgetOpen, setIsAddWidgetOpen] = useState(false);
+  const [draggedFieldId, setDraggedFieldId] = useState<string | null>(null);
   
-  // Dragging state
+  // Dragging state (Canvas)
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{x: number, y: number} | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -66,18 +82,28 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
   }, [initialConfig]);
 
   const addField = (type: ClockFieldType) => {
+      const isShape = type.startsWith('shape_');
+      const isLine = type === 'line';
+      const isText = !isShape && !isLine;
+
       const newField: ClockField = {
           id: crypto.randomUUID(),
           type,
           label: AVAILABLE_FIELDS.find(f => f.type === type)?.label || 'Unknown',
           x: 50,
           y: 50,
+          // Defaults
           fontSize: type === 'timer' ? 120 : 32,
           fontWeight: type === 'timer' || type === 'blind_level' ? 'bold' : 'normal',
-          color: config.fontColor || '#FFFFFF', // Use global default
+          color: isShape || isLine ? '#333333' : (config.fontColor || '#FFFFFF'), // Fill color for shapes
           align: 'center',
-          showLabel: true,
-          labelText: type === 'blind_level' ? 'BLINDS' : type === 'ante' ? 'ANTE' : type === 'avg_stack' ? 'AVG STACK' : undefined
+          showLabel: isText,
+          labelText: type === 'blind_level' ? 'BLINDS' : type === 'ante' ? 'ANTE' : type === 'avg_stack' ? 'AVG STACK' : undefined,
+          // Shape defaults
+          width: isLine ? 300 : isShape ? 100 : undefined,
+          height: isLine ? 4 : isShape ? 100 : undefined,
+          borderColor: '#ffffff',
+          borderWidth: 0
       };
       
       setConfig(prev => ({ ...prev, fields: [...prev.fields, newField] }));
@@ -95,6 +121,46 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
           ...prev,
           fields: prev.fields.map(f => f.id === id ? { ...f, ...updates } : f)
       }));
+  };
+
+  const handleReorder = (draggedId: string, targetId: string) => {
+      if (draggedId === targetId) return;
+      
+      const newFields = [...config.fields];
+      const draggedIndex = newFields.findIndex(f => f.id === draggedId);
+      const targetIndex = newFields.findIndex(f => f.id === targetId);
+      
+      if (draggedIndex === -1 || targetIndex === -1) return;
+      
+      const [draggedItem] = newFields.splice(draggedIndex, 1);
+      newFields.splice(targetIndex, 0, draggedItem);
+      
+      setConfig({ ...config, fields: newFields });
+  };
+
+  // --- Layering Logic ---
+  const moveLayer = (id: string, direction: 'up' | 'down' | 'front' | 'back') => {
+      const index = config.fields.findIndex(f => f.id === id);
+      if (index === -1) return;
+
+      const newFields = [...config.fields];
+      
+      if (direction === 'front') {
+          const [item] = newFields.splice(index, 1);
+          newFields.push(item);
+      } else if (direction === 'back') {
+          const [item] = newFields.splice(index, 1);
+          newFields.unshift(item);
+      } else if (direction === 'up') {
+          if (index < newFields.length - 1) {
+              [newFields[index], newFields[index + 1]] = [newFields[index + 1], newFields[index]];
+          }
+      } else if (direction === 'down') {
+          if (index > 0) {
+              [newFields[index], newFields[index - 1]] = [newFields[index - 1], newFields[index]];
+          }
+      }
+      setConfig({ ...config, fields: newFields });
   };
 
   // --- Drag Logic ---
@@ -136,7 +202,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
 
   const selectedField = config.fields.find(f => f.id === selectedFieldId);
 
-  // --- Mock Data for Preview ---
+  // --- Renderers ---
   const getMockValue = (type: ClockFieldType) => {
       switch(type) {
           case 'tournament_name': return 'Sunday Special';
@@ -153,6 +219,79 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
           case 'custom_text': return 'Text';
           default: return '---';
       }
+  };
+
+  const renderWidgetContent = (field: ClockField) => {
+      // Shapes
+      if (field.type === 'shape_rect') {
+          return (
+              <div style={{
+                  width: `${field.width}px`,
+                  height: `${field.height}px`,
+                  backgroundColor: field.color,
+                  borderWidth: `${field.borderWidth || 0}px`,
+                  borderColor: field.borderColor,
+                  borderStyle: 'solid'
+              }} />
+          );
+      }
+      if (field.type === 'shape_circle') {
+          return (
+              <div style={{
+                  width: `${field.width}px`,
+                  height: `${field.height}px`,
+                  backgroundColor: field.color,
+                  borderRadius: '50%',
+                  borderWidth: `${field.borderWidth || 0}px`,
+                  borderColor: field.borderColor,
+                  borderStyle: 'solid'
+              }} />
+          );
+      }
+      if (field.type === 'shape_triangle') {
+          return (
+              <svg width={field.width} height={field.height} viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <polygon 
+                      points="50,0 100,100 0,100" 
+                      fill={field.color} 
+                      stroke={field.borderColor} 
+                      strokeWidth={field.borderWidth ? (field.borderWidth * (100 / (field.width || 100))) : 0} 
+                  />
+              </svg>
+          );
+      }
+      if (field.type === 'line') {
+          return (
+              <div style={{
+                  width: `${field.width}px`,
+                  height: `${field.height}px`,
+                  backgroundColor: field.color,
+                  borderRadius: '999px'
+              }} />
+          );
+      }
+
+      // Text Widgets
+      return (
+        <div style={{
+            fontSize: `${field.fontSize}px`,
+            fontWeight: field.fontWeight,
+            color: field.color,
+            textAlign: field.align,
+            whiteSpace: 'nowrap'
+        }}>
+            {field.showLabel && field.labelText && (
+                <div className="text-[0.4em] opacity-70 tracking-widest mb-[0.1em]">
+                    {field.labelText}
+                </div>
+            )}
+            {field.type === 'custom_text' ? (field.customText || 'Text') : getMockValue(field.type)}
+        </div>
+      );
+  };
+
+  const isShapeOrLine = (type: ClockFieldType) => {
+      return type.startsWith('shape_') || type === 'line';
   };
 
   return (
@@ -243,19 +382,37 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                                 No widgets added.<br/>Click "Add Widget" to start.
                             </div>
                         ) : (
-                            config.fields.slice().reverse().map((field, idx) => { // Reverse to show top layer first visually
+                            // Render list in reverse order visually so "top" of list is "front" layer
+                            [...config.fields].reverse().map((field) => {
                                 const def = AVAILABLE_FIELDS.find(f => f.type === field.type);
                                 return (
                                     <div 
                                         key={field.id}
+                                        draggable
+                                        onDragStart={(e) => {
+                                            setDraggedFieldId(field.id);
+                                            e.dataTransfer.effectAllowed = 'move';
+                                        }}
+                                        onDragOver={(e) => {
+                                            e.preventDefault();
+                                            e.dataTransfer.dropEffect = 'move';
+                                        }}
+                                        onDrop={(e) => {
+                                            e.preventDefault();
+                                            if (!draggedFieldId || draggedFieldId === field.id) return;
+                                            handleReorder(draggedFieldId, field.id);
+                                        }}
                                         onClick={() => setSelectedFieldId(field.id)}
-                                        className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all group ${
+                                        className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all group relative ${
                                             selectedFieldId === field.id 
                                             ? 'bg-brand-green/10 border-brand-green/30 text-white' 
                                             : 'bg-[#1A1A1A] border-transparent hover:border-[#333] text-gray-400 hover:text-white'
-                                        }`}
+                                        } ${draggedFieldId === field.id ? 'opacity-50 border-dashed border-gray-500' : ''}`}
                                     >
-                                        <div className="flex items-center gap-3 overflow-hidden">
+                                        <div className="cursor-grab text-gray-600 hover:text-gray-300">
+                                            <GripVertical size={14} />
+                                        </div>
+                                        <div className="flex items-center gap-3 overflow-hidden flex-1">
                                             {def?.icon ? <def.icon size={16} className="shrink-0"/> : <Clock size={16} className="shrink-0"/>}
                                             <span className="text-sm font-medium truncate">{def?.label || 'Unknown'}</span>
                                         </div>
@@ -315,19 +472,10 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                                 left: `${field.x}%`,
                                 top: `${field.y}%`,
                                 transform: 'translate(-50%, -50%)', // Center anchor
-                                fontSize: `${field.fontSize}px`,
-                                fontWeight: field.fontWeight,
-                                color: field.color,
-                                textAlign: field.align,
-                                whiteSpace: 'nowrap'
+                                zIndex: config.fields.findIndex(f => f.id === field.id) // Use array index as Z-Index
                             }}
                         >
-                            {field.showLabel && field.labelText && (
-                                <div className="text-[0.4em] opacity-70 uppercase tracking-widest mb-[0.1em]">
-                                    {field.labelText}
-                                </div>
-                            )}
-                            {field.type === 'custom_text' ? (field.customText || 'Text') : getMockValue(field.type)}
+                           {renderWidgetContent(field)}
                         </div>
                     ))}
                 </div>
@@ -347,7 +495,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                     <div className="p-6 space-y-6 overflow-y-auto flex-1">
                         
                         {/* Custom Text / Label Inputs */}
-                        {(selectedField.type === 'custom_text' || selectedField.showLabel) && (
+                        {(selectedField.type === 'custom_text' || (selectedField.showLabel && !isShapeOrLine(selectedField.type))) && (
                             <div className="space-y-2">
                                 <label className="text-xs text-gray-400 font-bold">
                                     {selectedField.type === 'custom_text' ? 'Content' : 'Label Text'}
@@ -361,8 +509,8 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                             </div>
                         )}
 
-                        {/* Visibility Toggle for Labels */}
-                        {selectedField.type !== 'custom_text' && (
+                        {/* Visibility Toggle for Labels (Text Only) */}
+                        {!isShapeOrLine(selectedField.type) && selectedField.type !== 'custom_text' && (
                              <div className="flex items-center justify-between p-3 bg-[#1A1A1A] rounded-xl border border-[#333]">
                                 <span className="text-sm font-medium text-gray-300">Show Label</span>
                                 <button 
@@ -374,62 +522,123 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                              </div>
                         )}
 
-                        {/* Typography */}
+                        {/* Typography OR Shape Appearance */}
                         <div className="space-y-4">
                             <label className="text-xs text-gray-400 font-bold flex items-center gap-2">
-                                <Type size={14} /> Typography
+                                {isShapeOrLine(selectedField.type) ? <Palette size={14}/> : <Type size={14}/>} 
+                                {isShapeOrLine(selectedField.type) ? 'Appearance' : 'Typography'}
                             </label>
                             
                             <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-[10px] text-gray-500 block mb-1">Size (px)</label>
-                                    <input 
-                                        type="number" 
-                                        value={selectedField.fontSize}
-                                        onChange={(e) => updateField(selectedField.id, { fontSize: parseInt(e.target.value) })}
-                                        className={`w-full ${THEME.input} rounded-lg px-3 py-2`}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="text-[10px] text-gray-500 block mb-1">Color</label>
+                                {!isShapeOrLine(selectedField.type) && (
+                                    <div>
+                                        <label className="text-[10px] text-gray-500 block mb-1">Size (px)</label>
+                                        <input 
+                                            type="number" 
+                                            value={selectedField.fontSize}
+                                            onChange={(e) => updateField(selectedField.id, { fontSize: parseInt(e.target.value) })}
+                                            className={`w-full ${THEME.input} rounded-lg px-3 py-2`}
+                                        />
+                                    </div>
+                                )}
+                                
+                                <div className={isShapeOrLine(selectedField.type) ? 'col-span-2' : 'col-span-1'}>
+                                    <label className="text-[10px] text-gray-500 block mb-1">
+                                        {isShapeOrLine(selectedField.type) ? 'Fill Color' : 'Font Color'}
+                                    </label>
                                     <div className="flex gap-2">
                                         <input 
                                             type="color" 
                                             value={selectedField.color}
                                             onChange={(e) => updateField(selectedField.id, { color: e.target.value })}
-                                            className="h-9 w-9 rounded cursor-pointer border-none bg-transparent"
+                                            className="h-9 w-full rounded cursor-pointer border border-[#333] bg-[#1A1A1A] p-0.5"
                                         />
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div className="flex gap-2 bg-[#1A1A1A] p-1 rounded-lg border border-[#333]">
-                                <button 
-                                    onClick={() => updateField(selectedField.id, { align: 'left' })}
-                                    className={`flex-1 p-2 rounded flex justify-center ${selectedField.align === 'left' ? 'bg-[#333] text-white' : 'text-gray-500 hover:text-white'}`}
-                                >
-                                    <AlignLeft size={16} />
-                                </button>
-                                <button 
-                                    onClick={() => updateField(selectedField.id, { align: 'center' })}
-                                    className={`flex-1 p-2 rounded flex justify-center ${selectedField.align === 'center' ? 'bg-[#333] text-white' : 'text-gray-500 hover:text-white'}`}
-                                >
-                                    <AlignCenter size={16} />
-                                </button>
-                                <button 
-                                    onClick={() => updateField(selectedField.id, { align: 'right' })}
-                                    className={`flex-1 p-2 rounded flex justify-center ${selectedField.align === 'right' ? 'bg-[#333] text-white' : 'text-gray-500 hover:text-white'}`}
-                                >
-                                    <AlignRight size={16} />
-                                </button>
-                            </div>
 
-                            <button 
-                                onClick={() => updateField(selectedField.id, { fontWeight: selectedField.fontWeight === 'bold' ? 'normal' : 'bold' })}
-                                className={`w-full p-2 rounded flex items-center justify-center gap-2 border ${selectedField.fontWeight === 'bold' ? 'bg-brand-green/10 text-brand-green border-brand-green/30' : 'bg-[#1A1A1A] border-[#333] text-gray-400'}`}
-                            >
-                                <Bold size={16} /> Bold
-                            </button>
+                            {/* Border Controls for Shapes */}
+                            {isShapeOrLine(selectedField.type) && selectedField.type !== 'line' && (
+                                <div className="grid grid-cols-2 gap-4 pt-2">
+                                    <div>
+                                        <label className="text-[10px] text-gray-500 block mb-1">Border Color</label>
+                                        <input 
+                                            type="color" 
+                                            value={selectedField.borderColor || '#ffffff'}
+                                            onChange={(e) => updateField(selectedField.id, { borderColor: e.target.value })}
+                                            className="h-9 w-full rounded cursor-pointer border border-[#333] bg-[#1A1A1A] p-0.5"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] text-gray-500 block mb-1">Border Width</label>
+                                        <input 
+                                            type="number"
+                                            min="0" 
+                                            value={selectedField.borderWidth || 0}
+                                            onChange={(e) => updateField(selectedField.id, { borderWidth: parseInt(e.target.value) })}
+                                            className={`w-full ${THEME.input} rounded-lg px-3 py-2`}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Dimensions for Shapes/Lines */}
+                            {isShapeOrLine(selectedField.type) && (
+                                <div className="grid grid-cols-2 gap-4 pt-2">
+                                     <div>
+                                        <label className="text-[10px] text-gray-500 block mb-1">Width (px)</label>
+                                        <input 
+                                            type="number"
+                                            min="1" 
+                                            value={selectedField.width || 100}
+                                            onChange={(e) => updateField(selectedField.id, { width: parseInt(e.target.value) })}
+                                            className={`w-full ${THEME.input} rounded-lg px-3 py-2`}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] text-gray-500 block mb-1">Height (px)</label>
+                                        <input 
+                                            type="number"
+                                            min="1" 
+                                            value={selectedField.height || 100}
+                                            onChange={(e) => updateField(selectedField.id, { height: parseInt(e.target.value) })}
+                                            className={`w-full ${THEME.input} rounded-lg px-3 py-2`}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {!isShapeOrLine(selectedField.type) && (
+                                <>
+                                    <div className="flex gap-2 bg-[#1A1A1A] p-1 rounded-lg border border-[#333]">
+                                        <button 
+                                            onClick={() => updateField(selectedField.id, { align: 'left' })}
+                                            className={`flex-1 p-2 rounded flex justify-center ${selectedField.align === 'left' ? 'bg-[#333] text-white' : 'text-gray-500 hover:text-white'}`}
+                                        >
+                                            <AlignLeft size={16} />
+                                        </button>
+                                        <button 
+                                            onClick={() => updateField(selectedField.id, { align: 'center' })}
+                                            className={`flex-1 p-2 rounded flex justify-center ${selectedField.align === 'center' ? 'bg-[#333] text-white' : 'text-gray-500 hover:text-white'}`}
+                                        >
+                                            <AlignCenter size={16} />
+                                        </button>
+                                        <button 
+                                            onClick={() => updateField(selectedField.id, { align: 'right' })}
+                                            className={`flex-1 p-2 rounded flex justify-center ${selectedField.align === 'right' ? 'bg-[#333] text-white' : 'text-gray-500 hover:text-white'}`}
+                                        >
+                                            <AlignRight size={16} />
+                                        </button>
+                                    </div>
+
+                                    <button 
+                                        onClick={() => updateField(selectedField.id, { fontWeight: selectedField.fontWeight === 'bold' ? 'normal' : 'bold' })}
+                                        className={`w-full p-2 rounded flex items-center justify-center gap-2 border ${selectedField.fontWeight === 'bold' ? 'bg-brand-green/10 text-brand-green border-brand-green/30' : 'bg-[#1A1A1A] border-[#333] text-gray-400'}`}
+                                    >
+                                        <Bold size={16} /> Bold
+                                    </button>
+                                </>
+                            )}
                         </div>
 
                          {/* Position Manual Adjust */}
@@ -456,6 +665,43 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                                         className={`w-full ${THEME.input} rounded-lg px-3 py-2`}
                                     />
                                 </div>
+                            </div>
+                         </div>
+
+                         {/* Layering / Display Order */}
+                         <div className="space-y-4 pt-4 border-t border-[#222]">
+                            <label className="text-xs text-gray-400 font-bold flex items-center gap-2">
+                                <Layers size={14} /> Display Order
+                            </label>
+                            <div className="grid grid-cols-4 gap-2">
+                                <button 
+                                    onClick={() => moveLayer(selectedField.id, 'back')}
+                                    className="p-2 bg-[#1A1A1A] hover:bg-[#333] rounded-lg border border-[#333] text-gray-400 hover:text-white flex justify-center"
+                                    title="Send to Back"
+                                >
+                                    <ChevronsDown size={16} />
+                                </button>
+                                <button 
+                                    onClick={() => moveLayer(selectedField.id, 'down')}
+                                    className="p-2 bg-[#1A1A1A] hover:bg-[#333] rounded-lg border border-[#333] text-gray-400 hover:text-white flex justify-center"
+                                    title="Move Backward"
+                                >
+                                    <ArrowDown size={16} />
+                                </button>
+                                <button 
+                                    onClick={() => moveLayer(selectedField.id, 'up')}
+                                    className="p-2 bg-[#1A1A1A] hover:bg-[#333] rounded-lg border border-[#333] text-gray-400 hover:text-white flex justify-center"
+                                    title="Move Forward"
+                                >
+                                    <ArrowUp size={16} />
+                                </button>
+                                <button 
+                                    onClick={() => moveLayer(selectedField.id, 'front')}
+                                    className="p-2 bg-[#1A1A1A] hover:bg-[#333] rounded-lg border border-[#333] text-gray-400 hover:text-white flex justify-center"
+                                    title="Bring to Front"
+                                >
+                                    <ChevronsUp size={16} />
+                                </button>
                             </div>
                          </div>
 

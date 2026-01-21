@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { LayoutDashboard } from 'lucide-react';
-import { ViewState } from './types';
+import React, { useEffect } from 'react';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { THEME } from './theme';
 import * as DataService from './services/dataService';
 
@@ -14,8 +13,6 @@ import SettingsView from './components/SettingsView';
 import ClocksView from './components/ClocksView';
 
 const App: React.FC = () => {
-  const [view, setView] = useState<ViewState>('dashboard');
-
   useEffect(() => {
     // Initialize Theme from Settings
     const settings = DataService.getClubSettings();
@@ -33,21 +30,27 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <div className={`min-h-screen ${THEME.bg} text-white font-sans selection:bg-brand-green/30`}>
-      <Sidebar currentView={view} setView={setView} />
-      
-      <main className="pl-64 h-screen overflow-hidden relative">
-        <div className="h-full overflow-auto p-8 scroll-smooth">
-          {view === 'dashboard' && <DashboardView />}
-          {view === 'members' && <MembersView />}
-          {view === 'tables' && <TablesView />}
-          {view === 'tournaments' && <TournamentsView />}
-          {view === 'structures' && <StructuresView />}
-          {view === 'clocks' && <ClocksView />}
-          {view === 'settings' && <SettingsView />}
-        </div>
-      </main>
-    </div>
+    <Router>
+      <div className={`min-h-screen ${THEME.bg} text-white font-sans selection:bg-brand-green/30`}>
+        <Sidebar />
+        
+        <main className="pl-64 h-screen overflow-hidden relative">
+          <div className="h-full overflow-auto p-8 scroll-smooth">
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<DashboardView />} />
+              <Route path="/members" element={<MembersView />} />
+              <Route path="/tables" element={<TablesView />} />
+              <Route path="/tournaments" element={<TournamentsView />} />
+              <Route path="/structures" element={<StructuresView />} />
+              <Route path="/clocks" element={<ClocksView />} />
+              <Route path="/settings" element={<SettingsView />} />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </div>
+        </main>
+      </div>
+    </Router>
   );
 };
 

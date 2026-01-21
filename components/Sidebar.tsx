@@ -9,32 +9,30 @@ import {
   Settings,
   MonitorPlay
 } from 'lucide-react';
-import { ViewState } from '../types';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { THEME } from '../theme';
 
-interface SidebarProps {
-  currentView: ViewState;
-  setView: (v: ViewState) => void;
-}
-
-const Sidebar: React.FC<SidebarProps> = ({ currentView, setView }) => {
+const Sidebar: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Update every minute is usually enough for HH:MM, but let's do 1s to be accurate on minute change
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'members', label: 'Members', icon: Users },
-    { id: 'tables', label: 'Tables', icon: Armchair },
-    { id: 'tournaments', label: 'Tournaments', icon: Trophy },
-    { id: 'structures', label: 'Structures', icon: Sliders },
-    { id: 'clocks', label: 'Clocks', icon: MonitorPlay },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: '/members', label: 'Members', icon: Users },
+    { id: '/tables', label: 'Tables', icon: Armchair },
+    { id: '/tournaments', label: 'Tournaments', icon: Trophy },
+    { id: '/structures', label: 'Structures', icon: Sliders },
+    { id: '/clocks', label: 'Clocks', icon: MonitorPlay },
+    { id: '/settings', label: 'Settings', icon: Settings },
   ];
+
+  const isActive = (path: string) => location.pathname.startsWith(path);
 
   return (
     <div className={`w-64 ${THEME.bg} border-r ${THEME.border} flex flex-col h-screen fixed left-0 top-0 z-20`}>
@@ -48,9 +46,9 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView }) => {
         {menuItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => setView(item.id as ViewState)}
+            onClick={() => navigate(item.id)}
             className={`w-full flex items-center gap-4 px-4 py-4 rounded-full transition-all duration-200 font-medium ${
-              currentView === item.id 
+              isActive(item.id)
                 ? 'bg-[#1F1F1F] text-brand-green' 
                 : 'text-gray-400 hover:text-white hover:bg-[#111]'
             }`}

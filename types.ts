@@ -251,7 +251,12 @@ export type ClockFieldType =
   | 'next_break'
   | 'payout_total'
   | 'custom_text'
-  | 'current_time';
+  | 'current_time'
+  // Shapes & Lines
+  | 'line'
+  | 'shape_rect'
+  | 'shape_circle'
+  | 'shape_triangle';
 
 export interface ClockField {
     id: string;
@@ -262,12 +267,17 @@ export interface ClockField {
     // Position & Style
     x: number; // Percent 0-100
     y: number; // Percent 0-100
-    width?: number; // Percent
-    height?: number; // Percent
+    width?: number; // px for shapes/lines
+    height?: number; // px for shapes/lines
     
     fontSize: number; // px (or simplified scale)
     fontWeight: 'normal' | 'bold';
-    color: string;
+    color: string; // Fill Color for shapes, Font color for text
+    
+    // Border / Stroke for Shapes
+    borderColor?: string;
+    borderWidth?: number;
+
     align: 'left' | 'center' | 'right';
     
     showLabel: boolean; // Show "BLINDS:" prefix?
