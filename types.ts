@@ -240,10 +240,13 @@ export interface ClubSettings {
 
 export type ClockFieldType = 
   | 'tournament_name' 
+  | 'tournament_desc'
   | 'timer' 
+  | 'blind_countdown'
   | 'blind_level' 
   | 'next_blinds'
   | 'ante'
+  | 'next_ante'
   | 'players_count' 
   | 'entries_count'
   | 'total_chips' 
@@ -252,6 +255,10 @@ export type ClockFieldType =
   | 'payout_total'
   | 'custom_text'
   | 'current_time'
+  | 'current_date'
+  | 'start_time'
+  | 'start_date'
+  | 'est_end_time'
   // Shapes & Lines
   | 'line'
   | 'shape_rect'

@@ -26,7 +26,11 @@ import {
   ChevronsUp,
   ChevronsDown,
   Palette,
-  GripVertical
+  GripVertical,
+  Grid,
+  Magnet,
+  Calendar,
+  Timer
 } from 'lucide-react';
 import { ClockConfig, ClockField, ClockFieldType } from '../types';
 import { THEME } from '../theme';
@@ -39,16 +43,24 @@ interface ClockEditorProps {
 
 const AVAILABLE_FIELDS: { type: ClockFieldType; label: string; icon: any }[] = [
     { type: 'tournament_name', label: 'Tournament Name', icon: Type },
+    { type: 'tournament_desc', label: 'Description', icon: Type },
     { type: 'timer', label: 'Main Timer', icon: Clock },
+    { type: 'blind_countdown', label: 'Level Countdown', icon: Timer },
     { type: 'blind_level', label: 'Current Blinds', icon: Layers },
     { type: 'next_blinds', label: 'Next Blinds', icon: Layers },
     { type: 'ante', label: 'Ante', icon: Layers },
+    { type: 'next_ante', label: 'Next Ante', icon: Layers },
     { type: 'players_count', label: 'Players Count', icon: Users },
     { type: 'entries_count', label: 'Total Entries', icon: Users },
     { type: 'total_chips', label: 'Total Chips', icon: Coins },
     { type: 'avg_stack', label: 'Avg Stack', icon: Coins },
+    { type: 'payout_total', label: 'Total Payout', icon: Coins },
     { type: 'next_break', label: 'Next Break', icon: Clock },
     { type: 'current_time', label: 'Real Time', icon: Clock },
+    { type: 'current_date', label: 'Current Date', icon: Calendar },
+    { type: 'start_time', label: 'Start Time', icon: Clock },
+    { type: 'start_date', label: 'Start Date', icon: Calendar },
+    { type: 'est_end_time', label: 'Est. End Time', icon: Clock },
     { type: 'custom_text', label: 'Custom Text', icon: Type },
     // Widgets
     { type: 'line', label: 'Line / Divider', icon: Minus },
@@ -70,9 +82,20 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
   const [isAddWidgetOpen, setIsAddWidgetOpen] = useState(false);
   const [draggedFieldId, setDraggedFieldId] = useState<string | null>(null);
   
+  // Editor Settings
+  const [showGrid, setShowGrid] = useState(false);
+  const [enableSnap, setEnableSnap] = useState(false);
+  
   // Dragging state (Canvas)
   const [isDragging, setIsDragging] = useState(false);
-  const dragStartRef = useRef<{x: number, y: number} | null>(null);
+  // Store initial values to calculate delta accurately and support snapping
+  const dragStartRef = useRef<{
+      startX: number; 
+      startY: number; 
+      initialFieldX: number; 
+      initialFieldY: number; 
+  } | null>(null);
+  
   const canvasRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -93,12 +116,18 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
           x: 50,
           y: 50,
           // Defaults
-          fontSize: type === 'timer' ? 120 : 32,
-          fontWeight: type === 'timer' || type === 'blind_level' ? 'bold' : 'normal',
+          fontSize: (type === 'timer' || type === 'blind_countdown') ? 120 : 32,
+          fontWeight: (type === 'timer' || type === 'blind_countdown' || type === 'blind_level') ? 'bold' : 'normal',
           color: isShape || isLine ? '#333333' : (config.fontColor || '#FFFFFF'), // Fill color for shapes
           align: 'center',
           showLabel: isText,
-          labelText: type === 'blind_level' ? 'BLINDS' : type === 'ante' ? 'ANTE' : type === 'avg_stack' ? 'AVG STACK' : undefined,
+          labelText: type === 'blind_level' ? 'BLINDS' : 
+                     type === 'ante' ? 'ANTE' : 
+                     type === 'next_ante' ? 'NEXT ANTE' :
+                     type === 'avg_stack' ? 'AVG STACK' : 
+                     type === 'next_blinds' ? 'NEXT BLINDS' :
+                     type === 'est_end_time' ? 'EST END' :
+                     undefined,
           // Shape defaults
           width: isLine ? 300 : isShape ? 100 : undefined,
           height: isLine ? 4 : isShape ? 100 : undefined,
@@ -166,33 +195,59 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
   // --- Drag Logic ---
   const handleMouseDown = (e: React.MouseEvent, fieldId: string) => {
       e.stopPropagation();
+      const field = config.fields.find(f => f.id === fieldId);
+      if (!field) return;
+
       setSelectedFieldId(fieldId);
       setIsAddWidgetOpen(false); // Close drawer if open
       setIsDragging(true);
-      dragStartRef.current = { x: e.clientX, y: e.clientY };
+      
+      // Store initial state for delta calculation
+      dragStartRef.current = { 
+          startX: e.clientX, 
+          startY: e.clientY,
+          initialFieldX: field.x,
+          initialFieldY: field.y
+      };
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
       if (!isDragging || !selectedFieldId || !dragStartRef.current || !canvasRef.current) return;
       
-      const deltaX = e.clientX - dragStartRef.current.x;
-      const deltaY = e.clientY - dragStartRef.current.y;
-      
       const rect = canvasRef.current.getBoundingClientRect();
       
-      // Convert px delta to percentage delta
-      const deltaXPercent = (deltaX / rect.width) * 100;
-      const deltaYPercent = (deltaY / rect.height) * 100;
+      // Calculate delta in pixels
+      const deltaXPx = e.clientX - dragStartRef.current.startX;
+      const deltaYPx = e.clientY - dragStartRef.current.startY;
+      
+      // Convert delta to percentage relative to canvas size
+      const deltaXPercent = (deltaXPx / rect.width) * 100;
+      const deltaYPercent = (deltaYPx / rect.height) * 100;
 
-      const field = config.fields.find(f => f.id === selectedFieldId);
-      if (field) {
-          updateField(selectedFieldId, {
-              x: field.x + deltaXPercent,
-              y: field.y + deltaYPercent
-          });
+      // Calculate new raw position based on initial position
+      let newX = dragStartRef.current.initialFieldX + deltaXPercent;
+      let newY = dragStartRef.current.initialFieldY + deltaYPercent;
+
+      // Apply Snapping if enabled
+      if (enableSnap) {
+          const SNAP_INTERVAL = 5; // Snap every 5%
+          const SNAP_THRESHOLD = 1.5; // Snap range
+
+          const nearestGridX = Math.round(newX / SNAP_INTERVAL) * SNAP_INTERVAL;
+          const nearestGridY = Math.round(newY / SNAP_INTERVAL) * SNAP_INTERVAL;
+
+          if (Math.abs(newX - nearestGridX) < SNAP_THRESHOLD) {
+              newX = nearestGridX;
+          }
+          if (Math.abs(newY - nearestGridY) < SNAP_THRESHOLD) {
+              newY = nearestGridY;
+          }
       }
 
-      dragStartRef.current = { x: e.clientX, y: e.clientY };
+      updateField(selectedFieldId, {
+          x: newX,
+          y: newY
+      });
   };
 
   const handleMouseUp = () => {
@@ -206,16 +261,24 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
   const getMockValue = (type: ClockFieldType) => {
       switch(type) {
           case 'tournament_name': return 'Sunday Special';
+          case 'tournament_desc': return 'Deepstack Championship - Flight A';
           case 'timer': return '15:00';
+          case 'blind_countdown': return '12:45';
           case 'blind_level': return '100 / 200';
           case 'next_blinds': return '200 / 400';
           case 'ante': return '200';
+          case 'next_ante': return '400';
           case 'players_count': return '45 / 100';
           case 'entries_count': return '62';
           case 'total_chips': return '1,240,000';
           case 'avg_stack': return '27,555';
+          case 'payout_total': return '$15,000';
           case 'next_break': return '01:45:00';
           case 'current_time': return new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+          case 'current_date': return new Date().toLocaleDateString();
+          case 'start_time': return '18:00';
+          case 'start_date': return new Date().toLocaleDateString();
+          case 'est_end_time': return '23:30';
           case 'custom_text': return 'Text';
           default: return '---';
       }
@@ -456,10 +519,36 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
 
             {/* Center: Canvas Stage */}
             <div className="flex-1 bg-[#000] relative overflow-hidden flex items-center justify-center p-8 select-none" onClick={() => setIsAddWidgetOpen(false)}>
+                
+                {/* Canvas Controls Toolbar */}
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-[#1A1A1A] border border-[#333] p-1.5 rounded-xl shadow-xl z-40">
+                    <button
+                        onClick={() => setShowGrid(!showGrid)}
+                        className={`p-2 rounded-lg flex items-center gap-2 text-xs font-bold transition-colors ${showGrid ? 'bg-brand-green text-black' : 'text-gray-400 hover:text-white hover:bg-[#333]'}`}
+                        title="Toggle Grid"
+                    >
+                        <Grid size={16} />
+                        Grid
+                    </button>
+                    <div className="w-px h-4 bg-[#333]"></div>
+                    <button
+                        onClick={() => setEnableSnap(!enableSnap)}
+                        className={`p-2 rounded-lg flex items-center gap-2 text-xs font-bold transition-colors ${enableSnap ? 'bg-blue-500 text-white' : 'text-gray-400 hover:text-white hover:bg-[#333]'}`}
+                        title="Toggle Snap to Grid"
+                    >
+                        <Magnet size={16} />
+                        Snap
+                    </button>
+                </div>
+
                 <div 
                     ref={canvasRef}
-                    className="aspect-video w-full max-w-6xl shadow-2xl relative border border-[#333]"
-                    style={{ backgroundColor: config.backgroundColor }}
+                    className="aspect-video w-full max-w-6xl shadow-2xl relative border border-[#333] overflow-hidden"
+                    style={{ 
+                        backgroundColor: config.backgroundColor,
+                        backgroundImage: showGrid ? 'linear-gradient(to right, #333 1px, transparent 1px), linear-gradient(to bottom, #333 1px, transparent 1px)' : 'none',
+                        backgroundSize: '5% 5%'
+                    }}
                     onClick={() => setSelectedFieldId(null)}
                 >
                     {config.fields.map(field => (
