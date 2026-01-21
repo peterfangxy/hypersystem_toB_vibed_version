@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Layers, 
@@ -8,10 +9,10 @@ import {
   ChevronDown,
   Cpu,
   Table,
-  Copy,
-  Sparkles
+  Sparkles,
+  MonitorPlay
 } from 'lucide-react';
-import { Tournament, PayoutModel, TournamentStatus, PokerTable, TournamentStructure, PayoutStructure } from '../types';
+import { Tournament, PayoutModel, TournamentStatus, PokerTable, TournamentStructure, PayoutStructure, ClockConfig } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
 import { Modal } from './Modal';
@@ -44,12 +45,14 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
     description: '',
     tableIds: [],
     structureId: '',
-    payoutStructureId: ''
+    payoutStructureId: '',
+    clockConfigId: ''
   });
 
   const [availableTables, setAvailableTables] = useState<PokerTable[]>([]);
   const [structures, setStructures] = useState<TournamentStructure[]>([]);
   const [payoutStructures, setPayoutStructures] = useState<PayoutStructure[]>([]);
+  const [clockConfigs, setClockConfigs] = useState<ClockConfig[]>([]);
   const [templates, setTemplates] = useState<Tournament[]>([]);
 
   // Check if form should be read-only
@@ -60,6 +63,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
       setAvailableTables(DataService.getTables());
       setStructures(DataService.getTournamentStructures());
       setPayoutStructures(DataService.getPayoutStructures());
+      setClockConfigs(DataService.getClockConfigs());
       setTemplates(DataService.getTournamentTemplates());
 
       if (initialData) {
@@ -86,7 +90,8 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
           description: '',
           tableIds: [],
           structureId: '',
-          payoutStructureId: ''
+          payoutStructureId: '',
+          clockConfigId: DataService.getClockConfigs().find(c => c.isDefault)?.id || ''
         });
       }
     }
@@ -170,6 +175,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
           description: template.description || '',
           structureId: template.structureId,
           payoutStructureId: template.payoutStructureId,
+          clockConfigId: template.clockConfigId,
           // Optional: Import table assignments if the template has them? 
           // Usually templates are structure-focused, but let's allow it.
           tableIds: template.tableIds || []
@@ -196,7 +202,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
       isOpen={isOpen}
       onClose={onClose}
       title={initialData ? (isReadOnly ? 'Tournament Details (Read Only)' : isTemplateMode ? 'Edit Template' : 'Edit Tournament') : (isTemplateMode ? 'New Template' : 'New Tournament')}
-      size="xl"
+      size="2xl"
     >
       <form onSubmit={handleSubmit} className="p-6 overflow-y-auto">
         
@@ -323,7 +329,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                 <Trophy size={14} /> Structure & Payouts
                 </h3>
                 
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-3 gap-4">
                     {/* Tournament Structure Selector */}
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-300">Tournament Structure</label>
@@ -331,7 +337,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                             <select
                                 value={formData.structureId || ''}
                                 onChange={(e) => handleStructureChange(e.target.value)}
-                                className={`w-full ${THEME.input} rounded-xl pl-4 pr-10 py-3 outline-none appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed`}
+                                className={`w-full ${THEME.input} rounded-xl pl-4 pr-10 py-3 outline-none appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed text-sm`}
                             >
                                 <option value="">Select a structure...</option>
                                 {structures.map(s => (
@@ -343,32 +349,19 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                         
                         {/* Preview Card */}
                         {selectedStruct && (
-                            <div className="bg-[#1A1A1A] border border-[#333] rounded-xl p-3 flex justify-between items-center text-sm animate-in fade-in slide-in-from-top-2">
-                                <div>
-                                    <div className="text-gray-400 text-xs uppercase font-bold">Chips</div>
-                                    <div className="font-mono text-brand-green">{selectedStruct.startingChips.toLocaleString()}</div>
+                            <div className="bg-[#1A1A1A] border border-[#333] rounded-xl p-3 flex flex-col justify-between text-xs animate-in fade-in slide-in-from-top-2 gap-2">
+                                <div className="flex justify-between">
+                                    <span className="text-gray-400">Chips:</span>
+                                    <span className="font-mono text-brand-green">{selectedStruct.startingChips.toLocaleString()}</span>
                                 </div>
-                                <div className="w-px h-8 bg-[#333]"></div>
-                                <div>
-                                    <div className="text-gray-400 text-xs uppercase font-bold">Blinds (L1)</div>
-                                    <div className="text-white">
-                                        {previewLevel ? `${previewLevel.smallBlind}/${previewLevel.bigBlind}` : 'N/A'}
-                                        {previewLevel && previewLevel.ante && previewLevel.ante > 0 ? ` (${previewLevel.ante})` : ''}
-                                    </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-400">Blinds:</span>
+                                    <span className="text-white">{previewLevel ? `${previewLevel.smallBlind}/${previewLevel.bigBlind}` : 'N/A'}</span>
                                 </div>
-                                <div className="w-px h-8 bg-[#333]"></div>
-                                <div>
-                                    <div className="text-gray-400 text-xs uppercase font-bold">Re-buys</div>
-                                    <div className="text-white">
-                                        {selectedStruct.rebuyLimit === 0 ? 'Freezeout' : `${selectedStruct.rebuyLimit} Limit`}
-                                    </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-400">Rebuys:</span>
+                                    <span className="text-white">{selectedStruct.rebuyLimit === 0 ? 'Freezeout' : `${selectedStruct.rebuyLimit} Limit`}</span>
                                 </div>
-                            </div>
-                        )}
-
-                        {!selectedStruct && (
-                            <div className="bg-[#1A1A1A]/50 border border-dashed border-[#333] rounded-xl p-3 text-center text-xs text-gray-500">
-                                Select a structure to preview details
                             </div>
                         )}
                     </div>
@@ -380,7 +373,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                             <select
                                 value={formData.payoutStructureId || ''}
                                 onChange={(e) => handlePayoutStructureChange(e.target.value)}
-                                className={`w-full ${THEME.input} rounded-xl pl-4 pr-10 py-3 outline-none appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed`}
+                                className={`w-full ${THEME.input} rounded-xl pl-4 pr-10 py-3 outline-none appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed text-sm`}
                             >
                                 <option value="">Select a payout model...</option>
                                 {payoutStructures.map(p => (
@@ -391,7 +384,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                         </div>
 
                         {/* Preview info for Payout */}
-                        {formData.payoutStructureId ? (
+                        {formData.payoutStructureId && (
                             <div className="bg-[#1A1A1A] border border-[#333] rounded-xl p-3 text-sm animate-in fade-in slide-in-from-top-2">
                                 {(() => {
                                     const p = payoutStructures.find(ps => ps.id === formData.payoutStructureId);
@@ -409,9 +402,51 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                                     );
                                 })()}
                             </div>
-                        ) : (
-                            <div className="bg-[#1A1A1A]/50 border border-dashed border-[#333] rounded-xl p-3 text-center text-xs text-gray-500">
-                                Select a payout to preview
+                        )}
+                    </div>
+
+                    {/* Clock Config Selector */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-300">Clock Layout</label>
+                        <div className="relative">
+                            <select
+                                value={formData.clockConfigId || ''}
+                                onChange={(e) => setFormData({...formData, clockConfigId: e.target.value})}
+                                className={`w-full ${THEME.input} rounded-xl pl-4 pr-10 py-3 outline-none appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed text-sm`}
+                            >
+                                <option value="">Select a layout...</option>
+                                {clockConfigs.map(c => (
+                                    <option key={c.id} value={c.id}>{c.name} {c.isDefault ? '(Default)' : ''}</option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" size={16} />
+                        </div>
+
+                        {/* Preview info for Clock */}
+                        {formData.clockConfigId && (
+                            <div className="bg-[#1A1A1A] border border-[#333] rounded-xl p-3 text-sm animate-in fade-in slide-in-from-top-2">
+                                {(() => {
+                                    const c = clockConfigs.find(config => config.id === formData.clockConfigId);
+                                    if (!c) return null;
+                                    return (
+                                        <div className="flex items-start gap-3">
+                                            <div className="mt-1 text-blue-400">
+                                                <MonitorPlay size={16} />
+                                            </div>
+                                            <div className="w-full">
+                                                <div className="font-bold text-white text-xs uppercase truncate">{c.name}</div>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <div 
+                                                        className="w-3 h-3 rounded-full border border-gray-600" 
+                                                        style={{ backgroundColor: c.backgroundColor }}
+                                                        title="Background Color"
+                                                    />
+                                                    <div className="text-gray-400 text-[10px]">{c.fields.length} Widgets</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
                             </div>
                         )}
                     </div>

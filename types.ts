@@ -89,6 +89,7 @@ export interface Tournament {
   // Linked Structures
   structureId?: string; // Renamed from blindStructureId
   payoutStructureId?: string;
+  clockConfigId?: string; // New: Linked Clock Layout
 
   // Legacy/Snapshot fields (kept for display/fallback)
   payoutModel: PayoutModel; 

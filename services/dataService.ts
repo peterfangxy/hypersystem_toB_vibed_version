@@ -1,5 +1,5 @@
 
-
+// ... (Previous imports and keys remain unchanged)
 import { Member, MembershipTier, PokerTable, Tournament, PayoutModel, TournamentRegistration, RegistrationStatus, TournamentStructure, PayoutStructure, Withdrawal, Deposit, MemberFinancials, FinancialTransaction, PaymentMethod, StructureItem, TournamentTransaction, ClubSettings, ClubTheme, TeamMember, ClockConfig, ClockField } from '../types';
 
 const MEMBERS_KEY = 'royal_flush_members';
@@ -15,7 +15,7 @@ const SETTINGS_KEY = 'royal_flush_settings';
 const TEAM_KEY = 'royal_flush_team';
 const CLOCKS_KEY = 'royal_flush_clocks';
 
-// --- Helpers ---
+// ... (Helpers and other sections remain unchanged until SEED_TOURNAMENTS)
 
 const getLocalData = <T>(key: string): T | null => {
   const data = localStorage.getItem(key);
@@ -27,7 +27,6 @@ const setLocalData = <T>(key: string, data: T): void => {
 };
 
 // --- Members ---
-
 const SEED_MEMBERS: Member[] = [
   {
     id: '1',
@@ -348,6 +347,7 @@ const SEED_TOURNAMENTS: Tournament[] = [
         status: 'Registration',
         structureId: 'struct_1',
         payoutStructureId: 'matrix_1',
+        clockConfigId: 'default_clock',
         startingChips: 20000,
         startingBlinds: '100/200',
         blindLevelMinutes: 20,
@@ -369,6 +369,7 @@ const SEED_TOURNAMENTS: Tournament[] = [
         status: 'Scheduled',
         structureId: 'struct_2',
         payoutStructureId: 'matrix_2',
+        clockConfigId: 'default_clock',
         startingChips: 15000,
         startingBlinds: '100/200',
         blindLevelMinutes: 10,
@@ -389,6 +390,7 @@ const SEED_TOURNAMENTS: Tournament[] = [
         status: 'Scheduled',
         structureId: 'struct_1',
         payoutStructureId: 'matrix_1',
+        clockConfigId: 'default_clock',
         startingChips: 50000,
         startingBlinds: '200/400',
         blindLevelMinutes: 30,
@@ -410,6 +412,7 @@ const SEED_TOURNAMENTS: Tournament[] = [
         status: 'Scheduled',
         structureId: 'struct_3',
         payoutStructureId: 'matrix_3', // Winner takes all
+        clockConfigId: 'default_clock',
         startingChips: 10000,
         startingBlinds: '100/200',
         blindLevelMinutes: 5,
@@ -474,7 +477,7 @@ export const deleteTournamentTemplate = (id: string): void => {
     setLocalData(TOURNAMENT_TEMPLATES_KEY, templates);
 };
 
-
+// ... (Rest of file unchanged)
 // --- Tournament Registrations ---
 
 export const getTournamentRegistrations = (tournamentId: string): TournamentRegistration[] => {
