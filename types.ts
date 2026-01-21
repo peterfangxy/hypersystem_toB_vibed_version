@@ -107,6 +107,7 @@ export interface TournamentTransaction {
   id: string;
   type: 'BuyIn' | 'Rebuy' | 'AddOn';
   timestamp: string;
+  isPaid?: boolean; // Payment received status
   
   // Modifiers
   rebuyDiscount: number;
@@ -235,4 +236,52 @@ export interface ClubSettings {
     theme: ClubTheme;
 }
 
-export type ViewState = 'dashboard' | 'members' | 'tables' | 'tournaments' | 'structures' | 'settings';
+// --- Clock Configs ---
+
+export type ClockFieldType = 
+  | 'tournament_name' 
+  | 'timer' 
+  | 'blind_level' 
+  | 'next_blinds'
+  | 'ante'
+  | 'players_count' 
+  | 'entries_count'
+  | 'total_chips' 
+  | 'avg_stack' 
+  | 'next_break'
+  | 'payout_total'
+  | 'custom_text'
+  | 'current_time';
+
+export interface ClockField {
+    id: string;
+    type: ClockFieldType;
+    label: string; // For the editor list
+    customText?: string; // If type is custom_text
+    
+    // Position & Style
+    x: number; // Percent 0-100
+    y: number; // Percent 0-100
+    width?: number; // Percent
+    height?: number; // Percent
+    
+    fontSize: number; // px (or simplified scale)
+    fontWeight: 'normal' | 'bold';
+    color: string;
+    align: 'left' | 'center' | 'right';
+    
+    showLabel: boolean; // Show "BLINDS:" prefix?
+    labelText?: string; // "BLINDS"
+}
+
+export interface ClockConfig {
+    id: string;
+    name: string;
+    backgroundColor: string;
+    fontColor?: string; // Global default font color
+    backgroundImageUrl?: string;
+    fields: ClockField[];
+    isDefault?: boolean;
+}
+
+export type ViewState = 'dashboard' | 'members' | 'tables' | 'tournaments' | 'structures' | 'settings' | 'clocks';

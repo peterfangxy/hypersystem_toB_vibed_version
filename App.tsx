@@ -11,6 +11,7 @@ import TournamentsView from './components/TournamentsView';
 import StructuresView from './components/StructuresView';
 import DashboardView from './components/DashboardView';
 import SettingsView from './components/SettingsView';
+import ClocksView from './components/ClocksView';
 
 const App: React.FC = () => {
   const [view, setView] = useState<ViewState>('dashboard');
@@ -42,6 +43,7 @@ const App: React.FC = () => {
           {view === 'tables' && <TablesView />}
           {view === 'tournaments' && <TournamentsView />}
           {view === 'structures' && <StructuresView />}
+          {view === 'clocks' && <ClocksView />}
           {view === 'settings' && <SettingsView />}
         </div>
       </main>

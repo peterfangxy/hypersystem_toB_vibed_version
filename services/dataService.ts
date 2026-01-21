@@ -1,4 +1,5 @@
-import { Member, MembershipTier, PokerTable, Tournament, PayoutModel, TournamentRegistration, RegistrationStatus, TournamentStructure, PayoutStructure, Withdrawal, Deposit, MemberFinancials, FinancialTransaction, PaymentMethod, StructureItem, TournamentTransaction, ClubSettings, ClubTheme, TeamMember } from '../types';
+
+import { Member, MembershipTier, PokerTable, Tournament, PayoutModel, TournamentRegistration, RegistrationStatus, TournamentStructure, PayoutStructure, Withdrawal, Deposit, MemberFinancials, FinancialTransaction, PaymentMethod, StructureItem, TournamentTransaction, ClubSettings, ClubTheme, TeamMember, ClockConfig, ClockField } from '../types';
 
 const MEMBERS_KEY = 'royal_flush_members';
 const TABLES_KEY = 'royal_flush_tables';
@@ -11,6 +12,7 @@ const WITHDRAWALS_KEY = 'royal_flush_withdrawals';
 const DEPOSITS_KEY = 'royal_flush_deposits';
 const SETTINGS_KEY = 'royal_flush_settings';
 const TEAM_KEY = 'royal_flush_team';
+const CLOCKS_KEY = 'royal_flush_clocks';
 
 // --- Helpers ---
 
@@ -22,6 +24,9 @@ const getLocalData = <T>(key: string): T | null => {
 const setLocalData = <T>(key: string, data: T): void => {
   localStorage.setItem(key, JSON.stringify(data));
 };
+
+// ... (Existing Member, Table, Structure code remains same, omitted for brevity but assumed present in real file. Since I have to output full file if I change it, I will paste EVERYTHING below to be safe) ...
+// Actually, to save tokens and avoid errors, I will use the established pattern:
 
 // --- Members ---
 
@@ -578,7 +583,8 @@ export const updateRegistrationBuyIn = (regId: string, count: number): void => {
                 membershipDiscount: 0,
                 voucherDiscount: 0,
                 campaignDiscount: 0,
-                depositPaid: 0
+                depositPaid: 0,
+                isPaid: false
             });
         }
     } else if (diff < 0) {
@@ -595,8 +601,42 @@ export const updateRegistrationBuyIn = (regId: string, count: number): void => {
 export const updateRegistrationTransactions = (regId: string, transactions: TournamentTransaction[]): void => {
     const allRegs = getLocalData<TournamentRegistration[]>(REGISTRATIONS_KEY) || [];
     const index = allRegs.findIndex(r => r.id === regId);
+    
     if (index >= 0) {
+        const oldReg = allRegs[index];
+        const memberId = oldReg.memberId;
+        
+        // Calculate previous total deposit usage
+        const oldTotalDeposit = oldReg.transactions?.reduce((sum, tx) => sum + (tx.depositPaid || 0), 0) || 0;
+        
+        // Calculate new total deposit usage
+        const newTotalDeposit = transactions.reduce((sum, tx) => sum + (tx.depositPaid || 0), 0);
+        
+        const diff = newTotalDeposit - oldTotalDeposit;
+        
+        if (diff !== 0) {
+            const financials = getMemberFinancials(memberId);
+            
+            const tx: FinancialTransaction = {
+                id: crypto.randomUUID(),
+                type: 'BuyIn', // 'BuyIn' reduces balance in saveMemberFinancials logic
+                amount: diff, // Positive diff means we deduct more. Negative diff means we deduct less (refund).
+                date: new Date().toISOString(),
+                description: `Tournament Entry/Rebuy Adjustment (${oldReg.tournamentId.substring(0,8)})`,
+                referenceId: oldReg.tournamentId
+            };
+            
+            // Add to history
+            financials.transactions.unshift(tx);
+            // Save updates balance automatically
+            saveMemberFinancials(memberId, financials);
+        }
+
         allRegs[index].transactions = transactions;
+        
+        // Also update buyInCount just in case
+        allRegs[index].buyInCount = transactions.length;
+
         setLocalData(REGISTRATIONS_KEY, allRegs);
     }
 };
@@ -796,4 +836,50 @@ export const saveTeamMember = (member: TeamMember): void => {
 export const deleteTeamMember = (id: string): void => {
     const members = getTeamMembers().filter(m => m.id !== id);
     setLocalData(TEAM_KEY, members);
+};
+
+// --- Clock Configs ---
+
+const SEED_CLOCKS: ClockConfig[] = [
+    {
+        id: 'default_clock',
+        name: 'Standard Tournament Clock',
+        backgroundColor: '#4A1C16', // Reddish brown from screenshot
+        fontColor: '#FFFFFF',
+        fields: [
+            { id: '1', type: 'tournament_name', label: 'Tournament Name', x: 50, y: 10, fontSize: 48, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: false },
+            { id: '2', type: 'timer', label: 'Timer', x: 50, y: 40, fontSize: 180, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: false },
+            { id: '3', type: 'blind_level', label: 'Blinds', x: 30, y: 70, fontSize: 60, fontWeight: 'bold', color: '#FFFFFF', align: 'left', showLabel: true, labelText: 'BLINDS:' },
+            { id: '4', type: 'ante', label: 'Ante', x: 70, y: 70, fontSize: 60, fontWeight: 'bold', color: '#FFFFFF', align: 'right', showLabel: true, labelText: 'ANTE:' },
+            { id: '5', type: 'players_count', label: 'Players', x: 85, y: 40, fontSize: 32, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: true, labelText: 'PLAYERS' },
+            { id: '6', type: 'avg_stack', label: 'Avg Stack', x: 85, y: 25, fontSize: 32, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: true, labelText: 'AVG STACK' },
+            { id: '7', type: 'next_break', label: 'Next Break', x: 85, y: 10, fontSize: 32, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: true, labelText: 'NEXT BREAK' },
+        ],
+        isDefault: true
+    }
+];
+
+export const getClockConfigs = (): ClockConfig[] => {
+    const data = getLocalData<ClockConfig[]>(CLOCKS_KEY);
+    if (!data) {
+        setLocalData(CLOCKS_KEY, SEED_CLOCKS);
+        return SEED_CLOCKS;
+    }
+    return data;
+};
+
+export const saveClockConfig = (config: ClockConfig): void => {
+    const configs = getClockConfigs();
+    const index = configs.findIndex(c => c.id === config.id);
+    if (index >= 0) {
+        configs[index] = config;
+    } else {
+        configs.push(config);
+    }
+    setLocalData(CLOCKS_KEY, configs);
+};
+
+export const deleteClockConfig = (id: string): void => {
+    const configs = getClockConfigs().filter(c => c.id !== id);
+    setLocalData(CLOCKS_KEY, configs);
 };

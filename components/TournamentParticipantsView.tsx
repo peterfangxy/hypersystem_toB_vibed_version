@@ -375,11 +375,10 @@ const TournamentParticipantsView: React.FC<TournamentParticipantsViewProps> = ({
                 <table className="w-full text-left border-collapse min-w-[1000px]">
                     <thead className="sticky top-0 bg-[#171717] z-10 shadow-sm">
                       <tr className="text-xs uppercase text-gray-500 font-bold tracking-wider">
-                        <th className="px-6 py-4 w-[15%]">Player</th>
+                        <th className="px-6 py-4 w-[25%]">Player</th>
                         <th className="px-6 py-4 w-[10%]">Status</th>
                         <th className="px-6 py-4 w-[20%]">Table / Seat</th>
                         <th className="px-6 py-4 text-center w-[10%]">Buy-ins</th>
-                        <th className="px-6 py-4 text-right w-[10%]">Net Payable</th>
                         <th className="px-6 py-4 text-right w-[10%]">Chips In/Out</th>
                         {isTournamentLocked && (
                              <th className="px-6 py-4 text-right text-brand-green w-[10%]">Winnings</th>
@@ -390,7 +389,7 @@ const TournamentParticipantsView: React.FC<TournamentParticipantsViewProps> = ({
                     <tbody className="divide-y divide-[#262626]">
                       {enrichedRegistrations.length === 0 ? (
                         <tr>
-                          <td colSpan={8} className="py-20 text-center text-gray-500">
+                          <td colSpan={7} className="py-20 text-center text-gray-500">
                             {registrationSearch ? 'No matching players found.' : 'No players registered yet.'}
                           </td>
                         </tr>
@@ -473,19 +472,6 @@ const TournamentParticipantsView: React.FC<TournamentParticipantsViewProps> = ({
                                 <span className={`font-mono font-bold ${reg.buyInCount > 0 ? 'text-white' : 'text-gray-500'}`}>
                                     {reg.buyInCount}
                                 </span>
-                            </td>
-
-                             {/* Net Payable Column */}
-                             <td className="px-6 py-4 text-right">
-                                <button 
-                                    onClick={() => setPaymentModalReg(reg)}
-                                    className="font-mono font-bold text-white text-sm hover:text-brand-green hover:underline decoration-brand-green decoration-2 underline-offset-4 transition-all"
-                                >
-                                    ${reg.netPayable.toLocaleString()}
-                                </button>
-                                <div className="text-[10px] text-gray-500">
-                                    Paid: ${reg.totalDepositPaid ? reg.totalDepositPaid.toLocaleString() : '0'}
-                                </div>
                             </td>
 
                             {/* Chips Column (In / Out) */}

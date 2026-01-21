@@ -3,9 +3,12 @@ import {
   Trash2, 
   Plus, 
   Save,
-  AlertCircle
+  AlertCircle,
+  Wallet,
+  Check
 } from 'lucide-react';
 import { Tournament, TournamentRegistration, Member, PokerTable, TournamentTransaction } from '../types';
+import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
 import { Modal } from './Modal';
 
@@ -26,6 +29,8 @@ interface BuyinMgmtModalProps {
 
 export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose, registration, tournament, onSave }) => {
     const [transactions, setTransactions] = useState<TournamentTransaction[]>([]);
+    const [walletBalance, setWalletBalance] = useState<number>(0);
+    const [initialAllocatedDeposit, setInitialAllocatedDeposit] = useState<number>(0);
 
     useEffect(() => {
         if (isOpen && registration) {
@@ -35,6 +40,17 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                 : [];
             
             setTransactions(txs);
+
+            // Calculate initial allocated deposit for this specific registration
+            // This is funds already deducted from the user's wallet for this tournament
+            const initialAllocated = txs.reduce((sum, tx) => sum + (tx.depositPaid || 0), 0);
+            setInitialAllocatedDeposit(initialAllocated);
+
+            // Fetch member wallet balance
+            if (registration.member) {
+                const financials = DataService.getMemberFinancials(registration.member.id);
+                setWalletBalance(financials.balance);
+            }
         }
     }, [isOpen, registration]);
 
@@ -43,8 +59,11 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
     const baseCost = tournament.buyIn + tournament.fee;
     const maxBuyIns = 1 + (tournament.rebuyLimit || 0);
     const canAdd = transactions.length < maxBuyIns;
+    
+    // Calculate total available funds including what is already allocated to this tournament
+    const effectiveAvailableFunds = walletBalance + initialAllocatedDeposit;
 
-    const handleTransactionChange = (index: number, field: keyof TournamentTransaction, value: number) => {
+    const handleTransactionChange = (index: number, field: keyof TournamentTransaction, value: any) => {
         const updated = [...transactions];
         updated[index] = { ...updated[index], [field]: value };
         setTransactions(updated);
@@ -62,7 +81,8 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
             membershipDiscount: 0,
             voucherDiscount: 0,
             campaignDiscount: 0,
-            depositPaid: 0
+            depositPaid: 0,
+            isPaid: false
         };
         setTransactions([...transactions, newTx]);
     };
@@ -88,6 +108,7 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
     };
 
     const calculateRowCash = (tx: TournamentTransaction) => {
+        if (tx.isPaid) return 0; // If marked as paid, no outstanding cash
         const net = calculateRowNet(tx);
         return Math.max(0, net - (tx.depositPaid || 0));
     };
@@ -96,6 +117,9 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
     const totalNetPayable = transactions.reduce((sum, tx) => sum + calculateRowNet(tx), 0);
     const totalDepositPaid = transactions.reduce((sum, tx) => sum + (tx.depositPaid || 0), 0);
     const totalCashOutstanding = transactions.reduce((sum, tx) => sum + calculateRowCash(tx), 0);
+
+    // Validation
+    const isOverBalance = totalDepositPaid > effectiveAvailableFunds;
 
     return (
         <Modal
@@ -120,12 +144,13 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                                 <th className="px-2 py-3 border-b border-[#333] text-right text-yellow-400">Campaign</th>
                                 <th className="px-2 py-3 border-b border-[#333] text-right text-brand-green">Deposit Pay</th>
                                 <th className="px-4 py-3 border-b border-[#333] text-right text-white">Net Payable</th>
+                                <th className="px-2 py-3 border-b border-[#333] text-center">Paid?</th>
                                 <th className="px-2 py-3 border-b border-[#333]"></th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[#262626]">
                             {transactions.length === 0 ? (
-                                <tr><td colSpan={11} className="p-8 text-center text-gray-500">No transactions recorded. Click "Add" below.</td></tr>
+                                <tr><td colSpan={12} className="p-8 text-center text-gray-500">No transactions recorded. Click "Add" below.</td></tr>
                             ) : (
                                 transactions.map((tx, idx) => {
                                     const net = calculateRowNet(tx);
@@ -154,7 +179,9 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                                                         min="0"
                                                         value={(tx as any)[field]}
                                                         onChange={(e) => handleTransactionChange(idx, field as keyof TournamentTransaction, parseFloat(e.target.value) || 0)}
-                                                        className="w-24 bg-[#222] border border-[#333] rounded px-2 py-1 text-right text-sm text-white outline-none focus:border-brand-green focus:bg-[#111] transition-colors"
+                                                        className={`w-24 bg-[#222] border rounded px-2 py-1 text-right text-sm text-white outline-none focus:border-brand-green focus:bg-[#111] transition-colors ${
+                                                            field === 'depositPaid' && isOverBalance ? 'border-red-500/50 text-red-200' : 'border-[#333]'
+                                                        }`}
                                                         onFocus={e => e.target.select()}
                                                     />
                                                 </td>
@@ -163,6 +190,22 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                                             <td className="px-4 py-3 text-right">
                                                 <div className="font-bold text-white font-mono">${net.toLocaleString()}</div>
                                             </td>
+                                            
+                                            <td className="px-2 py-3 text-center">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleTransactionChange(idx, 'isPaid', !tx.isPaid)}
+                                                    className={`w-8 h-8 rounded flex items-center justify-center transition-colors border ${
+                                                        tx.isPaid 
+                                                        ? 'bg-green-500/20 border-green-500 text-green-500' 
+                                                        : 'bg-[#222] border-[#444] text-gray-600 hover:border-gray-500'
+                                                    }`}
+                                                    title={tx.isPaid ? "Mark as Unpaid" : "Mark as Paid"}
+                                                >
+                                                    {tx.isPaid && <Check size={16} strokeWidth={3} />}
+                                                </button>
+                                            </td>
+
                                             <td className="px-2 py-3 text-center">
                                                 <button 
                                                     type="button"
@@ -210,17 +253,32 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                             <span className="text-xl font-bold text-white font-mono">${totalNetPayable.toLocaleString()}</span>
                         </div>
                         <div>
-                            <span className="text-gray-500 text-xs font-bold uppercase block mb-1">Total Deposit Paid</span>
-                            <span className="text-xl font-bold text-brand-green font-mono">${totalDepositPaid.toLocaleString()}</span>
+                            <span className="text-gray-500 text-xs font-bold uppercase block mb-1 flex items-center gap-1.5">
+                                Total Deposit Paid
+                                {isOverBalance && <AlertCircle size={14} className="text-red-500" />}
+                            </span>
+                            <span className={`text-xl font-bold font-mono ${isOverBalance ? 'text-red-500' : 'text-brand-green'}`}>
+                                ${totalDepositPaid.toLocaleString()}
+                            </span>
+                            <div className="text-[10px] text-gray-500 flex items-center gap-1.5 mt-1">
+                                <Wallet size={12} />
+                                Avail: ${effectiveAvailableFunds.toLocaleString()}
+                            </div>
                         </div>
                         <div className="pl-8 border-l border-[#333]">
-                            <span className="text-gray-500 text-xs font-bold uppercase block mb-1">Outstanding (Cash)</span>
+                            <span className="text-gray-500 text-xs font-bold uppercase block mb-1">Outstanding</span>
                             <span className="text-2xl font-bold text-white font-mono">${totalCashOutstanding.toLocaleString()}</span>
                         </div>
                     </div>
                     <button 
                         type="submit"
-                        className={`px-8 py-3 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 ${THEME.buttonPrimary}`}
+                        disabled={isOverBalance}
+                        className={`px-8 py-3 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 ${
+                            isOverBalance 
+                            ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
+                            : THEME.buttonPrimary
+                        }`}
+                        title={isOverBalance ? "Insufficient wallet balance" : ""}
                     >
                         <Save size={20} />
                         Save Changes

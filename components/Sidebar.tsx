@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   LayoutDashboard, 
@@ -6,7 +6,8 @@ import {
   Armchair, 
   User,
   Sliders,
-  Settings
+  Settings,
+  MonitorPlay
 } from 'lucide-react';
 import { ViewState } from '../types';
 import { THEME } from '../theme';
@@ -17,12 +18,21 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, setView }) => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    // Update every minute is usually enough for HH:MM, but let's do 1s to be accurate on minute change
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'members', label: 'Members', icon: Users },
     { id: 'tables', label: 'Tables', icon: Armchair },
     { id: 'tournaments', label: 'Tournaments', icon: Trophy },
     { id: 'structures', label: 'Structures', icon: Sliders },
+    { id: 'clocks', label: 'Clocks', icon: MonitorPlay },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
@@ -50,6 +60,16 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView }) => {
           </button>
         ))}
       </nav>
+
+      {/* Live Clock */}
+      <div className="px-6 pb-6 flex flex-col items-center">
+         <div className="text-3xl font-bold text-gray-500 font-mono tracking-tighter">
+            {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+         </div>
+         <div className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mt-1">
+            {currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric'})}
+         </div>
+      </div>
 
       <div className="p-6 border-t border-[#222]">
         <div className="flex items-center gap-3">
