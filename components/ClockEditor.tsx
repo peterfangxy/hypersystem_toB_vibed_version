@@ -31,7 +31,8 @@ import {
   Magnet,
   Calendar,
   Timer,
-  Copy
+  Copy,
+  CheckCircle2
 } from 'lucide-react';
 import { ClockConfig, ClockField, ClockFieldType } from '../types';
 import { THEME } from '../theme';
@@ -473,6 +474,16 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                                 {config.fontColor || '#FFFFFF'}
                             </div>
                         </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2">
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Default Layout</label>
+                        <button 
+                            onClick={() => setConfig({...config, isDefault: !config.isDefault})}
+                            className={`w-10 h-6 rounded-full flex items-center transition-all px-1 ${config.isDefault ? 'bg-brand-green justify-end' : 'bg-[#333] justify-start'}`}
+                        >
+                            <div className="w-4 h-4 rounded-full bg-white shadow-sm"></div>
+                        </button>
                     </div>
                 </div>
 

@@ -1,4 +1,5 @@
 
+
 import { Member, MembershipTier, PokerTable, Tournament, PayoutModel, TournamentRegistration, RegistrationStatus, TournamentStructure, PayoutStructure, Withdrawal, Deposit, MemberFinancials, FinancialTransaction, PaymentMethod, StructureItem, TournamentTransaction, ClubSettings, ClubTheme, TeamMember, ClockConfig, ClockField } from '../types';
 
 const MEMBERS_KEY = 'royal_flush_members';
@@ -24,9 +25,6 @@ const getLocalData = <T>(key: string): T | null => {
 const setLocalData = <T>(key: string, data: T): void => {
   localStorage.setItem(key, JSON.stringify(data));
 };
-
-// ... (Existing Member, Table, Structure code remains same, omitted for brevity but assumed present in real file. Since I have to output full file if I change it, I will paste EVERYTHING below to be safe) ...
-// Actually, to save tokens and avoid errors, I will use the established pattern:
 
 // --- Members ---
 
@@ -844,18 +842,30 @@ const SEED_CLOCKS: ClockConfig[] = [
     {
         id: 'default_clock',
         name: 'Standard Tournament Clock',
-        backgroundColor: '#4A1C16', // Reddish brown from screenshot
+        backgroundColor: '#050505',
         fontColor: '#FFFFFF',
+        isDefault: true,
         fields: [
-            { id: '1', type: 'tournament_name', label: 'Tournament Name', x: 50, y: 10, fontSize: 48, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: false },
-            { id: '2', type: 'timer', label: 'Timer', x: 50, y: 40, fontSize: 180, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: false },
-            { id: '3', type: 'blind_level', label: 'Blinds', x: 30, y: 70, fontSize: 60, fontWeight: 'bold', color: '#FFFFFF', align: 'left', showLabel: true, labelText: 'BLINDS:' },
-            { id: '4', type: 'ante', label: 'Ante', x: 70, y: 70, fontSize: 60, fontWeight: 'bold', color: '#FFFFFF', align: 'right', showLabel: true, labelText: 'ANTE:' },
-            { id: '5', type: 'players_count', label: 'Players', x: 85, y: 40, fontSize: 32, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: true, labelText: 'PLAYERS' },
-            { id: '6', type: 'avg_stack', label: 'Avg Stack', x: 85, y: 25, fontSize: 32, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: true, labelText: 'AVG STACK' },
-            { id: '7', type: 'next_break', label: 'Next Break', x: 85, y: 10, fontSize: 32, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: true, labelText: 'NEXT BREAK' },
-        ],
-        isDefault: true
+            // Center Timer
+            { id: 't1', type: 'timer', label: 'Timer', x: 50, y: 42, fontSize: 40, fontWeight: 'bold', color: '#06C167', align: 'center', showLabel: false },
+            
+            // Top Header
+            { id: 'h1', type: 'tournament_name', label: 'Title', x: 50, y: 10, fontSize: 40, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: false },
+            { id: 'div1', type: 'line', label: 'Divider', x: 50, y: 18, width: 900, height: 2, color: '#333333', align: 'center', showLabel: false, fontSize: 0, fontWeight: 'normal' },
+
+            // Left Side (Current)
+            { id: 'l1', type: 'blind_level', label: 'Blinds', x: 20, y: 40, fontSize: 40, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: true, labelText: 'CURRENT BLINDS' },
+            { id: 'l2', type: 'ante', label: 'Ante', x: 20, y: 65, fontSize: 40, fontWeight: 'bold', color: '#A3A3A3', align: 'center', showLabel: true, labelText: 'ANTE' },
+
+            // Right Side (Next)
+            { id: 'r1', type: 'next_blinds', label: 'Next Blinds', x: 80, y: 40, fontSize: 40, fontWeight: 'bold', color: '#666666', align: 'center', showLabel: true, labelText: 'NEXT BLINDS' },
+            { id: 'r2', type: 'next_ante', label: 'Next Ante', x: 80, y: 65, fontSize: 40, fontWeight: 'bold', color: '#666666', align: 'center', showLabel: true, labelText: 'NEXT ANTE' },
+
+            // Bottom Stats
+            { id: 'b1', type: 'players_count', label: 'Players', x: 20, y: 88, fontSize: 30, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: true, labelText: 'ENTRIES' },
+            { id: 'b2', type: 'avg_stack', label: 'Avg', x: 50, y: 88, fontSize: 30, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: true, labelText: 'AVG STACK' },
+            { id: 'b3', type: 'next_break', label: 'Break', x: 80, y: 88, fontSize: 30, fontWeight: 'bold', color: '#FFFFFF', align: 'center', showLabel: true, labelText: 'NEXT BREAK' },
+        ]
     }
 ];
 
