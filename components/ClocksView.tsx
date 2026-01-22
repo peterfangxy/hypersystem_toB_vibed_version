@@ -12,7 +12,8 @@ import {
   Users,
   Trophy,
   Clock,
-  Play
+  Play,
+  Coins
 } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink } from 'react-router-dom';
 import { ClockConfig, Tournament, TournamentRegistration, TournamentStructure } from '../types';
@@ -461,6 +462,9 @@ const LiveClocks = () => {
                       const activePlayers = regs.filter(r => r.status !== 'Cancelled').length;
                       const isLive = tournament.status === 'In Progress';
                       
+                      const totalBuyIns = regs.reduce((sum, r) => sum + (r.buyInCount || 0), 0);
+                      const prizePool = totalBuyIns * tournament.buyIn;
+
                       return (
                           <div key={tournament.id} className="bg-[#111] border border-[#333] rounded-3xl p-6 flex flex-col hover:border-brand-green/30 transition-colors shadow-xl group">
                               <div className="flex justify-between items-start mb-4">
@@ -484,8 +488,8 @@ const LiveClocks = () => {
                                       {activePlayers} Players
                                   </div>
                                   <div className="flex items-center gap-1.5">
-                                      <Clock size={14} />
-                                      {tournament.blindLevelMinutes}m Levels
+                                      <Coins size={14} />
+                                      ${prizePool.toLocaleString()} Prize Pool
                                   </div>
                               </div>
 
