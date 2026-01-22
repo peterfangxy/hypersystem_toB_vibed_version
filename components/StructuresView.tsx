@@ -7,10 +7,8 @@ import { TournamentStructure, PayoutStructure } from '../types';
 import * as DataService from '../services/dataService';
 import StructureForm from './StructureForm';
 import PayoutModelForm from './PayoutModelForm';
-import { useLanguage } from '../contexts/LanguageContext';
 
 const StructuresView = () => {
-  const { t } = useLanguage();
   const location = useLocation();
   const isPayoutsTab = location.pathname.includes('/payouts');
   
@@ -91,21 +89,21 @@ const StructuresView = () => {
            <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mx-auto mb-4 border border-[#333]">
            <Layers size={32} className="opacity-50" />
            </div>
-           <h3 className="text-lg font-medium mb-2">{t('structures.empty.noStructures')}</h3>
-           <button onClick={openStructCreate} className="text-brand-green hover:underline">{t('structures.createStructure')}</button>
+           <h3 className="text-lg font-medium mb-2">No structures found</h3>
+           <button onClick={openStructCreate} className="text-brand-green hover:underline">Create your first structure</button>
        </div>
     ) : (
        <div className="overflow-y-auto h-full animate-in fade-in slide-in-from-bottom-2">
            <table className="w-full text-left border-collapse">
            <thead>
                <tr className="border-b border-[#262626] text-xs uppercase text-gray-500 font-bold tracking-wider">
-                   <th className="px-4 py-3 pl-6 sticky top-0 bg-[#1A1A1A] z-10">{t('structures.blindsTable.name')}</th>
-                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10">{t('structures.blindsTable.startChips')}</th>
-                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10">{t('structures.blindsTable.startBlinds')}</th>
-                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10">{t('structures.blindsTable.levels')}</th>
-                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10">{t('structures.blindsTable.rebuys')}</th>
-                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10">{t('structures.blindsTable.estLength')}</th>
-                   <th className="px-4 py-3 pr-6 text-right sticky top-0 bg-[#1A1A1A] z-10">{t('common.actions')}</th>
+                   <th className="px-4 py-3 pl-6 sticky top-0 bg-[#1A1A1A] z-10">Structure Name</th>
+                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10">Start Chips</th>
+                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10">Start Blinds</th>
+                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10">Levels</th>
+                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10">Re-buys</th>
+                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10">Est. Length</th>
+                   <th className="px-4 py-3 pr-6 text-right sticky top-0 bg-[#1A1A1A] z-10">Actions</th>
                </tr>
            </thead>
            <tbody className="divide-y divide-[#262626]">
@@ -160,14 +158,14 @@ const StructuresView = () => {
                                            setIsStructFormOpen(true);
                                        }}
                                        className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
-                                       title={t('common.edit')}
+                                       title="Edit"
                                    >
                                        <Edit2 size={16} />
                                    </button>
                                    <button 
                                        onClick={() => handleStructDelete(structure.id)}
                                        className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-[#333] rounded-full transition-colors"
-                                       title={t('common.delete')}
+                                       title="Delete"
                                    >
                                        <Trash2 size={16} />
                                    </button>
@@ -188,7 +186,7 @@ const StructuresView = () => {
          {/* 1. Algorithms Section */}
          <div className="p-6 border-b border-[#222]">
              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                 <Cpu size={14} /> {t('structures.payouts.algorithms')}
+                 <Cpu size={14} /> Standard Algorithms
              </h3>
              <div className="grid grid-cols-2 gap-4">
                  {payouts.filter(p => p.type === 'Algorithm').map(algo => (
@@ -212,7 +210,7 @@ const StructuresView = () => {
          <div className="flex-1">
              <div className="p-6 pb-2 sticky top-0 bg-[#171717] z-10">
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                    <Table size={14} /> {t('structures.payouts.customMatrices')}
+                    <Table size={14} /> Custom Matrices
                 </h3>
              </div>
              
@@ -220,10 +218,10 @@ const StructuresView = () => {
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="text-xs uppercase text-gray-500 font-bold tracking-wider">
-                            <th className="px-6 py-3">{t('structures.payouts.matrixName')}</th>
-                            <th className="px-6 py-3">{t('structures.payouts.rulesDefined')}</th>
-                            <th className="px-6 py-3">{t('structures.payouts.playerRange')}</th>
-                            <th className="px-6 py-3 text-right">{t('common.actions')}</th>
+                            <th className="px-6 py-3">Matrix Name</th>
+                            <th className="px-6 py-3">Rules Defined</th>
+                            <th className="px-6 py-3">Player Range</th>
+                            <th className="px-6 py-3 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[#262626]">
@@ -258,7 +256,7 @@ const StructuresView = () => {
                                                 setIsPayoutFormOpen(true);
                                             }}
                                             className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
-                                            title={t('common.edit')}
+                                            title="Edit"
                                         >
                                             <Edit2 size={16} />
                                         </button>
@@ -266,7 +264,7 @@ const StructuresView = () => {
                                             <button 
                                                 onClick={() => handlePayoutDelete(matrix.id)}
                                                 className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-[#333] rounded-full transition-colors"
-                                                title={t('common.delete')}
+                                                title="Delete"
                                             >
                                                 <Trash2 size={16} />
                                             </button>
@@ -279,7 +277,7 @@ const StructuresView = () => {
                 </table>
                 {payouts.filter(p => p.type === 'Custom Matrix').length === 0 && (
                     <div className="text-center py-10 text-gray-600">
-                        {t('structures.empty.noPayouts')}
+                        No custom payout matrices created yet.
                     </div>
                 )}
              </div>
@@ -292,8 +290,8 @@ const StructuresView = () => {
       {/* Header */}
       <div className="flex justify-between items-end mb-8">
         <div>
-            <h2 className="text-4xl font-bold text-white mb-2">{t('structures.title')}</h2>
-            <p className="text-gray-400">{t('structures.subtitle')}</p>
+            <h2 className="text-4xl font-bold text-white mb-2">Structures</h2>
+            <p className="text-gray-400">Configure reusable blind levels and payout models</p>
         </div>
         
         {!isPayoutsTab ? (
@@ -302,7 +300,7 @@ const StructuresView = () => {
                 className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95`}
             >
                 <Plus size={20} strokeWidth={2.5} />
-                {t('structures.createStructure')}
+                Create Structure
             </button>
         ) : (
             <button 
@@ -310,7 +308,7 @@ const StructuresView = () => {
                 className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95`}
             >
                 <Plus size={20} strokeWidth={2.5} />
-                {t('structures.newMatrix')}
+                New Custom Matrix
             </button>
         )}
       </div>
@@ -329,7 +327,7 @@ const StructuresView = () => {
                 <>
                     <div className="flex items-center gap-2">
                         <Layers size={18} />
-                        {t('structures.tabs.blinds')}
+                        Tournament Structures
                     </div>
                     {isActive && (
                         <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />
@@ -350,7 +348,7 @@ const StructuresView = () => {
                 <>
                     <div className="flex items-center gap-2">
                         <DollarSign size={18} />
-                        {t('structures.tabs.payouts')}
+                        Payout Models
                     </div>
                     {isActive && (
                         <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />

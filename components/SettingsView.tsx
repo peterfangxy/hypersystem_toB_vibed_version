@@ -18,10 +18,8 @@ import { Routes, Route, Navigate, NavLink } from 'react-router-dom';
 import { THEME } from '../theme';
 import { ClubSettings, TeamMember, AccessRole } from '../types';
 import * as DataService from '../services/dataService';
-import { useLanguage } from '../contexts/LanguageContext';
 
 const SettingsView = () => {
-  const { t } = useLanguage();
   const [settings, setSettings] = useState<ClubSettings>(DataService.getClubSettings());
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [isSaved, setIsSaved] = useState(false);
@@ -87,7 +85,7 @@ const SettingsView = () => {
   };
 
   const handleRemoveUser = (id: string) => {
-      if(window.confirm(t('settings.team.revokeConfirm'))) {
+      if(window.confirm('Revoke access for this user?')) {
           DataService.deleteTeamMember(id);
           setTeam(DataService.getTeamMembers());
       }
@@ -106,10 +104,10 @@ const SettingsView = () => {
   const GeneralSettings = () => (
       <form onSubmit={handleSaveSettings} className={`${THEME.card} border ${THEME.border} rounded-3xl p-8 space-y-6 animate-in fade-in`}>
           <div className="space-y-4">
-              <h3 className="text-lg font-bold text-white mb-6">{t('settings.general.clubInfo')}</h3>
+              <h3 className="text-lg font-bold text-white mb-6">Club Information</h3>
               
               <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-300">{t('settings.general.clubName')}</label>
+                  <label className="text-sm font-medium text-gray-300">Club Name</label>
                   <input 
                       type="text"
                       required
@@ -120,7 +118,7 @@ const SettingsView = () => {
               </div>
 
               <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-300">{t('settings.general.logoUrl')}</label>
+                  <label className="text-sm font-medium text-gray-300">Logo URL</label>
                   <input 
                       type="url"
                       value={settings.logoUrl}
@@ -132,11 +130,11 @@ const SettingsView = () => {
           </div>
 
           <div className="pt-6 border-t border-[#222] space-y-4">
-              <h3 className="text-lg font-bold text-white mb-6">{t('settings.general.contactLoc')}</h3>
+              <h3 className="text-lg font-bold text-white mb-6">Contact & Location</h3>
               
               <div className="space-y-1">
                   <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                      <MapPin size={14}/> {t('settings.general.address')}
+                      <MapPin size={14}/> Address
                   </label>
                   <input 
                       type="text"
@@ -149,7 +147,7 @@ const SettingsView = () => {
               <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-1">
                       <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                          <Mail size={14}/> {t('settings.general.email')}
+                          <Mail size={14}/> Email
                       </label>
                       <input 
                           type="email"
@@ -160,7 +158,7 @@ const SettingsView = () => {
                   </div>
                   <div className="space-y-1">
                       <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                          <Phone size={14}/> {t('settings.general.phone')}
+                          <Phone size={14}/> Phone
                       </label>
                       <input 
                           type="tel"
@@ -174,7 +172,7 @@ const SettingsView = () => {
 
           <div className="pt-6">
               <button type="submit" className={`${THEME.buttonPrimary} px-8 py-3 rounded-xl font-bold flex items-center gap-2`}>
-                  <Save size={18} /> {t('settings.general.saveBtn')}
+                  <Save size={18} /> Save Changes
               </button>
           </div>
       </form>
@@ -184,14 +182,14 @@ const SettingsView = () => {
       <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden animate-in fade-in`}>
           <div className="p-6 border-b border-[#222] flex justify-between items-center">
               <div>
-                  <h3 className="text-lg font-bold text-white">{t('settings.team.title')}</h3>
-                  <p className="text-sm text-gray-500">{t('settings.team.subtitle')}</p>
+                  <h3 className="text-lg font-bold text-white">Team Members</h3>
+                  <p className="text-sm text-gray-500">Manage operator access and permissions</p>
               </div>
               <button 
                  onClick={handleInviteUser}
                  className={`${THEME.buttonPrimary} px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2`}
               >
-                  <Plus size={16} /> {t('settings.team.inviteBtn')}
+                  <Plus size={16} /> Invite Member
               </button>
           </div>
           
@@ -214,9 +212,9 @@ const SettingsView = () => {
                           
                           <div className="text-xs text-gray-600">
                               {member.status === 'Active' ? (
-                                  <span className="text-green-500/50">{t('settings.team.activeNow')}</span>
+                                  <span className="text-green-500/50">Active now</span>
                               ) : (
-                                  <span className="text-yellow-500/50">{t('settings.team.invitePending')}</span>
+                                  <span className="text-yellow-500/50">Invite Pending</span>
                               )}
                           </div>
 
@@ -235,8 +233,9 @@ const SettingsView = () => {
               <div className="flex items-start gap-3 p-3 bg-blue-500/5 border border-blue-500/10 rounded-lg">
                   <ShieldAlert size={18} className="text-blue-400 shrink-0 mt-0.5" />
                   <div className="text-xs text-gray-400">
-                      <strong className="text-blue-400 block mb-1">{t('settings.team.accessControl')}</strong>
-                      {t('settings.team.rbacInfo')}
+                      <strong className="text-blue-400 block mb-1">Access Control</strong>
+                      Full RBAC (Role Based Access Control) is currently in read-only mode for this demo. 
+                      Invited users will appear here but email delivery is simulated.
                   </div>
               </div>
           </div>
@@ -247,14 +246,14 @@ const SettingsView = () => {
       <div className={`${THEME.card} border ${THEME.border} rounded-3xl p-8 space-y-8 animate-in fade-in`}>
            <div className="flex justify-between items-start">
               <div>
-                  <h3 className="text-lg font-bold text-white mb-2">{t('settings.theme.title')}</h3>
-                  <p className="text-gray-400 text-sm">{t('settings.theme.subtitle')}</p>
+                  <h3 className="text-lg font-bold text-white mb-2">UI Customization</h3>
+                  <p className="text-gray-400 text-sm">Personalize the application colors to match your brand.</p>
               </div>
               <button 
                  onClick={handleResetTheme}
                  className="text-xs font-bold text-gray-500 hover:text-white flex items-center gap-1 bg-[#222] px-3 py-1.5 rounded-lg border border-[#333]"
               >
-                  <RotateCcw size={12} /> {t('settings.theme.reset')}
+                  <RotateCcw size={12} /> Reset to Default
               </button>
           </div>
 
@@ -262,10 +261,10 @@ const SettingsView = () => {
               
               {/* Group 1: Brand Colors */}
               <div className="md:col-span-3">
-                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 border-b border-[#222] pb-2">{t('settings.theme.groupBrand')}</h4>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 border-b border-[#222] pb-2">Base Brand Colors</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="space-y-3">
-                          <label className="text-sm font-bold text-gray-300 block">{t('settings.theme.primaryAccent')}</label>
+                          <label className="text-sm font-bold text-gray-300 block">Primary Accent</label>
                           <div className="flex items-center gap-3">
                               <input 
                                 type="color" 
@@ -275,13 +274,13 @@ const SettingsView = () => {
                               />
                               <div className="flex flex-col">
                                   <span className="text-xs text-gray-500 font-mono">{settings.theme.primaryColor}</span>
-                                  <span className="text-[10px] text-gray-600">{t('settings.theme.buttons')}</span>
+                                  <span className="text-[10px] text-gray-600">Buttons, Highlights</span>
                               </div>
                           </div>
                       </div>
 
                       <div className="space-y-3">
-                          <label className="text-sm font-bold text-gray-300 block">{t('settings.theme.appBg')}</label>
+                          <label className="text-sm font-bold text-gray-300 block">App Background</label>
                           <div className="flex items-center gap-3">
                               <input 
                                 type="color" 
@@ -291,13 +290,13 @@ const SettingsView = () => {
                               />
                               <div className="flex flex-col">
                                   <span className="text-xs text-gray-500 font-mono">{settings.theme.backgroundColor}</span>
-                                  <span className="text-[10px] text-gray-600">{t('settings.theme.mainBg')}</span>
+                                  <span className="text-[10px] text-gray-600">Main page background</span>
                               </div>
                           </div>
                       </div>
 
                       <div className="space-y-3">
-                          <label className="text-sm font-bold text-gray-300 block">{t('settings.theme.cardSurface')}</label>
+                          <label className="text-sm font-bold text-gray-300 block">Card Surface</label>
                           <div className="flex items-center gap-3">
                               <input 
                                 type="color" 
@@ -307,7 +306,7 @@ const SettingsView = () => {
                               />
                               <div className="flex flex-col">
                                   <span className="text-xs text-gray-500 font-mono">{settings.theme.cardColor}</span>
-                                  <span className="text-[10px] text-gray-600">{t('settings.theme.panels')}</span>
+                                  <span className="text-[10px] text-gray-600">Panels, Modals</span>
                               </div>
                           </div>
                       </div>
@@ -316,11 +315,11 @@ const SettingsView = () => {
 
               {/* Group 2: Typography & Borders */}
               <div className="md:col-span-3 mt-4">
-                   <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 border-b border-[#222] pb-2">{t('settings.theme.groupTypo')}</h4>
+                   <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 border-b border-[#222] pb-2">Typography & Borders</h4>
                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       
                       <div className="space-y-3">
-                          <label className="text-sm font-bold text-gray-300 block">{t('settings.theme.primaryText')}</label>
+                          <label className="text-sm font-bold text-gray-300 block">Primary Text</label>
                           <div className="flex items-center gap-3">
                               <input 
                                 type="color" 
@@ -330,13 +329,13 @@ const SettingsView = () => {
                               />
                               <div className="flex flex-col">
                                   <span className="text-xs text-gray-500 font-mono">{settings.theme.textColor}</span>
-                                  <span className="text-[10px] text-gray-600">{t('settings.theme.headings')}</span>
+                                  <span className="text-[10px] text-gray-600">Headings, Body</span>
                               </div>
                           </div>
                       </div>
 
                       <div className="space-y-3">
-                          <label className="text-sm font-bold text-gray-300 block">{t('settings.theme.secondaryText')}</label>
+                          <label className="text-sm font-bold text-gray-300 block">Secondary Text</label>
                           <div className="flex items-center gap-3">
                               <input 
                                 type="color" 
@@ -346,13 +345,13 @@ const SettingsView = () => {
                               />
                               <div className="flex flex-col">
                                   <span className="text-xs text-gray-500 font-mono">{settings.theme.secondaryTextColor}</span>
-                                  <span className="text-[10px] text-gray-600">{t('settings.theme.subtitles')}</span>
+                                  <span className="text-[10px] text-gray-600">Subtitles, Labels</span>
                               </div>
                           </div>
                       </div>
 
                       <div className="space-y-3">
-                          <label className="text-sm font-bold text-gray-300 block">{t('settings.theme.borderColor')}</label>
+                          <label className="text-sm font-bold text-gray-300 block">Border Color</label>
                           <div className="flex items-center gap-3">
                               <input 
                                 type="color" 
@@ -362,7 +361,7 @@ const SettingsView = () => {
                               />
                               <div className="flex flex-col">
                                   <span className="text-xs text-gray-500 font-mono">{settings.theme.borderColor}</span>
-                                  <span className="text-[10px] text-gray-600">{t('settings.theme.dividers')}</span>
+                                  <span className="text-[10px] text-gray-600">Dividers, Inputs</span>
                               </div>
                           </div>
                       </div>
@@ -372,7 +371,7 @@ const SettingsView = () => {
           </div>
 
           <div className="p-6 mt-8 bg-[#1A1A1A] rounded-2xl border border-brand-border">
-              <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">{t('settings.theme.livePreview')}</h4>
+              <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Live Preview</h4>
               <div className="flex flex-wrap gap-4 items-center">
                   <button className={`${THEME.buttonPrimary} px-6 py-2 rounded-lg font-bold`}>
                       Primary Button
@@ -391,7 +390,7 @@ const SettingsView = () => {
 
           <div className="pt-4 flex justify-end">
                <button onClick={() => handleSaveSettings()} className={`${THEME.buttonPrimary} px-8 py-3 rounded-xl font-bold flex items-center gap-2`}>
-                  <Save size={18} /> {t('settings.theme.saveAppearance')}
+                  <Save size={18} /> Save Appearance
               </button>
           </div>
       </div>
@@ -401,13 +400,13 @@ const SettingsView = () => {
     <div className="h-full flex flex-col w-full">
       <div className="flex justify-between items-end mb-8">
         <div>
-          <h2 className="text-4xl font-bold text-white mb-2">{t('settings.title')}</h2>
-          <p className="text-gray-400">{t('settings.subtitle')}</p>
+          <h2 className="text-4xl font-bold text-white mb-2">Settings</h2>
+          <p className="text-gray-400">Manage club details, access and appearance</p>
         </div>
         {isSaved && (
              <div className="flex items-center gap-2 text-brand-green font-bold animate-in fade-in slide-in-from-bottom-2">
                  <Check size={20} />
-                 {t('settings.saved')}
+                 Changes Saved
              </div>
         )}
       </div>
@@ -426,7 +425,7 @@ const SettingsView = () => {
                 <>
                     <div className="flex items-center gap-2">
                         <Building2 size={18} />
-                        {t('settings.tabs.general')}
+                        Club Details
                     </div>
                     {isActive && (
                         <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />
@@ -447,7 +446,7 @@ const SettingsView = () => {
                 <>
                     <div className="flex items-center gap-2">
                         <Users size={18} />
-                        {t('settings.tabs.team')}
+                        Team & Roles
                     </div>
                     {isActive && (
                         <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />
@@ -468,7 +467,7 @@ const SettingsView = () => {
                 <>
                     <div className="flex items-center gap-2">
                         <Palette size={18} />
-                        {t('settings.tabs.appearance')}
+                        Appearance
                     </div>
                     {isActive && (
                         <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />

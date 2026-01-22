@@ -17,7 +17,6 @@ import { Tournament, PayoutModel, TournamentStatus, PokerTable, TournamentStruct
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
 import { Modal } from './Modal';
-import { useLanguage } from '../contexts/LanguageContext';
 
 interface TournamentFormProps {
   isOpen: boolean;
@@ -28,7 +27,6 @@ interface TournamentFormProps {
 }
 
 const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubmit, initialData, isTemplateMode = false }) => {
-  const { t } = useLanguage();
   const [formData, setFormData] = useState<Partial<Tournament>>({
     name: '',
     startDate: new Date().toISOString().split('T')[0],
@@ -226,9 +224,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={initialData 
-        ? (isReadOnly ? 'Tournament Details (Read Only)' : isTemplateMode ? t('tournaments.form.titleTemplateEdit') : t('tournaments.form.titleEdit')) 
-        : (isTemplateMode ? t('tournaments.form.titleTemplateNew') : t('tournaments.form.titleNew'))}
+      title={initialData ? (isReadOnly ? 'Tournament Details (Read Only)' : isTemplateMode ? 'Edit Template' : 'Edit Tournament') : (isTemplateMode ? 'New Template' : 'New Tournament')}
       size="2xl"
     >
       <form onSubmit={handleSubmit} className="p-6 overflow-y-auto">
@@ -241,8 +237,8 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                         <Sparkles size={20} />
                     </div>
                     <div>
-                        <h4 className="text-sm font-bold text-white">{t('tournaments.form.quickStart')}</h4>
-                        <p className="text-xs text-gray-400">{t('tournaments.form.importTemplate')}</p>
+                        <h4 className="text-sm font-bold text-white">Quick Start</h4>
+                        <p className="text-xs text-gray-400">Import settings from a template</p>
                     </div>
                 </div>
                 <div className="relative">
@@ -251,7 +247,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                         onChange={(e) => handleApplyTemplate(e.target.value)}
                         defaultValue=""
                     >
-                        <option value="" disabled>{t('tournaments.form.selectTemplate')}</option>
+                        <option value="" disabled>Select a template...</option>
                         {templates.map(t => (
                             <option key={t.id} value={t.id}>{t.name}</option>
                         ))}
@@ -265,11 +261,11 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
             {/* General Info */}
             <div className="space-y-4">
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                <Layers size={14} /> {t('tournaments.form.generalInfo')}
+                <Layers size={14} /> General Information
                 </h3>
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-gray-300">
-                      {isTemplateMode ? t('tournaments.form.templateName') : t('tournaments.form.name')}
+                      {isTemplateMode ? 'Template Name' : 'Tournament Name'}
                   </label>
                   <input 
                     required
@@ -285,7 +281,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                     {!isTemplateMode && (
                         <>
                             <div className="col-span-1 space-y-1">
-                                <label className="text-sm font-medium text-gray-300">{t('tournaments.form.date')}</label>
+                                <label className="text-sm font-medium text-gray-300">Date</label>
                                 <input 
                                     required
                                     type="date" 
@@ -295,7 +291,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                                 />
                             </div>
                             <div className="col-span-1 space-y-1">
-                                <label className="text-sm font-medium text-gray-300">{t('tournaments.form.time')}</label>
+                                <label className="text-sm font-medium text-gray-300">Time</label>
                                 <input 
                                     required
                                     type="time" 
@@ -308,7 +304,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                     )}
                     
                     <div className={`${isTemplateMode ? 'col-span-4' : 'col-span-1'} space-y-1`}>
-                        <label className="text-sm font-medium text-gray-300">{t('tournaments.form.estDuration')}</label>
+                        <label className="text-sm font-medium text-gray-300">Est. Duration (Min)</label>
                         <input 
                             required
                             type="number"
@@ -322,7 +318,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                     
                     {!isTemplateMode && (
                         <div className="col-span-1 space-y-1">
-                            <label className="text-sm font-medium text-gray-300">{t('tournaments.form.status')}</label>
+                            <label className="text-sm font-medium text-gray-300">Status</label>
                             <select 
                                 value={formData.status}
                                 onChange={e => setFormData({...formData, status: e.target.value as TournamentStatus})}
@@ -339,7 +335,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                 </div>
                 
                 <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-300">{t('tournaments.form.description')}</label>
+                    <label className="text-sm font-medium text-gray-300">Description</label>
                     <textarea 
                         rows={2}
                         value={formData.description}
@@ -353,13 +349,13 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
             {/* Structure & Payout Selection */}
             <div className="space-y-6 pt-2 border-t border-[#222]">
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2 mt-4">
-                <Trophy size={14} /> {t('tournaments.form.structureAndPayouts')}
+                <Trophy size={14} /> Structure & Payouts
                 </h3>
                 
                 <div className="grid grid-cols-2 gap-6">
                     {/* Tournament Structure Selector */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-300">{t('tournaments.form.structure')}</label>
+                        <label className="text-sm font-medium text-gray-300">Tournament Structure</label>
                         <div className="relative">
                             <select
                                 value={formData.structureId || ''}
@@ -395,7 +391,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
 
                     {/* Payout Model Selector */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-300">{t('tournaments.form.payoutModel')}</label>
+                        <label className="text-sm font-medium text-gray-300">Payout Model</label>
                         <div className="relative">
                             <select
                                 value={formData.payoutStructureId || ''}
@@ -438,7 +434,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                     <div className="flex justify-between items-center mb-4">
                         <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
                             <MonitorPlay size={16} className="text-brand-green"/>
-                            {t('tournaments.form.clockLayout')}
+                            Tournament Clock Layout
                         </label>
                     </div>
                     
@@ -452,7 +448,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                                     onChange={(e) => setFormData({...formData, clockConfigId: e.target.value})}
                                     className={`w-full ${THEME.input} rounded-xl pl-4 pr-10 py-3 outline-none appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed text-sm`}
                                 >
-                                    <option value="">{t('tournaments.form.selectLayout')}</option>
+                                    <option value="">Select a layout...</option>
                                     {clockConfigs.map(c => (
                                         <option key={c.id} value={c.id}>{c.name} {c.isDefault ? '(Default)' : ''}</option>
                                     ))}
@@ -584,13 +580,13 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
             {/* Financials (Inputs) */}
             <div className="space-y-4 pt-2 border-t border-[#222]">
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2 mt-4">
-                <DollarSign size={14} /> {t('tournaments.form.financials')}
+                <DollarSign size={14} /> Financials & Capacity
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-sm font-medium text-gray-300">{t('tournaments.form.buyIn')}</label>
+                            <label className="text-sm font-medium text-gray-300">Buy-In ($)</label>
                             <input 
                             required
                             type="number" 
@@ -601,7 +597,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                             />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-sm font-medium text-gray-300">{t('tournaments.form.fee')}</label>
+                            <label className="text-sm font-medium text-gray-300">Rake/Fee ($)</label>
                             <input 
                             required
                             type="number" 
@@ -615,7 +611,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-sm font-medium text-gray-300">{t('tournaments.form.maxPlayers')}</label>
+                        <label className="text-sm font-medium text-gray-300">Max Players</label>
                         <input 
                         required
                         type="number" 
@@ -632,7 +628,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
             {!isTemplateMode && (
                 <div className="space-y-4 pt-2 border-t border-[#222]">
                     <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2 mt-4">
-                        <Armchair size={14} /> {t('tournaments.form.assignTables')}
+                        <Armchair size={14} /> Assign Tables (Optional)
                     </h3>
                     {availableTables.length === 0 ? (
                         <p className="text-sm text-gray-500 italic">No tables created yet. Go to Tables view to add some.</p>
@@ -672,7 +668,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                     type="submit" 
                     className={`w-full ${THEME.buttonPrimary} font-bold text-lg py-4 rounded-xl transition-transform active:scale-[0.98]`}
                 >
-                    {initialData ? t('tournaments.form.save') : (isTemplateMode ? t('tournaments.form.createTemplateBtn') : t('tournaments.form.create'))}
+                    {initialData ? 'Save Changes' : (isTemplateMode ? 'Create Template' : 'Create Tournament')}
                 </button>
             </div>
         ) : (

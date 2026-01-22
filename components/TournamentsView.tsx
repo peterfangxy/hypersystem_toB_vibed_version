@@ -24,10 +24,8 @@ import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
 import TournamentForm from './TournamentForm';
 import TournamentDetailPanel from './TournamentDetailPanel';
-import { useLanguage } from '../contexts/LanguageContext';
 
 const TournamentsView = () => {
-  const { t } = useLanguage();
   const location = useLocation();
   const isTemplatesTab = location.pathname.includes('/templates');
 
@@ -204,13 +202,13 @@ const TournamentsView = () => {
                 <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mb-4">
                 <Trophy size={32} className="opacity-50" />
                 </div>
-                <p className="text-lg font-medium mb-4">{t('tournaments.empty.noTournaments')}</p>
+                <p className="text-lg font-medium mb-4">No tournaments found</p>
                 {tournaments.length === 0 && (
                 <button 
                     onClick={openCreate}
                     className="text-brand-green hover:underline"
                 >
-                    {t('tournaments.empty.createFirst')}
+                    Create your first event
                 </button>
                 )}
             </div>
@@ -219,16 +217,16 @@ const TournamentsView = () => {
                 <table className="w-full text-left border-collapse">
                 <thead>
                     <tr className="text-xs uppercase text-gray-500 font-bold tracking-wider">
-                    <SortHeader label={t('tournaments.table.status')} sortKey="status" className="pl-4 w-[130px]" />
-                    <SortHeader label={t('tournaments.table.date')} sortKey="startDate" />
-                    <SortHeader label={t('tournaments.table.time')} sortKey="startTime" />
-                    <StaticHeader label={t('tournaments.table.duration')} />
-                    <SortHeader label={t('tournaments.table.name')} sortKey="name" className="w-[30%]" />
-                    <SortHeader label={t('tournaments.table.buyIn')} sortKey="buyIn" />
-                    <StaticHeader label={t('tournaments.table.structure')} />
-                    <StaticHeader label={t('tournaments.table.rebuys')} />
-                    <StaticHeader label={t('tournaments.table.players')} />
-                    <th className="px-2 py-3 pr-4 text-right sticky top-0 bg-[#1A1A1A] z-30 border-b border-[#262626]">{t('common.actions')}</th>
+                    <SortHeader label="Status" sortKey="status" className="pl-4 w-[130px]" />
+                    <SortHeader label="Date" sortKey="startDate" />
+                    <SortHeader label="Time" sortKey="startTime" />
+                    <StaticHeader label="Duration" />
+                    <SortHeader label="Tournament" sortKey="name" className="w-[30%]" />
+                    <SortHeader label="Buy-In" sortKey="buyIn" />
+                    <StaticHeader label="Structure" />
+                    <StaticHeader label="Rebuys" />
+                    <StaticHeader label="Players" />
+                    <th className="px-2 py-3 pr-4 text-right sticky top-0 bg-[#1A1A1A] z-30 border-b border-[#262626]">Actions</th>
                     </tr>
                 </thead>
                 {/* 
@@ -297,7 +295,7 @@ const TournamentsView = () => {
                                     {getStructureName(tournament.structureId) ? (
                                         <span className="text-sm font-medium text-white">{getStructureName(tournament.structureId)}</span>
                                     ) : (
-                                        <span className="text-sm font-medium text-gray-500 italic">{t('tournaments.table.custom')}</span>
+                                        <span className="text-sm font-medium text-gray-500 italic">Custom</span>
                                     )}
                                 </td>
                                 <td className="px-2 py-3">
@@ -346,7 +344,7 @@ const TournamentsView = () => {
                                             ? 'text-gray-700 cursor-not-allowed'
                                             : 'text-gray-500 hover:text-white hover:bg-[#333]'
                                         }`}
-                                        title={t('common.edit')}
+                                        title="Edit Tournament"
                                     >
                                         <Edit2 size={16} />
                                     </button>
@@ -386,12 +384,12 @@ const TournamentsView = () => {
                     <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mb-4">
                         <Copy size={32} className="opacity-50" />
                     </div>
-                    <p className="text-lg font-medium mb-4">{t('tournaments.empty.noTemplates')}</p>
+                    <p className="text-lg font-medium mb-4">No templates found</p>
                     <button 
                         onClick={openCreate}
                         className="text-brand-green hover:underline"
                     >
-                        {t('tournaments.empty.createFirstTemplate')}
+                        Create your first template
                     </button>
                  </div>
              ) : (
@@ -399,12 +397,12 @@ const TournamentsView = () => {
                      <table className="w-full text-left border-collapse">
                          <thead>
                              <tr className="bg-[#1A1A1A] border-b border-[#262626] text-xs uppercase text-gray-500 font-bold tracking-wider">
-                                 <th className="px-2 py-3 pl-4">{t('tournaments.table.name')}</th>
-                                 <th className="px-2 py-3">{t('tournaments.table.estDuration')}</th>
-                                 <th className="px-2 py-3">{t('tournaments.table.buyIn')}</th>
-                                 <th className="px-2 py-3">{t('tournaments.table.structure')}</th>
-                                 <th className="px-2 py-3">{t('tournaments.table.payoutModel')}</th>
-                                 <th className="px-2 py-3 pr-4 text-right">{t('common.actions')}</th>
+                                 <th className="px-2 py-3 pl-4">Template Name</th>
+                                 <th className="px-2 py-3">Est. Duration</th>
+                                 <th className="px-2 py-3">Buy-In</th>
+                                 <th className="px-2 py-3">Structure</th>
+                                 <th className="px-2 py-3">Payout Model</th>
+                                 <th className="px-2 py-3 pr-4 text-right">Actions</th>
                              </tr>
                          </thead>
                          <tbody className="divide-y divide-[#262626]">
@@ -427,7 +425,7 @@ const TournamentsView = () => {
                                          {getStructureName(template.structureId) ? (
                                             <span className="text-sm font-medium text-white">{getStructureName(template.structureId)}</span>
                                         ) : (
-                                            <span className="text-sm font-medium text-gray-500 italic">{t('tournaments.table.custom')}</span>
+                                            <span className="text-sm font-medium text-gray-500 italic">Custom</span>
                                         )}
                                      </td>
                                      <td className="px-2 py-3">
@@ -442,14 +440,14 @@ const TournamentsView = () => {
                                              <button 
                                                 onClick={() => openEdit(template)}
                                                 className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
-                                                title={t('common.edit')}
+                                                title="Edit Template"
                                              >
                                                  <Edit2 size={16} />
                                              </button>
                                              <button 
                                                 onClick={() => handleDeleteTemplate(template.id)}
                                                 className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-[#333] rounded-full transition-colors"
-                                                title={t('common.delete')}
+                                                title="Delete Template"
                                              >
                                                  <Trash2 size={16} />
                                              </button>
@@ -470,15 +468,15 @@ const TournamentsView = () => {
       {/* Header */}
       <div className="flex justify-between items-end mb-8">
         <div>
-          <h2 className="text-4xl font-bold text-white mb-2">{t('tournaments.title')}</h2>
-          <p className="text-gray-400">{t('tournaments.subtitle')}</p>
+          <h2 className="text-4xl font-bold text-white mb-2">Tournaments</h2>
+          <p className="text-gray-400">Schedule events and manage structures</p>
         </div>
         <button 
           onClick={openCreate}
           className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95`}
         >
           <Plus size={20} strokeWidth={2.5} />
-          {isTemplatesTab ? t('tournaments.createTemplate') : t('tournaments.createEvent')}
+          {isTemplatesTab ? 'Create Template' : 'Create Event'}
         </button>
       </div>
 
@@ -496,7 +494,7 @@ const TournamentsView = () => {
                 <>
                     <div className="flex items-center gap-2">
                         <Trophy size={18} />
-                        {t('tournaments.tabs.manage')}
+                        Manage Tournaments
                     </div>
                     {isActive && (
                         <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />
@@ -517,7 +515,7 @@ const TournamentsView = () => {
                 <>
                     <div className="flex items-center gap-2">
                         <Copy size={18} />
-                        {t('tournaments.tabs.templates')}
+                        Tournament Templates
                     </div>
                     {isActive && (
                         <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />
@@ -534,7 +532,7 @@ const TournamentsView = () => {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
           <input 
             type="text"
-            placeholder={isTemplatesTab ? t('tournaments.searchTemplatesPlaceholder') : t('tournaments.searchPlaceholder')}
+            placeholder={isTemplatesTab ? "Search templates..." : "Search tournaments..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-3 text-white placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none transition-all`}
@@ -550,12 +548,12 @@ const TournamentsView = () => {
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-3 text-white outline-none appearance-none cursor-pointer focus:ring-1 focus:ring-brand-green`}
             >
-                <option value="All">{t('tournaments.statusFilter.all')}</option>
-                <option value="Scheduled">{t('tournaments.statusFilter.scheduled')}</option>
-                <option value="Registration">{t('tournaments.statusFilter.registration')}</option>
-                <option value="In Progress">{t('tournaments.statusFilter.inProgress')}</option>
-                <option value="Completed">{t('tournaments.statusFilter.completed')}</option>
-                <option value="Cancelled">{t('tournaments.statusFilter.cancelled')}</option>
+                <option value="All">All Statuses</option>
+                <option value="Scheduled">Scheduled</option>
+                <option value="Registration">Registration</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+                <option value="Cancelled">Cancelled</option>
             </select>
             </div>
         )}
