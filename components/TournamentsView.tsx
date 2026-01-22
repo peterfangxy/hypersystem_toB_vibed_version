@@ -464,7 +464,7 @@ const TournamentsView = () => {
   };
 
   return (
-     <div className="h-full flex flex-col max-w-[95%] mx-auto">
+     <div className="h-full flex flex-col w-full">
       {/* Header */}
       <div className="flex justify-between items-end mb-8">
         <div>

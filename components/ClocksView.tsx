@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus, MonitorPlay, Trash2, Edit2, Play } from 'lucide-react';
 import { ClockConfig } from '../types';
@@ -46,7 +47,7 @@ const ClocksView = () => {
   }
 
   return (
-    <div className="h-full flex flex-col max-w-7xl mx-auto">
+    <div className="h-full flex flex-col w-full">
       {/* Header */}
       <div className="flex justify-between items-end mb-8">
         <div>

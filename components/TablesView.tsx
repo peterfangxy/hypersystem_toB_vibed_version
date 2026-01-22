@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
@@ -62,7 +63,7 @@ const TablesView = () => {
   };
 
   return (
-    <div className="h-full flex flex-col max-w-7xl mx-auto">
+    <div className="h-full flex flex-col w-full">
       {/* Header */}
       <div className="flex justify-between items-end mb-8">
         <div>

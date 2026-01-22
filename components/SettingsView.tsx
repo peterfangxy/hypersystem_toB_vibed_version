@@ -397,7 +397,7 @@ const SettingsView = () => {
   );
 
   return (
-    <div className="h-full flex flex-col max-w-5xl mx-auto">
+    <div className="h-full flex flex-col w-full">
       <div className="flex justify-between items-end mb-8">
         <div>
           <h2 className="text-4xl font-bold text-white mb-2">Settings</h2>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Users, 
@@ -150,7 +151,7 @@ const DashboardView = () => {
   );
 
   return (
-    <div className="h-full flex flex-col max-w-7xl mx-auto animate-in fade-in duration-500">
+    <div className="h-full flex flex-col w-full animate-in fade-in duration-500">
       {/* Header */}
       <div className="flex justify-between items-end mb-8">
         <div>
