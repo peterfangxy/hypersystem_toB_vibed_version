@@ -11,7 +11,8 @@ import {
   X,
   Users,
   Trophy,
-  Clock
+  Clock,
+  Play
 } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink } from 'react-router-dom';
 import { ClockConfig, Tournament, TournamentRegistration, TournamentStructure } from '../types';
@@ -23,10 +24,14 @@ import { useLanguage } from '../contexts/LanguageContext';
 // --- Sub-Component: Live Clock Runner (Overlay) ---
 const LiveClockRunner = ({ tournament, onClose }: { tournament: Tournament, onClose: () => void }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [timerSeconds, setTimerSeconds] = useState(tournament.blindLevelMinutes * 60); 
+  const [timerSeconds, setTimerSeconds] = useState(0); 
   const [config, setConfig] = useState<ClockConfig | null>(null);
   const [structure, setStructure] = useState<TournamentStructure | null>(null);
-  const [currentLevelIndex, setCurrentLevelIndex] = useState(0); // Mock level progression
+  
+  // Logic State
+  const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
+  const [isBreak, setIsBreak] = useState(false);
+  const [isFinished, setIsFinished] = useState(false);
   
   const [stats, setStats] = useState({
     players: 0,
@@ -36,6 +41,7 @@ const LiveClockRunner = ({ tournament, onClose }: { tournament: Tournament, onCl
     prizePool: 0
   });
 
+  // 1. Initial Data Load (Runs once or when tournament/structure changes)
   useEffect(() => {
     const allConfigs = DataService.getClockConfigs();
     const specificConfig = allConfigs.find(c => c.id === tournament.clockConfigId);
@@ -46,10 +52,10 @@ const LiveClockRunner = ({ tournament, onClose }: { tournament: Tournament, onCl
     const foundStruct = allStructures.find(s => s.id === tournament.structureId);
     setStructure(foundStruct || null);
 
+    // Calculate Stats
     const regs = DataService.getTournamentRegistrations(tournament.id).filter(r => r.status !== 'Cancelled');
     const buyIns = regs.reduce((sum, r) => sum + (r.buyInCount || 0), 0);
     const chips = buyIns * tournament.startingChips;
-    // Simple avg stack calc (Total Chips / Total Players) - in real app, divide by remaining players
     const avg = regs.length > 0 ? Math.floor(chips / regs.length) : 0;
     
     setStats({
@@ -59,14 +65,87 @@ const LiveClockRunner = ({ tournament, onClose }: { tournament: Tournament, onCl
       avgStack: avg,
       prizePool: buyIns * tournament.buyIn
     });
-
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-      setTimerSeconds(prev => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-
-    return () => clearInterval(timer);
   }, [tournament]);
+
+  // 2. Timer Loop (Calculates exact position in structure based on Wall Clock Time)
+  useEffect(() => {
+    const updateTimer = () => {
+        const now = new Date();
+        setCurrentTime(now);
+
+        // Safety check for start time
+        if (!tournament.startDate || !tournament.startTime) {
+            setTimerSeconds(0);
+            return;
+        }
+
+        const start = new Date(`${tournament.startDate}T${tournament.startTime}`);
+        const elapsedSeconds = (now.getTime() - start.getTime()) / 1000;
+
+        // Case A: Tournament hasn't started yet
+        if (elapsedSeconds < 0) {
+            if (structure && structure.items.length > 0) {
+                 setTimerSeconds(structure.items[0].duration * 60);
+            } else {
+                 setTimerSeconds(tournament.blindLevelMinutes * 60);
+            }
+            setCurrentLevelIndex(0);
+            setIsBreak(false);
+            setIsFinished(false);
+            return;
+        }
+
+        // Case B: Calculate position in Structure
+        if (structure && structure.items.length > 0) {
+            let tempElapsed = elapsedSeconds;
+            let foundLevel = false;
+
+            for (let i = 0; i < structure.items.length; i++) {
+                const item = structure.items[i];
+                const itemDurationSec = item.duration * 60;
+
+                if (tempElapsed < itemDurationSec) {
+                    // We are currently in this item
+                    setTimerSeconds(Math.max(0, Math.floor(itemDurationSec - tempElapsed)));
+                    setCurrentLevelIndex(i);
+                    setIsBreak(item.type === 'Break');
+                    setIsFinished(false);
+                    foundLevel = true;
+                    break;
+                } else {
+                    // Passed this item
+                    tempElapsed -= itemDurationSec;
+                }
+            }
+
+            if (!foundLevel) {
+                // Elapsed time exceeds total structure duration
+                setTimerSeconds(0);
+                setCurrentLevelIndex(structure.items.length - 1);
+                setIsFinished(true);
+                setIsBreak(false);
+            }
+        } else {
+            // Case C: No Structure (Fallback to infinite repeating levels)
+            const durationSec = tournament.blindLevelMinutes * 60;
+            if (durationSec > 0) {
+                const levelIdx = Math.floor(elapsedSeconds / durationSec);
+                const secondsIntoLevel = elapsedSeconds % durationSec;
+                setTimerSeconds(Math.floor(durationSec - secondsIntoLevel));
+                setCurrentLevelIndex(levelIdx);
+                setIsBreak(false);
+                setIsFinished(false);
+            } else {
+                setTimerSeconds(0);
+            }
+        }
+    };
+
+    // Run immediately and then interval
+    updateTimer(); 
+    const timer = setInterval(updateTimer, 1000);
+    return () => clearInterval(timer);
+  }, [tournament, structure]);
 
   if (!config) return <div className="fixed inset-0 bg-black z-50 flex items-center justify-center text-white">Loading configuration...</div>;
 
@@ -77,28 +156,74 @@ const LiveClockRunner = ({ tournament, onClose }: { tournament: Tournament, onCl
   };
 
   const getFieldValue = (type: string) => {
-    // Derive structure info
-    const levels = structure?.items.filter(i => i.type === 'Level') || [];
-    const currentLevel = levels[currentLevelIndex];
-    const nextLevel = levels[currentLevelIndex + 1];
+    // Determine Current Item data
+    const currentItem = structure?.items[currentLevelIndex];
+    
+    // Determine Next Level (Look ahead for first item type === 'Level')
+    const nextLevelItem = structure?.items.slice(currentLevelIndex + 1).find(i => i.type === 'Level');
+    
+    // Determine Next Break (Look ahead for first item type === 'Break')
+    const nextBreakItem = structure?.items.slice(currentLevelIndex + 1).find(i => i.type === 'Break');
+    
+    // Helper to calculate time until next break
+    const getTimeUntilNextBreak = () => {
+        if (!structure || !nextBreakItem) return '---';
+        
+        // Sum durations from current item (partial) up to break
+        // 1. Remaining time in current item
+        let totalSec = timerSeconds;
+        
+        // 2. Duration of all items between current+1 and break
+        const breakIndex = structure.items.indexOf(nextBreakItem);
+        for (let i = currentLevelIndex + 1; i < breakIndex; i++) {
+             totalSec += (structure.items[i].duration * 60);
+        }
+        
+        // Format
+        const h = Math.floor(totalSec / 3600);
+        const m = Math.floor((totalSec % 3600) / 60);
+        // const s = Math.floor(totalSec % 60);
+        
+        if (h > 0) return `${h}h ${m}m`;
+        return `${m}m`;
+    };
 
     switch(type) {
       case 'tournament_name': return tournament.name;
       case 'tournament_desc': return tournament.description || '';
-      case 'timer': return formatSeconds(timerSeconds);
-      case 'blind_countdown': return formatSeconds(timerSeconds);
+      case 'timer': return isFinished ? "ENDED" : formatSeconds(timerSeconds);
+      case 'blind_countdown': return isFinished ? "00:00" : formatSeconds(timerSeconds);
       
       // Blinds & Structure
       case 'blind_level': 
-          return currentLevel ? `${currentLevel.smallBlind}/${currentLevel.bigBlind}` : tournament.startingBlinds;
+          if (isFinished) return "ENDED";
+          if (isBreak) return "BREAK";
+          if (currentItem && currentItem.type === 'Level') {
+               return `${currentItem.smallBlind}/${currentItem.bigBlind}`;
+          }
+          return tournament.startingBlinds; // Fallback
+
       case 'ante': 
-          return currentLevel ? (currentLevel.ante || 0).toString() : '0';
+          if (isFinished) return "-";
+          if (isBreak) return "-";
+          if (currentItem && currentItem.type === 'Level') {
+               return (currentItem.ante || 0).toString();
+          }
+          return '0';
+
       case 'next_blinds': 
-          return nextLevel ? `${nextLevel.smallBlind}/${nextLevel.bigBlind}` : '-/-';
+          if (isFinished) return "-/-";
+          if (nextLevelItem) return `${nextLevelItem.smallBlind}/${nextLevelItem.bigBlind}`;
+          return '---';
+
       case 'next_ante': 
-          return nextLevel ? (nextLevel.ante || 0).toString() : '-';
+          if (isFinished) return "-";
+          if (nextLevelItem) return (nextLevelItem.ante || 0).toString();
+          return '-';
+
       case 'next_break':
-          return '---'; // Requires tracking breaks in time sequence
+          if (isFinished) return "-";
+          return getTimeUntilNextBreak();
 
       // Stats
       case 'players_count': return `${stats.players} / ${tournament.maxPlayers}`;
@@ -295,6 +420,7 @@ const ClockLayouts = () => {
 
 // --- Sub-Component: Live Tournaments List ---
 const LiveClocks = () => {
+    const { t } = useLanguage();
     const [activeTournaments, setActiveTournaments] = useState<Tournament[]>([]);
     const [registrationsMap, setRegistrationsMap] = useState<Record<string, TournamentRegistration[]>>({});
     const [fullScreenTournament, setFullScreenTournament] = useState<Tournament | null>(null);
@@ -307,7 +433,8 @@ const LiveClocks = () => {
 
     const refreshData = () => {
         const allTournaments = DataService.getTournaments();
-        const inProgress = allTournaments.filter(t => t.status === 'In Progress');
+        // We consider 'In Progress' as live. Can also allow 'Registration' if needed for pre-game screens.
+        const inProgress = allTournaments.filter(t => t.status === 'In Progress' || t.status === 'Registration');
         setActiveTournaments(inProgress);
 
         const regMap: Record<string, TournamentRegistration[]> = {};
@@ -324,128 +451,129 @@ const LiveClocks = () => {
                   <div className="w-16 h-16 rounded-full bg-[#1A1A1A] flex items-center justify-center mb-4 text-gray-600">
                       <Radio size={32} />
                   </div>
-                  <h3 className="text-lg font-bold mb-2 text-gray-300">No Tournaments In Progress</h3>
-                  <p className="text-sm max-w-md text-center">Start a tournament from the "Tournaments" tab to see it appear here for live clock management.</p>
+                  <h3 className="text-lg font-bold mb-2 text-gray-300">No Tournaments Active</h3>
+                  <p className="text-sm max-w-md text-center">Set a tournament to "In Progress" or "Registration" in the Tournaments tab to see it appear here for live clock management.</p>
               </div>
            ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {activeTournaments.map(tournament => {
                       const regs = registrationsMap[tournament.id] || [];
                       const activePlayers = regs.filter(r => r.status !== 'Cancelled').length;
+                      const isLive = tournament.status === 'In Progress';
                       
                       return (
-                          <div key={tournament.id} className="bg-[#111] border border-[#333] rounded-3xl p-6 flex flex-col hover:border-brand-green/30 transition-colors shadow-xl">
+                          <div key={tournament.id} className="bg-[#111] border border-[#333] rounded-3xl p-6 flex flex-col hover:border-brand-green/30 transition-colors shadow-xl group">
                               <div className="flex justify-between items-start mb-4">
                                   <div>
                                       <div className="flex items-center gap-2 mb-1">
-                                          <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                                          <span className="text-xs font-bold text-red-500 uppercase tracking-wider">Live Now</span>
+                                          <span className={`w-2 h-2 rounded-full animate-pulse ${isLive ? 'bg-red-500' : 'bg-blue-500'}`}></span>
+                                          <span className={`text-xs font-bold ${isLive ? 'text-red-500' : 'text-blue-500'}`}>
+                                            {isLive ? 'LIVE' : 'REGISTRATION'}
+                                          </span>
                                       </div>
-                                      <h3 className="text-xl font-bold text-white">{tournament.name}</h3>
+                                      <h3 className="text-xl font-bold text-white line-clamp-1">{tournament.name}</h3>
                                   </div>
-                                  <div className="bg-[#1A1A1A] p-2 rounded-xl text-gray-400">
-                                      <Trophy size={20} />
+                                  <div className="p-2 bg-[#222] rounded-full text-gray-400">
+                                      <Trophy size={18} />
+                                  </div>
+                              </div>
+                              
+                              <div className="flex items-center gap-4 text-gray-500 text-sm mb-6">
+                                  <div className="flex items-center gap-1.5">
+                                      <Users size={14} />
+                                      {activePlayers} Players
+                                  </div>
+                                  <div className="flex items-center gap-1.5">
+                                      <Clock size={14} />
+                                      {tournament.blindLevelMinutes}m Levels
                                   </div>
                               </div>
 
-                              <div className="grid grid-cols-2 gap-4 mb-6">
-                                  <div className="bg-[#1A1A1A] p-3 rounded-xl">
-                                      <div className="text-[10px] uppercase text-gray-500 font-bold mb-1">Players</div>
-                                      <div className="text-lg font-mono font-bold text-white flex items-center gap-2">
-                                          <Users size={16} className="text-brand-green"/>
-                                          {activePlayers}
-                                      </div>
-                                  </div>
-                                  <div className="bg-[#1A1A1A] p-3 rounded-xl">
-                                      <div className="text-[10px] uppercase text-gray-500 font-bold mb-1">Blinds</div>
-                                      <div className="text-lg font-mono font-bold text-white flex items-center gap-2">
-                                          <Clock size={16} className="text-blue-400"/>
-                                          {tournament.startingBlinds}
-                                      </div>
-                                  </div>
-                              </div>
-
-                              <div className="mt-auto pt-4 border-t border-[#222]">
-                                  <button 
-                                      onClick={() => setFullScreenTournament(tournament)}
-                                      className="w-full bg-brand-green text-black font-bold py-3 rounded-xl hover:bg-[#05a357] transition-colors flex items-center justify-center gap-2 shadow-lg shadow-green-500/20"
-                                  >
-                                      <Maximize2 size={18} />
-                                      Launch Display
-                                  </button>
-                              </div>
+                              <button 
+                                onClick={() => setFullScreenTournament(tournament)}
+                                className={`mt-auto w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${THEME.buttonPrimary}`}
+                              >
+                                  <Maximize2 size={18} /> Open Clock
+                              </button>
                           </div>
                       );
                   })}
               </div>
            )}
 
-           {/* Full Screen Overlay */}
            {fullScreenTournament && (
-              <LiveClockRunner 
+               <LiveClockRunner 
                   tournament={fullScreenTournament} 
                   onClose={() => setFullScreenTournament(null)} 
-              />
+               />
            )}
         </div>
     );
 };
 
+// --- Main View ---
 const ClocksView = () => {
   const { t } = useLanguage();
 
   return (
-    <div className="h-full flex flex-col w-full relative">
-      {/* Header */}
-      <div className="flex justify-between items-end mb-8 relative z-10 pointer-events-none">
-        <div className="pointer-events-auto">
+    <div className="h-full flex flex-col w-full">
+      <div className="flex justify-between items-end mb-8">
+        <div>
           <h2 className="text-4xl font-bold text-white mb-2">{t('clocks.title')}</h2>
           <p className="text-gray-400">{t('clocks.subtitle')}</p>
         </div>
-        
-        {/* The Action Button is rendered inside ClockLayouts now */}
-        <div className="pointer-events-auto"></div> 
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-8 mb-6 border-b border-[#222] relative z-10">
-        <NavLink
-          to="layouts"
-          className={({isActive}) => `pb-4 px-2 text-sm font-bold uppercase tracking-wider transition-all relative flex items-center gap-2 ${
-            isActive ? 'text-white' : 'text-gray-500 hover:text-gray-300'
-          }`}
-        >
-          {({isActive}) => (
-             <>
-                <Layout size={18} />
-                Clock Layouts
-                {isActive && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />}
-             </>
-          )}
-        </NavLink>
-
+      {/* Tabs Navigation */}
+      <div className="flex gap-8 mb-6 border-b border-[#222]">
         <NavLink
           to="live"
-          className={({isActive}) => `pb-4 px-2 text-sm font-bold uppercase tracking-wider transition-all relative flex items-center gap-2 ${
-            isActive ? 'text-white' : 'text-gray-500 hover:text-gray-300'
+          className={({isActive}) => `pb-4 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
+            isActive 
+              ? 'text-white' 
+              : 'text-gray-500 hover:text-gray-300'
           }`}
         >
-          {({isActive}) => (
-             <>
-                <Radio size={18} className={isActive ? 'text-red-500 animate-pulse' : ''} />
-                Live Tournaments
-                {isActive && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />}
-             </>
-          )}
+             {({isActive}) => (
+                <>
+                    <div className="flex items-center gap-2">
+                        <Play size={18} />
+                        {t('sidebar.liveClock')}
+                    </div>
+                    {isActive && (
+                        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />
+                    )}
+                </>
+             )}
+        </NavLink>
+
+        <NavLink
+          to="layouts"
+          className={({isActive}) => `pb-4 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
+            isActive 
+              ? 'text-white' 
+              : 'text-gray-500 hover:text-gray-300'
+          }`}
+        >
+             {({isActive}) => (
+                <>
+                    <div className="flex items-center gap-2">
+                        <Layout size={18} />
+                        Editor
+                    </div>
+                    {isActive && (
+                        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />
+                    )}
+                </>
+             )}
         </NavLink>
       </div>
 
-      {/* Content Area */}
       <div className="flex-1 relative">
           <Routes>
-              <Route path="layouts" element={<ClockLayouts />} />
               <Route path="live" element={<LiveClocks />} />
-              <Route index element={<Navigate to="layouts" replace />} />
+              <Route path="layouts" element={<ClockLayouts />} />
+              <Route index element={<Navigate to="live" replace />} />
           </Routes>
       </div>
     </div>
