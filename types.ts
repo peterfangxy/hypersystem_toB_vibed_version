@@ -14,6 +14,8 @@ export type Gender = 'Male' | 'Female' | 'Other' | 'Prefer not to say';
 export interface Member {
   id: string;
   fullName: string;
+  nickname?: string;
+  club_id?: string;
   email: string;
   phone: string;
   age: number;
@@ -246,7 +248,7 @@ export type ClockFieldType =
   | 'blind_countdown'
   | 'blind_level' 
   | 'next_blinds'
-  | 'ante'
+  | 'ante' 
   | 'next_ante'
   | 'players_count' 
   | 'entries_count'

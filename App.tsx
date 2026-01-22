@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { THEME } from './theme';
@@ -41,10 +42,10 @@ const App: React.FC = () => {
               <Route path="/dashboard" element={<DashboardView />} />
               <Route path="/members" element={<MembersView />} />
               <Route path="/tables" element={<TablesView />} />
-              <Route path="/tournaments" element={<TournamentsView />} />
-              <Route path="/structures" element={<StructuresView />} />
+              <Route path="/tournaments/*" element={<TournamentsView />} />
+              <Route path="/structures/*" element={<StructuresView />} />
               <Route path="/clocks" element={<ClocksView />} />
-              <Route path="/settings" element={<SettingsView />} />
+              <Route path="/settings/*" element={<SettingsView />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </div>

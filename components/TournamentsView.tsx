@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
@@ -14,16 +15,16 @@ import {
   Copy,
   Trash2
 } from 'lucide-react';
+import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
 import { Tournament, TournamentStatus, TournamentStructure, PayoutStructure } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
 import TournamentForm from './TournamentForm';
 import TournamentParticipantsView from './TournamentParticipantsView';
 
-type TabType = 'manage' | 'templates';
-
 const TournamentsView = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('manage');
+  const location = useLocation();
+  const isTemplatesTab = location.pathname.includes('/templates');
 
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [templates, setTemplates] = useState<Tournament[]>([]);
@@ -32,13 +33,12 @@ const TournamentsView = () => {
   const [registrationCounts, setRegistrationCounts] = useState<Record<string, number>>({});
 
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isTemplateMode, setIsTemplateMode] = useState(false);
   const [editingTournament, setEditingTournament] = useState<Tournament | undefined>(undefined);
   
-  // Navigation State
+  // Navigation State for Drilldown
   const [selectedTournamentId, setSelectedTournamentId] = useState<string | null>(null);
 
-  // Filtering & Sorting State
+  // Filtering & Sorting State (Shared or lifted)
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [sortConfig, setSortConfig] = useState<{ key: keyof Tournament; direction: 'asc' | 'desc' }>({ 
@@ -49,6 +49,12 @@ const TournamentsView = () => {
   useEffect(() => {
     refreshData();
   }, []);
+
+  // Reset search when switching tabs for cleaner UX
+  useEffect(() => {
+    setSearchQuery('');
+    setStatusFilter('All');
+  }, [isTemplatesTab]);
 
   const refreshData = () => {
     setTournaments(DataService.getTournaments());
@@ -68,7 +74,7 @@ const TournamentsView = () => {
   };
 
   const handleCreateOrUpdate = (tournament: Tournament) => {
-    if (isTemplateMode) {
+    if (isTemplatesTab) {
         DataService.saveTournamentTemplate(tournament);
     } else {
         DataService.saveTournament(tournament);
@@ -92,13 +98,11 @@ const TournamentsView = () => {
   };
 
   const openCreate = () => {
-    setIsTemplateMode(activeTab === 'templates');
     setEditingTournament(undefined);
     setIsFormOpen(true);
   };
 
   const openEdit = (tournament: Tournament) => {
-    setIsTemplateMode(activeTab === 'templates');
     setEditingTournament(tournament);
     setIsFormOpen(true);
   };
@@ -118,6 +122,17 @@ const TournamentsView = () => {
       direction = 'desc';
     }
     setSortConfig({ key, direction });
+  };
+
+  // --- Helpers for Render ---
+  const getStructureName = (id?: string) => {
+      if (!id) return null;
+      return structures.find(s => s.id === id)?.name;
+  };
+
+  const getPayoutName = (id?: string) => {
+      if (!id) return null;
+      return payouts.find(p => p.id === id)?.name;
   };
 
   const getStatusStyle = (status?: TournamentStatus) => {
@@ -145,48 +160,6 @@ const TournamentsView = () => {
       }
   };
 
-  const getStructureName = (id?: string) => {
-      if (!id) return null;
-      return structures.find(s => s.id === id)?.name;
-  };
-
-  const getPayoutName = (id?: string) => {
-      if (!id) return null;
-      return payouts.find(p => p.id === id)?.name;
-  };
-
-  // If a tournament is selected, show the detail view
-  if (selectedTournamentId) {
-      return (
-          <TournamentParticipantsView 
-            tournamentId={selectedTournamentId}
-            onBack={handleBackFromParticipants}
-          />
-      );
-  }
-
-  // --- List View Logic ---
-
-  const filteredTournaments = tournaments
-    .filter(t => {
-      const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus = statusFilter === 'All' || t.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    })
-    .sort((a, b) => {
-      const aValue = a[sortConfig.key];
-      const bValue = b[sortConfig.key];
-      
-      if (aValue === undefined || bValue === undefined) return 0;
-      
-      if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
-      return 0;
-    });
-
-  const filteredTemplates = templates
-    .filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()));
-
   const SortHeader = ({ label, sortKey, className = "" }: { label: string, sortKey: keyof Tournament, className?: string }) => (
     <th 
       className={`px-4 py-3 cursor-pointer hover:text-white transition-colors group select-none ${className}`}
@@ -199,97 +172,26 @@ const TournamentsView = () => {
     </th>
   );
 
-  return (
-     <div className="h-full flex flex-col max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex justify-between items-end mb-8">
-        <div>
-          <h2 className="text-4xl font-bold text-white mb-2">Tournaments</h2>
-          <p className="text-gray-400">Schedule events and manage structures</p>
-        </div>
-        <button 
-          onClick={openCreate}
-          className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95`}
-        >
-          <Plus size={20} strokeWidth={2.5} />
-          {activeTab === 'manage' ? 'Create Event' : 'Create Template'}
-        </button>
-      </div>
+  // --- Sub-Components for Route Rendering ---
 
-       {/* Tabs Navigation */}
-      <div className="flex gap-8 mb-6 border-b border-[#222]">
-        <button
-          onClick={() => setActiveTab('manage')}
-          className={`pb-4 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
-            activeTab === 'manage' 
-              ? 'text-white' 
-              : 'text-gray-500 hover:text-gray-300'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <Trophy size={18} />
-            Manage Tournaments
-          </div>
-          {activeTab === 'manage' && (
-            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />
-          )}
-        </button>
+  const ManageTournaments = () => {
+    const filteredTournaments = tournaments
+        .filter(t => {
+            const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesStatus = statusFilter === 'All' || t.status === statusFilter;
+            return matchesSearch && matchesStatus;
+        })
+        .sort((a, b) => {
+            const aValue = a[sortConfig.key];
+            const bValue = b[sortConfig.key];
+            if (aValue === undefined || bValue === undefined) return 0;
+            if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+            if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+            return 0;
+        });
 
-        <button
-          onClick={() => setActiveTab('templates')}
-          className={`pb-4 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
-            activeTab === 'templates' 
-              ? 'text-white' 
-              : 'text-gray-500 hover:text-gray-300'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <Copy size={18} />
-            Tournament Templates
-          </div>
-          {activeTab === 'templates' && (
-            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />
-          )}
-        </button>
-      </div>
-
-      {/* Control Bar */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        {/* Search */}
-        <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-          <input 
-            type="text"
-            placeholder={activeTab === 'manage' ? "Search tournaments..." : "Search templates..."}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-3 text-white placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none transition-all`}
-          />
-        </div>
-        
-        {/* Status Filter - Only for Manage Tab */}
-        {activeTab === 'manage' && (
-            <div className="relative min-w-[200px]">
-            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-            <select 
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-3 text-white outline-none appearance-none cursor-pointer focus:ring-1 focus:ring-brand-green`}
-            >
-                <option value="All">All Statuses</option>
-                <option value="Scheduled">Scheduled</option>
-                <option value="Registration">Registration</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Completed">Completed</option>
-                <option value="Cancelled">Cancelled</option>
-            </select>
-            </div>
-        )}
-      </div>
-
-      {/* --- MANAGE TOURNAMENTS TAB --- */}
-      {activeTab === 'manage' && (
-        <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden flex flex-col mb-20 shadow-xl`}>
+    return (
+        <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden flex flex-col mb-20 shadow-xl animate-in fade-in slide-in-from-bottom-2`}>
             {filteredTournaments.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-gray-500">
                 <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mb-4">
@@ -400,7 +302,6 @@ const TournamentsView = () => {
                         </td>
                         <td className="px-4 py-3 pr-6 text-right">
                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            {/* Workflow Action: Open Registration */}
                             {tournament.status === 'Scheduled' && (
                                 <button
                                     onClick={() => handleStatusChange(tournament, 'Registration')}
@@ -410,8 +311,6 @@ const TournamentsView = () => {
                                     <Ticket size={16} />
                                 </button>
                             )}
-
-                            {/* Workflow Action: Start Tournament */}
                             {tournament.status === 'Registration' && (
                                 <button
                                     onClick={() => handleStatusChange(tournament, 'In Progress')}
@@ -421,7 +320,6 @@ const TournamentsView = () => {
                                     <Play size={16} fill="currentColor" />
                                 </button>
                             )}
-
                             {tournament.status === 'In Progress' && (
                                 <button 
                                     onClick={() => openParticipants(tournament)}
@@ -438,8 +336,6 @@ const TournamentsView = () => {
                             >
                                 <Users size={16} />
                             </button>
-                            
-                            {/* Edit Button - Disabled if Completed/Cancelled */}
                             <button 
                                 onClick={() => openEdit(tournament)}
                                 disabled={tournament.status === 'Completed' || tournament.status === 'Cancelled'}
@@ -461,11 +357,14 @@ const TournamentsView = () => {
             </div>
             )}
         </div>
-      )}
+    );
+  };
 
-      {/* --- TEMPLATES TAB --- */}
-      {activeTab === 'templates' && (
-          <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden flex flex-col mb-20 shadow-xl`}>
+  const TournamentTemplates = () => {
+    const filteredTemplates = templates.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    return (
+        <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden flex flex-col mb-20 shadow-xl animate-in fade-in slide-in-from-bottom-2`}>
              {filteredTemplates.length === 0 ? (
                  <div className="flex flex-col items-center justify-center py-20 text-gray-500">
                     <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mb-4">
@@ -547,14 +446,127 @@ const TournamentsView = () => {
                  </div>
              )}
           </div>
-      )}
+    );
+  };
+
+  // If a tournament is selected, show the detail view
+  if (selectedTournamentId) {
+      return (
+          <TournamentParticipantsView 
+            tournamentId={selectedTournamentId}
+            onBack={handleBackFromParticipants}
+          />
+      );
+  }
+
+  return (
+     <div className="h-full flex flex-col max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex justify-between items-end mb-8">
+        <div>
+          <h2 className="text-4xl font-bold text-white mb-2">Tournaments</h2>
+          <p className="text-gray-400">Schedule events and manage structures</p>
+        </div>
+        <button 
+          onClick={openCreate}
+          className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95`}
+        >
+          <Plus size={20} strokeWidth={2.5} />
+          {isTemplatesTab ? 'Create Template' : 'Create Event'}
+        </button>
+      </div>
+
+       {/* Tabs Navigation */}
+      <div className="flex gap-8 mb-6 border-b border-[#222]">
+        <NavLink
+          to="manage"
+          className={({isActive}) => `pb-4 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
+            isActive 
+              ? 'text-white' 
+              : 'text-gray-500 hover:text-gray-300'
+          }`}
+        >
+            {({isActive}) => (
+                <>
+                    <div className="flex items-center gap-2">
+                        <Trophy size={18} />
+                        Manage Tournaments
+                    </div>
+                    {isActive && (
+                        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />
+                    )}
+                </>
+            )}
+        </NavLink>
+
+        <NavLink
+          to="templates"
+          className={({isActive}) => `pb-4 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
+            isActive 
+              ? 'text-white' 
+              : 'text-gray-500 hover:text-gray-300'
+          }`}
+        >
+             {({isActive}) => (
+                <>
+                    <div className="flex items-center gap-2">
+                        <Copy size={18} />
+                        Tournament Templates
+                    </div>
+                    {isActive && (
+                        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />
+                    )}
+                </>
+             )}
+        </NavLink>
+      </div>
+
+      {/* Control Bar */}
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        {/* Search */}
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+          <input 
+            type="text"
+            placeholder={isTemplatesTab ? "Search templates..." : "Search tournaments..."}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-3 text-white placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none transition-all`}
+          />
+        </div>
+        
+        {/* Status Filter - Only for Manage Tab */}
+        {!isTemplatesTab && (
+            <div className="relative min-w-[200px]">
+            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+            <select 
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-3 text-white outline-none appearance-none cursor-pointer focus:ring-1 focus:ring-brand-green`}
+            >
+                <option value="All">All Statuses</option>
+                <option value="Scheduled">Scheduled</option>
+                <option value="Registration">Registration</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+                <option value="Cancelled">Cancelled</option>
+            </select>
+            </div>
+        )}
+      </div>
+
+      <Routes>
+          <Route path="manage" element={<ManageTournaments />} />
+          <Route path="templates" element={<TournamentTemplates />} />
+          <Route index element={<Navigate to="manage" replace />} />
+      </Routes>
 
       <TournamentForm 
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         onSubmit={handleCreateOrUpdate}
         initialData={editingTournament}
-        isTemplateMode={isTemplateMode}
+        isTemplateMode={isTemplatesTab}
       />
      </div>
   );

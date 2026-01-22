@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Member, MembershipTier, Gender, MemberStatus } from '../types';
 import { THEME } from '../theme';
@@ -13,6 +14,8 @@ interface MemberFormProps {
 const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, initialData }) => {
   const [formData, setFormData] = useState<Partial<Member>>({
     fullName: '',
+    nickname: '',
+    club_id: '',
     email: '',
     phone: '',
     age: 21,
@@ -28,6 +31,8 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
     } else {
       setFormData({
         fullName: '',
+        nickname: '',
+        club_id: '',
         email: '',
         phone: '',
         age: 21,
@@ -72,6 +77,17 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
               onChange={e => setFormData({...formData, fullName: e.target.value})}
               className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none transition-all placeholder:text-gray-600`}
               placeholder="e.g. John Doe"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-300">Nickname</label>
+            <input 
+              type="text" 
+              value={formData.nickname || ''}
+              onChange={e => setFormData({...formData, nickname: e.target.value})}
+              className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none transition-all placeholder:text-gray-600`}
+              placeholder="e.g. Kid Poker"
             />
           </div>
 
@@ -132,6 +148,18 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
         {/* Membership Info */}
         <div className="space-y-4 pt-2">
           <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Membership</h3>
+          
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-300">Club ID</label>
+            <input 
+              type="text" 
+              value={formData.club_id || ''}
+              onChange={e => setFormData({...formData, club_id: e.target.value})}
+              className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none transition-all placeholder:text-gray-600`}
+              placeholder="e.g. RFC-1001"
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-300">Tier Status</label>
