@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, AlertCircle, CheckCircle2, Table, LayoutList } from 'lucide-react';
 import { PayoutStructure, PayoutRule } from '../types';
 import { THEME } from '../theme';
 import { Modal } from './Modal';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface PayoutModelFormProps {
   isOpen: boolean;
@@ -12,6 +14,7 @@ interface PayoutModelFormProps {
 }
 
 const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSubmit, initialData }) => {
+  const { t } = useLanguage();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [rules, setRules] = useState<PayoutRule[]>([]);
@@ -45,13 +48,13 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
 
     // 1. Check Distribution Sums
     if (currentRules.some(r => r.percentages.reduce((a, b) => a + b, 0) !== 100)) {
-        setValidationError("Ensure all distributions sum to 100%");
+        setValidationError(t('structures.payoutForm.validation.sum'));
         return;
     }
 
     // 2. Check Min/Max Validity
     if (currentRules.some(r => r.minPlayers > r.maxPlayers)) {
-        setValidationError("Min players cannot be greater than Max players");
+        setValidationError(t('structures.payoutForm.validation.minMax'));
         return;
     }
 
@@ -59,7 +62,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
     for (const rule of currentRules) {
         for (let i = 0; i < rule.percentages.length - 1; i++) {
             if (rule.percentages[i] < rule.percentages[i+1]) {
-                setValidationError(`Invalid distribution (${rule.minPlayers}-${rule.maxPlayers} players): A lower rank cannot pay more than a higher rank`);
+                setValidationError(`${t('structures.payoutForm.validation.descending')} (${rule.minPlayers}-${rule.maxPlayers} players)`);
                 return;
             }
         }
@@ -74,12 +77,12 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
         const next = sorted[i+1];
         
         if (current.maxPlayers >= next.minPlayers) {
-            setValidationError(`Overlap detected: Range ${current.minPlayers}-${current.maxPlayers} overlaps with ${next.minPlayers}-${next.maxPlayers}`);
+            setValidationError(`${t('structures.payoutForm.validation.overlap')}: ${current.minPlayers}-${current.maxPlayers} / ${next.minPlayers}-${next.maxPlayers}`);
             return;
         }
         
         if (current.maxPlayers + 1 !== next.minPlayers) {
-             setValidationError(`Gap detected: Missing range between ${current.maxPlayers} and ${next.minPlayers}`);
+             setValidationError(`${t('structures.payoutForm.validation.gap')}: ${current.maxPlayers} -> ${next.minPlayers}`);
              return;
         }
     }
@@ -175,14 +178,14 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={initialData ? 'Edit Payout Matrix' : 'Create Payout Matrix'}
+      title={initialData ? t('structures.payoutForm.editTitle') : t('structures.payoutForm.createTitle')}
       size="3xl"
     >
       <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
              {/* Info Section */}
              <div className="p-6 bg-[#1A1A1A] border-b border-[#222] grid grid-cols-2 gap-6">
                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-300">Matrix Name</label>
+                    <label className="text-sm font-medium text-gray-300">{t('structures.payoutForm.name')}</label>
                     <input 
                         required
                         type="text" 
@@ -193,7 +196,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
                     />
                  </div>
                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-300">Description (Optional)</label>
+                    <label className="text-sm font-medium text-gray-300">{t('structures.payoutForm.desc')}</label>
                     <input 
                         type="text" 
                         value={description}
@@ -208,14 +211,14 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
              <div className="flex-1 overflow-y-auto p-6 bg-[#111]">
                  <div className="flex justify-between items-center mb-4">
                      <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                         <Table size={16} /> Payout Rules
+                         <Table size={16} /> {t('structures.payoutForm.rules')}
                      </h3>
                      <button 
                         type="button"
                         onClick={handleAddRule}
                         className="text-sm font-bold text-brand-green flex items-center gap-1 hover:underline"
                      >
-                         <Plus size={16} /> Add Range
+                         <Plus size={16} /> {t('structures.payoutForm.addRange')}
                      </button>
                  </div>
 
@@ -231,7 +234,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
                                      
                                      {/* Player Range */}
                                      <div className="col-span-3 space-y-2">
-                                         <label className="text-xs font-bold text-gray-500 uppercase">Total Players (Range)</label>
+                                         <label className="text-xs font-bold text-gray-500 uppercase">{t('structures.payoutForm.rangeLabel')}</label>
                                          <div className="flex items-center gap-2">
                                              <input 
                                                 type="number"
@@ -253,7 +256,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
 
                                      {/* Places Paid */}
                                      <div className="col-span-2 space-y-2">
-                                         <label className="text-xs font-bold text-gray-500 uppercase">Top Places Paid</label>
+                                         <label className="text-xs font-bold text-gray-500 uppercase">{t('structures.payoutForm.placesLabel')}</label>
                                          <div className="relative">
                                             <input 
                                                 type="number"
@@ -272,9 +275,9 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
                                      {/* Percentages */}
                                      <div className="col-span-7 space-y-2">
                                          <div className="flex justify-between">
-                                            <label className="text-xs font-bold text-gray-500 uppercase">Distribution (%)</label>
+                                            <label className="text-xs font-bold text-gray-500 uppercase">{t('structures.payoutForm.distributionLabel')}</label>
                                             <span className={`text-xs font-bold ${isBalanced ? 'text-green-500' : 'text-red-500'}`}>
-                                                Total: {totalPct}%
+                                                {t('structures.payoutForm.total')}: {totalPct}%
                                             </span>
                                          </div>
                                          <div className="flex flex-wrap gap-2">
@@ -307,7 +310,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
                      {rules.length === 0 && (
                          <div className="text-center py-10 text-gray-500 border border-dashed border-[#333] rounded-xl">
                              <LayoutList size={32} className="mx-auto mb-2 opacity-50"/>
-                             <p>No rules defined. Add a player range to start.</p>
+                             <p>{t('structures.payoutForm.noRules')}</p>
                          </div>
                      )}
                  </div>
@@ -324,7 +327,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
                     ) : (
                          <span className="text-green-500/80 flex items-center gap-1.5">
                             <CheckCircle2 size={16} />
-                            Matrix is valid
+                            {t('structures.payoutForm.validation.valid')}
                         </span>
                     )}
                  </div>
@@ -335,14 +338,14 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
                         onClick={onClose}
                         className={`${THEME.buttonSecondary} px-6 py-3 rounded-xl font-bold`}
                     >
-                        Cancel
+                        {t('common.cancel')}
                     </button>
                     <button 
                         type="submit"
                         disabled={!!validationError}
                         className={`${THEME.buttonPrimary} px-8 py-3 rounded-xl font-bold text-lg shadow-lg shadow-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
-                        {initialData ? 'Save Matrix' : 'Create Matrix'}
+                        {initialData ? t('structures.payoutForm.save') : t('structures.payoutForm.create')}
                     </button>
                 </div>
             </div>

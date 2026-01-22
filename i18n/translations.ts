@@ -192,6 +192,217 @@ export const translations = {
           final: "Final"
         }
       }
+    },
+    structures: {
+      title: "Structures",
+      subtitle: "Configure reusable blind levels and payout models",
+      tabs: {
+        blinds: "Tournament Structures",
+        payouts: "Payout Models"
+      },
+      btn: {
+        createStructure: "Create Structure",
+        createMatrix: "New Custom Matrix"
+      },
+      blindsTable: {
+        name: "Structure Name",
+        chips: "Start Chips",
+        blinds: "Start Blinds",
+        levels: "Levels",
+        rebuys: "Re-buys",
+        length: "Est. Length",
+        empty: "No structures found",
+        createFirst: "Create your first structure"
+      },
+      payouts: {
+        algorithms: "Standard Algorithms",
+        matrices: "Custom Matrices",
+        table: {
+          name: "Matrix Name",
+          rules: "Rules Defined",
+          range: "Player Range",
+          ranges: "Ranges",
+          noRules: "No rules",
+          empty: "No custom payout matrices created yet."
+        }
+      },
+      form: {
+        createTitle: "Create Structure",
+        editTitle: "Edit Structure",
+        name: "Structure Name",
+        chips: "Chips",
+        startChips: "Starting Chips",
+        rebuys: "Re-buys",
+        rebuyLimit: "Re-buy Limit",
+        freezeout: "0 = Freezeout",
+        lastRebuyLevel: "Last Re-buy Level",
+        estLength: "Est. Tournament Length",
+        schedule: {
+          headerSeq: "#",
+          headerDur: "Duration",
+          headerSmall: "Small",
+          headerBig: "Big",
+          headerAnte: "Ante",
+          headerActions: "Actions",
+          addLevel: "Add Level",
+          addBreak: "Add Break"
+        },
+        save: "Save Changes",
+        create: "Create Structure"
+      },
+      payoutForm: {
+        createTitle: "Create Payout Matrix",
+        editTitle: "Edit Payout Matrix",
+        name: "Matrix Name",
+        desc: "Description (Optional)",
+        rules: "Payout Rules",
+        addRange: "Add Range",
+        rangeLabel: "Total Players (Range)",
+        placesLabel: "Top Places Paid",
+        distributionLabel: "Distribution (%)",
+        total: "Total",
+        noRules: "No rules defined. Add a player range to start.",
+        validation: {
+          valid: "Matrix is valid",
+          sum: "Ensure all distributions sum to 100%",
+          minMax: "Min players cannot be greater than Max players",
+          descending: "A lower rank cannot pay more than a higher rank",
+          overlap: "Overlap detected",
+          gap: "Gap detected"
+        },
+        save: "Save Matrix",
+        create: "Create Matrix"
+      }
+    },
+    clocks: {
+      title: "Clocks",
+      subtitle: "Design tournament screens and digital signage",
+      btn: {
+        new: "New Clock"
+      },
+      card: {
+        activeWidgets: "widgets active"
+      },
+      empty: {
+        title: "Design New Screen",
+        subtitle: "Drag & drop visual editor"
+      },
+      editor: {
+        headerName: "Clock Name",
+        save: "Save Clock",
+        description: "Description",
+        background: "Background",
+        textColor: "Default Text Color",
+        defaultLayout: "Default Layout",
+        widgets: "Widgets",
+        addWidget: "Add Widget",
+        emptyWidgets: "No widgets added.\nClick \"Add Widget\" to start.",
+        selectWidget: "Select Widget",
+        grid: "Grid",
+        snap: "Snap",
+        properties: "Properties",
+        content: "Content",
+        labelText: "Label Text",
+        showLabel: "Show Label",
+        typography: "Typography",
+        appearance: "Appearance",
+        size: "Size (px)",
+        fillColor: "Fill Color",
+        fontColor: "Font Color",
+        borderColor: "Border Color",
+        borderWidth: "Border Width",
+        width: "Width (px)",
+        height: "Height (px)",
+        bold: "Bold",
+        position: "Position (%)",
+        displayOrder: "Display Order",
+        duplicate: "Duplicate Widget",
+        remove: "Remove Widget",
+        selectToEdit: "Select a widget on the canvas to edit its properties."
+      },
+      widgets: {
+        tournament_name: "Tournament Name",
+        tournament_desc: "Description",
+        timer: "Main Timer",
+        blind_countdown: "Level Countdown",
+        blind_level: "Current Blinds",
+        next_blinds: "Next Blinds",
+        ante: "Ante",
+        next_ante: "Next Ante",
+        starting_chips: "Starting Chips",
+        rebuy_limit: "Rebuy Limit",
+        players_count: "Players Count",
+        entries_count: "Total Entries",
+        total_chips: "Total Chips",
+        avg_stack: "Avg Stack",
+        payout_total: "Total Payout",
+        next_break: "Next Break",
+        current_time: "Real Time",
+        current_date: "Current Date",
+        start_time: "Start Time",
+        start_date: "Start Date",
+        est_end_time: "Est. End Time",
+        custom_text: "Custom Text",
+        line: "Line / Divider",
+        shape_rect: "Rectangle",
+        shape_circle: "Circle",
+        shape_triangle: "Triangle"
+      }
+    },
+    settings: {
+      title: "Settings",
+      subtitle: "Manage club details, access and appearance",
+      saved: "Changes Saved",
+      tabs: {
+        general: "Club Details",
+        team: "Team & Roles",
+        appearance: "Appearance"
+      },
+      general: {
+        title: "Club Information",
+        clubName: "Club Name",
+        logoUrl: "Logo URL",
+        contactTitle: "Contact & Location",
+        address: "Address",
+        email: "Email",
+        phone: "Phone",
+        save: "Save Changes"
+      },
+      team: {
+        title: "Team Members",
+        subtitle: "Manage operator access and permissions",
+        invite: "Invite Member",
+        activeNow: "Active now",
+        invitePending: "Invite Pending",
+        confirmRemove: "Revoke access for this user?",
+        accessControlTitle: "Access Control",
+        accessControlText: "Full RBAC (Role Based Access Control) is currently in read-only mode for this demo. Invited users will appear here but email delivery is simulated."
+      },
+      appearance: {
+        title: "UI Customization",
+        subtitle: "Personalize the application colors to match your brand.",
+        reset: "Reset to Default",
+        brandColors: "Base Brand Colors",
+        primaryAccent: "Primary Accent",
+        primaryAccentDesc: "Buttons, Highlights",
+        appBackground: "App Background",
+        appBackgroundDesc: "Main page background",
+        cardSurface: "Card Surface",
+        cardSurfaceDesc: "Panels, Modals",
+        typography: "Typography & Borders",
+        primaryText: "Primary Text",
+        primaryTextDesc: "Headings, Body",
+        secondaryText: "Secondary Text",
+        secondaryTextDesc: "Subtitles, Labels",
+        borderColor: "Border Color",
+        borderColorDesc: "Dividers, Inputs",
+        previewTitle: "Live Preview",
+        previewButton: "Primary Button",
+        previewBadge: "Status Badge",
+        previewBordered: "Bordered Element",
+        previewSecondary: "This is secondary text.",
+        save: "Save Appearance"
+      }
     }
   },
   zh: {
@@ -385,6 +596,217 @@ export const translations = {
           in: "入",
           final: "出"
         }
+      }
+    },
+    structures: {
+      title: "盲注结构",
+      subtitle: "配置可复用的盲注等级和奖励模式",
+      tabs: {
+        blinds: "盲注结构",
+        payouts: "奖励模式"
+      },
+      btn: {
+        createStructure: "创建结构",
+        createMatrix: "新建自定义矩阵"
+      },
+      blindsTable: {
+        name: "结构名称",
+        chips: "起始筹码",
+        blinds: "起始盲注",
+        levels: "级别数",
+        rebuys: "重购限制",
+        length: "预计时长",
+        empty: "暂无结构",
+        createFirst: "创建您的第一个结构"
+      },
+      payouts: {
+        algorithms: "标准算法",
+        matrices: "自定义矩阵",
+        table: {
+          name: "矩阵名称",
+          rules: "规则数量",
+          range: "人数范围",
+          ranges: "个范围",
+          noRules: "无规则",
+          empty: "暂无自定义奖励矩阵。"
+        }
+      },
+      form: {
+        createTitle: "创建结构",
+        editTitle: "编辑结构",
+        name: "结构名称",
+        chips: "筹码",
+        startChips: "起始筹码",
+        rebuys: "重购设置",
+        rebuyLimit: "重购次数限制",
+        freezeout: "0 = 冻结赛 (Freezeout)",
+        lastRebuyLevel: "最后重购级别",
+        estLength: "预计赛事时长",
+        schedule: {
+          headerSeq: "#",
+          headerDur: "时长",
+          headerSmall: "小盲",
+          headerBig: "大盲",
+          headerAnte: "前注",
+          headerActions: "操作",
+          addLevel: "添加级别",
+          addBreak: "添加休息"
+        },
+        save: "保存更改",
+        create: "创建结构"
+      },
+      payoutForm: {
+        createTitle: "创建奖励矩阵",
+        editTitle: "编辑奖励矩阵",
+        name: "矩阵名称",
+        desc: "描述 (可选)",
+        rules: "奖励分配规则",
+        addRange: "添加人数范围",
+        rangeLabel: "玩家总数 (范围)",
+        placesLabel: "奖励前几名",
+        distributionLabel: "奖金分配 (%)",
+        total: "总计",
+        noRules: "未定义规则。请添加一个人数范围。",
+        validation: {
+          valid: "矩阵有效",
+          sum: "请确保分配总和为 100%",
+          minMax: "最小人数不能大于最大人数",
+          descending: "低排名的奖金比例不能高于高排名",
+          overlap: "检测到范围重叠",
+          gap: "检测到范围空缺"
+        },
+        save: "保存矩阵",
+        create: "创建矩阵"
+      }
+    },
+    clocks: {
+      title: "计时器",
+      subtitle: "设计赛事屏幕和数字标牌",
+      btn: {
+        new: "新建时钟"
+      },
+      card: {
+        activeWidgets: "个活跃组件"
+      },
+      empty: {
+        title: "设计新屏幕",
+        subtitle: "拖放式可视化编辑器"
+      },
+      editor: {
+        headerName: "时钟名称",
+        save: "保存时钟",
+        description: "描述",
+        background: "背景颜色",
+        textColor: "默认文字颜色",
+        defaultLayout: "设为默认",
+        widgets: "组件",
+        addWidget: "添加组件",
+        emptyWidgets: "暂无组件。\n点击“添加组件”开始设计。",
+        selectWidget: "选择组件",
+        grid: "网格",
+        snap: "吸附",
+        properties: "属性",
+        content: "内容",
+        labelText: "标签文本",
+        showLabel: "显示标签",
+        typography: "排版",
+        appearance: "外观",
+        size: "大小 (px)",
+        fillColor: "填充颜色",
+        fontColor: "字体颜色",
+        borderColor: "边框颜色",
+        borderWidth: "边框宽度",
+        width: "宽度 (px)",
+        height: "高度 (px)",
+        bold: "加粗",
+        position: "位置 (%)",
+        displayOrder: "显示层级",
+        duplicate: "复制组件",
+        remove: "移除组件",
+        selectToEdit: "在画布上选择一个组件以编辑其属性。"
+      },
+      widgets: {
+        tournament_name: "赛事名称",
+        tournament_desc: "描述",
+        timer: "主计时器",
+        blind_countdown: "级别倒计时",
+        blind_level: "当前盲注",
+        next_blinds: "下级盲注",
+        ante: "前注",
+        next_ante: "下级前注",
+        starting_chips: "起始筹码",
+        rebuy_limit: "重购限制",
+        players_count: "玩家人数",
+        entries_count: "总买入数",
+        total_chips: "总筹码量",
+        avg_stack: "平均筹码",
+        payout_total: "总奖池",
+        next_break: "下次休息",
+        current_time: "实时时间",
+        current_date: "当前日期",
+        start_time: "开始时间",
+        start_date: "开始日期",
+        est_end_time: "预计结束",
+        custom_text: "自定义文本",
+        line: "线条 / 分隔符",
+        shape_rect: "矩形",
+        shape_circle: "圆形",
+        shape_triangle: "三角形"
+      }
+    },
+    settings: {
+      title: "系统设置",
+      subtitle: "管理俱乐部信息、权限和外观",
+      saved: "更改已保存",
+      tabs: {
+        general: "俱乐部信息",
+        team: "团队与权限",
+        appearance: "外观设置"
+      },
+      general: {
+        title: "基本信息",
+        clubName: "俱乐部名称",
+        logoUrl: "Logo 链接",
+        contactTitle: "联系方式与地址",
+        address: "地址",
+        email: "电子邮箱",
+        phone: "联系电话",
+        save: "保存更改"
+      },
+      team: {
+        title: "团队成员",
+        subtitle: "管理操作员访问权限",
+        invite: "邀请成员",
+        activeNow: "当前活跃",
+        invitePending: "等待接受",
+        confirmRemove: "确定要移除该用户的访问权限吗？",
+        accessControlTitle: "访问控制",
+        accessControlText: "RBAC（基于角色的访问控制）在此演示模式下为只读。受邀用户将显示在此处，但不会发送真实邮件。"
+      },
+      appearance: {
+        title: "界面自定义",
+        subtitle: "个性化应用程序颜色以匹配您的品牌。",
+        reset: "恢复默认",
+        brandColors: "品牌基础色",
+        primaryAccent: "主要强调色",
+        primaryAccentDesc: "按钮，高亮显示",
+        appBackground: "应用背景色",
+        appBackgroundDesc: "主页面背景",
+        cardSurface: "卡片背景色",
+        cardSurfaceDesc: "面板，模态框",
+        typography: "排版与边框",
+        primaryText: "主要文字颜色",
+        primaryTextDesc: "标题，正文",
+        secondaryText: "次要文字颜色",
+        secondaryTextDesc: "副标题，标签",
+        borderColor: "边框颜色",
+        borderColorDesc: "分割线，输入框",
+        previewTitle: "实时预览",
+        previewButton: "主要按钮",
+        previewBadge: "状态徽章",
+        previewBordered: "边框元素",
+        previewSecondary: "这是次要文字。",
+        save: "保存外观"
       }
     }
   }

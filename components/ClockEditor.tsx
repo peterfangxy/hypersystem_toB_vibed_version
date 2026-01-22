@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { ClockConfig, ClockField, ClockFieldType } from '../types';
 import { THEME } from '../theme';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ClockEditorProps {
   initialConfig?: ClockConfig;
@@ -45,37 +46,8 @@ interface ClockEditorProps {
   onClose: () => void;
 }
 
-const AVAILABLE_FIELDS: { type: ClockFieldType; label: string; icon: any }[] = [
-    { type: 'tournament_name', label: 'Tournament Name', icon: Type },
-    { type: 'tournament_desc', label: 'Description', icon: Type },
-    { type: 'timer', label: 'Main Timer', icon: Clock },
-    { type: 'blind_countdown', label: 'Level Countdown', icon: Timer },
-    { type: 'blind_level', label: 'Current Blinds', icon: Layers },
-    { type: 'next_blinds', label: 'Next Blinds', icon: Layers },
-    { type: 'ante', label: 'Ante', icon: Layers },
-    { type: 'next_ante', label: 'Next Ante', icon: Layers },
-    { type: 'starting_chips', label: 'Starting Chips', icon: Coins },
-    { type: 'rebuy_limit', label: 'Rebuy Limit', icon: Repeat },
-    { type: 'players_count', label: 'Players Count', icon: Users },
-    { type: 'entries_count', label: 'Total Entries', icon: Users },
-    { type: 'total_chips', label: 'Total Chips', icon: Coins },
-    { type: 'avg_stack', label: 'Avg Stack', icon: Coins },
-    { type: 'payout_total', label: 'Total Payout', icon: Coins },
-    { type: 'next_break', label: 'Next Break', icon: Clock },
-    { type: 'current_time', label: 'Real Time', icon: Clock },
-    { type: 'current_date', label: 'Current Date', icon: Calendar },
-    { type: 'start_time', label: 'Start Time', icon: Clock },
-    { type: 'start_date', label: 'Start Date', icon: Calendar },
-    { type: 'est_end_time', label: 'Est. End Time', icon: Clock },
-    { type: 'custom_text', label: 'Custom Text', icon: Type },
-    // Widgets
-    { type: 'line', label: 'Line / Divider', icon: Minus },
-    { type: 'shape_rect', label: 'Rectangle', icon: Square },
-    { type: 'shape_circle', label: 'Circle', icon: Circle },
-    { type: 'shape_triangle', label: 'Triangle', icon: Triangle },
-];
-
 const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClose }) => {
+  const { t } = useLanguage();
   const [config, setConfig] = useState<ClockConfig>({
       id: crypto.randomUUID(),
       name: 'New Clock Layout',
@@ -96,7 +68,6 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
   
   // Dragging state (Canvas)
   const [isDragging, setIsDragging] = useState(false);
-  // Store initial values to calculate delta accurately and support snapping
   const dragStartRef = useRef<{
       startX: number; 
       startY: number; 
@@ -105,6 +76,36 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
   } | null>(null);
   
   const canvasRef = useRef<HTMLDivElement>(null);
+
+  // Available fields map (moved inside or using t)
+  const availableFields = [
+    { type: 'tournament_name', label: t('clocks.widgets.tournament_name'), icon: Type },
+    { type: 'tournament_desc', label: t('clocks.widgets.tournament_desc'), icon: Type },
+    { type: 'timer', label: t('clocks.widgets.timer'), icon: Clock },
+    { type: 'blind_countdown', label: t('clocks.widgets.blind_countdown'), icon: Timer },
+    { type: 'blind_level', label: t('clocks.widgets.blind_level'), icon: Layers },
+    { type: 'next_blinds', label: t('clocks.widgets.next_blinds'), icon: Layers },
+    { type: 'ante', label: t('clocks.widgets.ante'), icon: Layers },
+    { type: 'next_ante', label: t('clocks.widgets.next_ante'), icon: Layers },
+    { type: 'starting_chips', label: t('clocks.widgets.starting_chips'), icon: Coins },
+    { type: 'rebuy_limit', label: t('clocks.widgets.rebuy_limit'), icon: Repeat },
+    { type: 'players_count', label: t('clocks.widgets.players_count'), icon: Users },
+    { type: 'entries_count', label: t('clocks.widgets.entries_count'), icon: Users },
+    { type: 'total_chips', label: t('clocks.widgets.total_chips'), icon: Coins },
+    { type: 'avg_stack', label: t('clocks.widgets.avg_stack'), icon: Coins },
+    { type: 'payout_total', label: t('clocks.widgets.payout_total'), icon: Coins },
+    { type: 'next_break', label: t('clocks.widgets.next_break'), icon: Clock },
+    { type: 'current_time', label: t('clocks.widgets.current_time'), icon: Clock },
+    { type: 'current_date', label: t('clocks.widgets.current_date'), icon: Calendar },
+    { type: 'start_time', label: t('clocks.widgets.start_time'), icon: Clock },
+    { type: 'start_date', label: t('clocks.widgets.start_date'), icon: Calendar },
+    { type: 'est_end_time', label: t('clocks.widgets.est_end_time'), icon: Clock },
+    { type: 'custom_text', label: t('clocks.widgets.custom_text'), icon: Type },
+    { type: 'line', label: t('clocks.widgets.line'), icon: Minus },
+    { type: 'shape_rect', label: t('clocks.widgets.shape_rect'), icon: Square },
+    { type: 'shape_circle', label: t('clocks.widgets.shape_circle'), icon: Circle },
+    { type: 'shape_triangle', label: t('clocks.widgets.shape_triangle'), icon: Triangle },
+  ] as const;
 
   useEffect(() => {
       if (initialConfig) {
@@ -158,7 +159,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
       const newField: ClockField = {
           id: crypto.randomUUID(),
           type,
-          label: AVAILABLE_FIELDS.find(f => f.type === type)?.label || 'Unknown',
+          label: availableFields.find(f => f.type === type)?.label || 'Unknown',
           x: 50,
           y: 50,
           // Defaults
@@ -437,14 +438,14 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                     value={config.name}
                     onChange={(e) => setConfig({...config, name: e.target.value})}
                     className="bg-transparent text-lg font-bold outline-none placeholder:text-gray-600 w-64"
-                    placeholder="Clock Name"
+                    placeholder={t('clocks.editor.headerName')}
                  />
              </div>
              <button 
                 onClick={() => onSave(config)}
                 className={`${THEME.buttonPrimary} px-6 py-2 rounded-full font-bold flex items-center gap-2`}
              >
-                 <Save size={18} /> Save Clock
+                 <Save size={18} /> {t('clocks.editor.save')}
              </button>
         </div>
 
@@ -458,7 +459,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                     
                     {/* Description Input */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Description</label>
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">{t('clocks.editor.description')}</label>
                         <textarea
                             value={config.description || ''}
                             onChange={(e) => setConfig({...config, description: e.target.value})}
@@ -468,7 +469,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Background</label>
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">{t('clocks.editor.background')}</label>
                         <div className="flex gap-2">
                             <input 
                                 type="color" 
@@ -483,7 +484,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Default Text Color</label>
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">{t('clocks.editor.textColor')}</label>
                         <div className="flex gap-2">
                             <input 
                                 type="color" 
@@ -498,7 +499,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                     </div>
 
                     <div className="flex items-center justify-between pt-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Default Layout</label>
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('clocks.editor.defaultLayout')}</label>
                         <button 
                             onClick={() => setConfig({...config, isDefault: !config.isDefault})}
                             className={`w-10 h-6 rounded-full flex items-center transition-all px-1 ${config.isDefault ? 'bg-brand-green justify-end' : 'bg-[#333] justify-start'}`}
@@ -511,7 +512,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                 {/* Widgets List Header & CTA */}
                 <div className="flex-1 flex flex-col min-h-0">
                     <div className="p-4 flex items-center justify-between border-b border-[#222] bg-[#151515]">
-                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Widgets</span>
+                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('clocks.editor.widgets')}</span>
                         <span className="text-xs font-mono text-gray-600 bg-[#222] px-1.5 py-0.5 rounded">{config.fields.length}</span>
                     </div>
                     
@@ -521,20 +522,20 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                             onClick={() => setIsAddWidgetOpen(true)}
                             className="w-full py-2 bg-[#222] hover:bg-brand-green hover:text-black border border-[#333] hover:border-brand-green/50 text-gray-300 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all"
                         >
-                            <Plus size={16} /> Add Widget
+                            <Plus size={16} /> {t('clocks.editor.addWidget')}
                         </button>
                     </div>
 
                     {/* Active Widgets List */}
                     <div className="flex-1 overflow-y-auto p-2 space-y-1">
                         {config.fields.length === 0 ? (
-                            <div className="text-center py-8 text-gray-600 text-xs italic">
-                                No widgets added.<br/>Click "Add Widget" to start.
+                            <div className="text-center py-8 text-gray-600 text-xs italic whitespace-pre-wrap">
+                                {t('clocks.editor.emptyWidgets')}
                             </div>
                         ) : (
                             // Render list in reverse order visually so "top" of list is "front" layer
                             [...config.fields].reverse().map((field) => {
-                                const def = AVAILABLE_FIELDS.find(f => f.type === field.type);
+                                const def = availableFields.find(f => f.type === field.type);
                                 return (
                                     <div 
                                         key={field.id}
@@ -584,13 +585,13 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
             {isAddWidgetOpen && (
                 <div className="absolute top-0 left-72 bottom-0 w-64 bg-[#1A1A1A] border-r border-[#333] shadow-2xl z-30 animate-in slide-in-from-left-4 duration-200 flex flex-col">
                     <div className="p-4 border-b border-[#333] flex justify-between items-center">
-                        <span className="font-bold text-sm text-white">Select Widget</span>
+                        <span className="font-bold text-sm text-white">{t('clocks.editor.selectWidget')}</span>
                         <button onClick={() => setIsAddWidgetOpen(false)} className="text-gray-500 hover:text-white">
                             <X size={16} />
                         </button>
                     </div>
                     <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                        {AVAILABLE_FIELDS.map(item => (
+                        {availableFields.map(item => (
                             <button
                                 key={item.type}
                                 onClick={() => addField(item.type)}
@@ -615,7 +616,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                         title="Toggle Grid"
                     >
                         <Grid size={16} />
-                        Grid
+                        {t('clocks.editor.grid')}
                     </button>
                     <div className="w-px h-4 bg-[#333]"></div>
                     <button
@@ -624,7 +625,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                         title="Toggle Snap to Grid"
                     >
                         <Magnet size={16} />
-                        Snap
+                        {t('clocks.editor.snap')}
                     </button>
                 </div>
 
@@ -664,7 +665,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
             {/* Right: Properties Panel */}
             <div className="w-80 bg-[#111] border-l border-[#222] flex flex-col shrink-0 z-20">
                 <div className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-[#222]">
-                    Properties
+                    {t('clocks.editor.properties')}
                 </div>
                 
                 {selectedField ? (
@@ -674,7 +675,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                         {(selectedField.type === 'custom_text' || (selectedField.showLabel && !isShapeOrLine(selectedField.type))) && (
                             <div className="space-y-2">
                                 <label className="text-xs text-gray-400 font-bold">
-                                    {selectedField.type === 'custom_text' ? 'Content' : 'Label Text'}
+                                    {selectedField.type === 'custom_text' ? t('clocks.editor.content') : t('clocks.editor.labelText')}
                                 </label>
                                 <input 
                                     type="text" 
@@ -685,11 +686,10 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                             </div>
                         )}
 
-                        {/* ... (Rest of properties panel remains the same) */}
                         {/* Visibility Toggle for Labels (Text Only) */}
                         {!isShapeOrLine(selectedField.type) && selectedField.type !== 'custom_text' && (
                              <div className="flex items-center justify-between p-3 bg-[#1A1A1A] rounded-xl border border-[#333]">
-                                <span className="text-sm font-medium text-gray-300">Show Label</span>
+                                <span className="text-sm font-medium text-gray-300">{t('clocks.editor.showLabel')}</span>
                                 <button 
                                     onClick={() => updateField(selectedField.id, { showLabel: !selectedField.showLabel })}
                                     className={`p-1.5 rounded-lg transition-colors ${selectedField.showLabel ? 'bg-brand-green/20 text-brand-green' : 'bg-[#222] text-gray-500'}`}
@@ -703,13 +703,13 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                         <div className="space-y-4">
                             <label className="text-xs text-gray-400 font-bold flex items-center gap-2">
                                 {isShapeOrLine(selectedField.type) ? <Palette size={14}/> : <Type size={14}/>} 
-                                {isShapeOrLine(selectedField.type) ? 'Appearance' : 'Typography'}
+                                {isShapeOrLine(selectedField.type) ? t('clocks.editor.appearance') : t('clocks.editor.typography')}
                             </label>
                             
                             <div className="grid grid-cols-2 gap-4">
                                 {!isShapeOrLine(selectedField.type) && (
                                     <div>
-                                        <label className="text-[10px] text-gray-500 block mb-1">Size (px)</label>
+                                        <label className="text-[10px] text-gray-500 block mb-1">{t('clocks.editor.size')}</label>
                                         <input 
                                             type="number" 
                                             value={selectedField.fontSize}
@@ -721,7 +721,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                                 
                                 <div className={isShapeOrLine(selectedField.type) ? 'col-span-2' : 'col-span-1'}>
                                     <label className="text-[10px] text-gray-500 block mb-1">
-                                        {isShapeOrLine(selectedField.type) ? 'Fill Color' : 'Font Color'}
+                                        {isShapeOrLine(selectedField.type) ? t('clocks.editor.fillColor') : t('clocks.editor.fontColor')}
                                     </label>
                                     <div className="flex gap-2">
                                         <input 
@@ -738,7 +738,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                             {isShapeOrLine(selectedField.type) && selectedField.type !== 'line' && (
                                 <div className="grid grid-cols-2 gap-4 pt-2">
                                     <div>
-                                        <label className="text-[10px] text-gray-500 block mb-1">Border Color</label>
+                                        <label className="text-[10px] text-gray-500 block mb-1">{t('clocks.editor.borderColor')}</label>
                                         <input 
                                             type="color" 
                                             value={selectedField.borderColor || '#ffffff'}
@@ -747,7 +747,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[10px] text-gray-500 block mb-1">Border Width</label>
+                                        <label className="text-[10px] text-gray-500 block mb-1">{t('clocks.editor.borderWidth')}</label>
                                         <input 
                                             type="number"
                                             min="0" 
@@ -763,7 +763,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                             {isShapeOrLine(selectedField.type) && (
                                 <div className="grid grid-cols-2 gap-4 pt-2">
                                      <div>
-                                        <label className="text-[10px] text-gray-500 block mb-1">Width (px)</label>
+                                        <label className="text-[10px] text-gray-500 block mb-1">{t('clocks.editor.width')}</label>
                                         <input 
                                             type="number"
                                             min="1" 
@@ -773,7 +773,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[10px] text-gray-500 block mb-1">Height (px)</label>
+                                        <label className="text-[10px] text-gray-500 block mb-1">{t('clocks.editor.height')}</label>
                                         <input 
                                             type="number"
                                             min="1" 
@@ -812,7 +812,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                                         onClick={() => updateField(selectedField.id, { fontWeight: selectedField.fontWeight === 'bold' ? 'normal' : 'bold' })}
                                         className={`w-full p-2 rounded flex items-center justify-center gap-2 border ${selectedField.fontWeight === 'bold' ? 'bg-brand-green/10 text-brand-green border-brand-green/30' : 'bg-[#1A1A1A] border-[#333] text-gray-400'}`}
                                     >
-                                        <Bold size={16} /> Bold
+                                        <Bold size={16} /> {t('clocks.editor.bold')}
                                     </button>
                                 </>
                             )}
@@ -821,7 +821,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                          {/* Position Manual Adjust */}
                          <div className="space-y-4 pt-4 border-t border-[#222]">
                             <label className="text-xs text-gray-400 font-bold flex items-center gap-2">
-                                <Move size={14} /> Position (%)
+                                <Move size={14} /> {t('clocks.editor.position')}
                             </label>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
@@ -848,7 +848,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                          {/* Layering / Display Order */}
                          <div className="space-y-4 pt-4 border-t border-[#222]">
                             <label className="text-xs text-gray-400 font-bold flex items-center gap-2">
-                                <Layers size={14} /> Display Order
+                                <Layers size={14} /> {t('clocks.editor.displayOrder')}
                             </label>
                             <div className="grid grid-cols-4 gap-2">
                                 <button 
@@ -888,21 +888,23 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                                 onClick={() => duplicateField(selectedField)}
                                 className="w-full py-3 bg-[#1A1A1A] hover:bg-[#222] text-gray-300 border border-[#333] hover:border-gray-500 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors"
                              >
-                                 <Copy size={18} /> Duplicate Widget
+                                 <Copy size={18} /> {t('clocks.editor.duplicate')}
                              </button>
 
                              <button 
                                 onClick={() => removeField(selectedField.id)}
-                                className="w-full py-3 bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-colors"
+                                className="w-full py-3 bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors"
                              >
-                                 <Trash2 size={18} /> Remove Widget
+                                 <Trash2 size={18} /> {t('clocks.editor.remove')}
                              </button>
                          </div>
                     </div>
                 ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center text-gray-600 p-8 text-center">
-                        <Move size={48} className="opacity-20 mb-4" />
-                        <p className="text-sm">Select a widget on the canvas to edit its properties.</p>
+                    <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-gray-600">
+                        <div className="w-12 h-12 bg-[#1A1A1A] rounded-full flex items-center justify-center mb-3">
+                            <Move size={24} className="opacity-50" />
+                        </div>
+                        <p className="text-xs">{t('clocks.editor.selectToEdit')}</p>
                     </div>
                 )}
             </div>

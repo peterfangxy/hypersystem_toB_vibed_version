@@ -11,14 +11,14 @@ A premium, high-fidelity Point-of-Sale and Club Management System designed speci
 *   **Structure Builder**: Create reusable blind structures (Levels, Breaks) with duration and chip calculations.
 *   **Payout Engine**: Configure payout models using standard algorithms (ICM, ChipEV) or Custom Matrix rules (e.g., "Top 15% gets paid").
 *   **Live Tournament Director**: 
-    *   Manage player registration and buy-ins.
-    *   Auto-seating logic.
+    *   Integrated accordion dashboard for managing active events.
     *   **Chip Reconciliation**: End-of-tournament tool to ensure total chips in play match the count before finalizing results.
+    *   **Table Balancing**: Auto-check seat availability.
 
 ### 2. 💰 Financial Point-of-Sale
 *   **Member Wallets**: Individual digital wallets for players. Track balances, deposits, and withdrawals.
 *   **Transaction History**: Granular logs for every financial interaction (Buy-in, Re-buy, Add-on, Payout, Deposit).
-*   **Buy-in Management**: specific modal for handling complex tournament payments, including discounts, vouchers, and split payments (Cash vs Wallet).
+*   **Buy-in Management**: Detailed modal for handling complex tournament payments, including discounts, vouchers, and split payments (Cash vs Wallet).
 
 ### 3. 📺 Digital Signage & Clock Editor
 *   **WYSIWYG Editor**: A drag-and-drop visual editor to design tournament clock screens.
@@ -27,12 +27,12 @@ A premium, high-fidelity Point-of-Sale and Club Management System designed speci
 *   **Live Preview**: See exactly how the clock will look with real tournament data during the setup phase.
 
 ### 4. 👥 Member & Floor Management
-*   **CRM**: distinct profiles, membership tiers (Bronze to Diamond), and activity logs.
+*   **CRM**: Distinct profiles, membership tiers (Bronze to Diamond), and activity logs.
 *   **Floor Map**: Manage poker tables, track capacity, and toggle table status (Active/Inactive) visually.
 
-### 5. 🎨 Theming Engine
-*   **Global Appearance**: Fully customizable color palette via the Settings panel. 
-*   **Live Updates**: Change primary accents, background colors, and typography across the entire app instantly.
+### 5. 🎨 Customization & Localization
+*   **Internationalization (i18n)**: Fully localized interface supporting **English** and **Chinese (Simplified)**.
+*   **Theming Engine**: Global appearance settings. Change primary accents, background colors, and typography across the entire app instantly via the Settings panel.
 
 ---
 
@@ -42,9 +42,11 @@ A premium, high-fidelity Point-of-Sale and Club Management System designed speci
 *   **`App.tsx`**: Main router and layout shell.
 *   **`theme.ts`**: CSS variable definitions and Tailwind utility mappings.
 *   **`types.ts`**: Comprehensive TypeScript definitions for all domain entities.
+*   **`contexts/LanguageContext.tsx`**: React Context for managing app-wide language state.
+*   **`i18n/translations.ts`**: Dictionary for English and Chinese text resources.
 
 ### Services (`/services`)
-*   **`dataService.ts`**: A robust "Mock Backend". It handles data persistence using `localStorage`, simulates database relationships, and pre-seeds the app with demo data (Players like Daniel Negreanu, Phil Ivey, etc.).
+*   **`dataService.ts`**: A robust "Mock Backend". It handles data persistence using `localStorage`, simulates database relationships, and pre-seeds the app with demo data.
 *   **`geminiService.ts`**: Integration point for Google GenAI (Gemini) for future AI features.
 
 ### Components (`/components`)
@@ -52,8 +54,7 @@ A premium, high-fidelity Point-of-Sale and Club Management System designed speci
 #### Views (Pages)
 *   **`DashboardView.tsx`**: High-level KPIs (Revenue, Active Members) and recent winners list.
 *   **`MembersView.tsx`**: Data grid for member management.
-*   **`TournamentsView.tsx`**: The hub for scheduling and managing events.
-*   **`TournamentParticipantsView.tsx`**: The "Run of Show" interface for active tournaments.
+*   **`TournamentsView.tsx`**: The hub for scheduling and managing events. Includes the 'Manage' and 'Templates' tabs.
 *   **`StructuresView.tsx`**: Management of Blind Structures and Payout Models.
 *   **`ClocksView.tsx`**: Gallery of saved clock layouts.
 *   **`TablesView.tsx`**: Visual grid of the physical poker room.
@@ -66,6 +67,7 @@ A premium, high-fidelity Point-of-Sale and Club Management System designed speci
 *   **`PayoutModelForm.tsx`**: Logic builder for payout percentage distribution rules.
 
 #### Modals & Utilities
+*   **`TournamentDetailPanel.tsx`**: The "Run of Show" interface embedded within the Tournament list for managing active players and chips.
 *   **`MemberWalletModal.tsx`**: Financial dashboard for individual members.
 *   **`BuyinMgmtModal.tsx`**: Detailed transaction handling for tournament entries.
 *   **`AddPlayerModal.tsx`**: Quick-search modal to register existing members to events.

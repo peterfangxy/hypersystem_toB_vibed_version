@@ -7,8 +7,10 @@ import { TournamentStructure, PayoutStructure } from '../types';
 import * as DataService from '../services/dataService';
 import StructureForm from './StructureForm';
 import PayoutModelForm from './PayoutModelForm';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const StructuresView = () => {
+  const { t } = useLanguage();
   const location = useLocation();
   const isPayoutsTab = location.pathname.includes('/payouts');
   
@@ -36,7 +38,7 @@ const StructuresView = () => {
   };
 
   const handleStructDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this structure?')) {
+    if (window.confirm(t('common.delete') + '?')) {
         DataService.deleteTournamentStructure(id);
         setStructures(DataService.getTournamentStructures());
     }
@@ -56,7 +58,7 @@ const StructuresView = () => {
   };
 
   const handlePayoutDelete = (id: string) => {
-      if (window.confirm('Are you sure you want to delete this payout matrix?')) {
+      if (window.confirm(t('common.delete') + '?')) {
           DataService.deletePayoutStructure(id);
           setPayouts(DataService.getPayoutStructures());
       }
@@ -89,21 +91,21 @@ const StructuresView = () => {
            <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mx-auto mb-4 border border-[#333]">
            <Layers size={32} className="opacity-50" />
            </div>
-           <h3 className="text-lg font-medium mb-2">No structures found</h3>
-           <button onClick={openStructCreate} className="text-brand-green hover:underline">Create your first structure</button>
+           <h3 className="text-lg font-medium mb-2">{t('structures.blindsTable.empty')}</h3>
+           <button onClick={openStructCreate} className="text-brand-green hover:underline">{t('structures.blindsTable.createFirst')}</button>
        </div>
     ) : (
        <div className="overflow-y-auto h-full animate-in fade-in slide-in-from-bottom-2">
            <table className="w-full text-left border-collapse">
            <thead>
                <tr className="border-b border-[#262626] text-xs uppercase text-gray-500 font-bold tracking-wider">
-                   <th className="px-4 py-3 pl-6 sticky top-0 bg-[#1A1A1A] z-10">Structure Name</th>
-                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10">Start Chips</th>
-                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10">Start Blinds</th>
-                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10">Levels</th>
-                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10">Re-buys</th>
-                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10">Est. Length</th>
-                   <th className="px-4 py-3 pr-6 text-right sticky top-0 bg-[#1A1A1A] z-10">Actions</th>
+                   <th className="px-4 py-3 pl-6 sticky top-0 bg-[#1A1A1A] z-10 whitespace-nowrap">{t('structures.blindsTable.name')}</th>
+                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10 whitespace-nowrap">{t('structures.blindsTable.chips')}</th>
+                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10 whitespace-nowrap">{t('structures.blindsTable.blinds')}</th>
+                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10 whitespace-nowrap">{t('structures.blindsTable.levels')}</th>
+                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10 whitespace-nowrap">{t('structures.blindsTable.rebuys')}</th>
+                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10 whitespace-nowrap">{t('structures.blindsTable.length')}</th>
+                   <th className="px-4 py-3 pr-6 text-right sticky top-0 bg-[#1A1A1A] z-10 whitespace-nowrap">{t('common.actions')}</th>
                </tr>
            </thead>
            <tbody className="divide-y divide-[#262626]">
@@ -135,7 +137,7 @@ const StructuresView = () => {
                            <td className="px-4 py-3">
                                <div className="flex items-center gap-2 text-gray-300 font-medium text-sm">
                                    <Hash size={16} className="text-gray-500" />
-                                   {levels.length} Levels
+                                   {levels.length} {t('structures.blindsTable.levels')}
                                </div>
                            </td>
                            <td className="px-4 py-3">
@@ -158,14 +160,14 @@ const StructuresView = () => {
                                            setIsStructFormOpen(true);
                                        }}
                                        className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
-                                       title="Edit"
+                                       title={t('common.edit')}
                                    >
                                        <Edit2 size={16} />
                                    </button>
                                    <button 
                                        onClick={() => handleStructDelete(structure.id)}
                                        className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-[#333] rounded-full transition-colors"
-                                       title="Delete"
+                                       title={t('common.delete')}
                                    >
                                        <Trash2 size={16} />
                                    </button>
@@ -186,7 +188,7 @@ const StructuresView = () => {
          {/* 1. Algorithms Section */}
          <div className="p-6 border-b border-[#222]">
              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                 <Cpu size={14} /> Standard Algorithms
+                 <Cpu size={14} /> {t('structures.payouts.algorithms')}
              </h3>
              <div className="grid grid-cols-2 gap-4">
                  {payouts.filter(p => p.type === 'Algorithm').map(algo => (
@@ -210,7 +212,7 @@ const StructuresView = () => {
          <div className="flex-1">
              <div className="p-6 pb-2 sticky top-0 bg-[#171717] z-10">
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                    <Table size={14} /> Custom Matrices
+                    <Table size={14} /> {t('structures.payouts.matrices')}
                 </h3>
              </div>
              
@@ -218,10 +220,10 @@ const StructuresView = () => {
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="text-xs uppercase text-gray-500 font-bold tracking-wider">
-                            <th className="px-6 py-3">Matrix Name</th>
-                            <th className="px-6 py-3">Rules Defined</th>
-                            <th className="px-6 py-3">Player Range</th>
-                            <th className="px-6 py-3 text-right">Actions</th>
+                            <th className="px-6 py-3 whitespace-nowrap">{t('structures.payouts.table.name')}</th>
+                            <th className="px-6 py-3 whitespace-nowrap">{t('structures.payouts.table.rules')}</th>
+                            <th className="px-6 py-3 whitespace-nowrap">{t('structures.payouts.table.range')}</th>
+                            <th className="px-6 py-3 text-right whitespace-nowrap">{t('common.actions')}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[#262626]">
@@ -234,7 +236,7 @@ const StructuresView = () => {
                                 <td className="px-6 py-4">
                                     <div className="inline-flex items-center gap-2 bg-[#1A1A1A] border border-[#333] px-2 py-1 rounded-lg text-sm text-gray-300">
                                         <Table size={14} className="text-gray-500"/>
-                                        {matrix.rules?.length || 0} Ranges
+                                        {matrix.rules?.length || 0} {t('structures.payouts.table.ranges')}
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
@@ -245,7 +247,7 @@ const StructuresView = () => {
                                             <span>{matrix.rules[matrix.rules.length - 1].maxPlayers} Players</span>
                                         </div>
                                     ) : (
-                                        <span className="text-sm text-gray-600 italic">No rules</span>
+                                        <span className="text-sm text-gray-600 italic">{t('structures.payouts.table.noRules')}</span>
                                     )}
                                 </td>
                                 <td className="px-6 py-4 text-right">
@@ -256,7 +258,7 @@ const StructuresView = () => {
                                                 setIsPayoutFormOpen(true);
                                             }}
                                             className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
-                                            title="Edit"
+                                            title={t('common.edit')}
                                         >
                                             <Edit2 size={16} />
                                         </button>
@@ -264,7 +266,7 @@ const StructuresView = () => {
                                             <button 
                                                 onClick={() => handlePayoutDelete(matrix.id)}
                                                 className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-[#333] rounded-full transition-colors"
-                                                title="Delete"
+                                                title={t('common.delete')}
                                             >
                                                 <Trash2 size={16} />
                                             </button>
@@ -277,7 +279,7 @@ const StructuresView = () => {
                 </table>
                 {payouts.filter(p => p.type === 'Custom Matrix').length === 0 && (
                     <div className="text-center py-10 text-gray-600">
-                        No custom payout matrices created yet.
+                        {t('structures.payouts.table.empty')}
                     </div>
                 )}
              </div>
@@ -290,25 +292,25 @@ const StructuresView = () => {
       {/* Header */}
       <div className="flex justify-between items-end mb-8">
         <div>
-            <h2 className="text-4xl font-bold text-white mb-2">Structures</h2>
-            <p className="text-gray-400">Configure reusable blind levels and payout models</p>
+            <h2 className="text-4xl font-bold text-white mb-2">{t('structures.title')}</h2>
+            <p className="text-gray-400">{t('structures.subtitle')}</p>
         </div>
         
         {!isPayoutsTab ? (
             <button 
                 onClick={openStructCreate}
-                className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95`}
+                className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 whitespace-nowrap`}
             >
                 <Plus size={20} strokeWidth={2.5} />
-                Create Structure
+                {t('structures.btn.createStructure')}
             </button>
         ) : (
             <button 
                 onClick={openPayoutCreate}
-                className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95`}
+                className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 whitespace-nowrap`}
             >
                 <Plus size={20} strokeWidth={2.5} />
-                New Custom Matrix
+                {t('structures.btn.createMatrix')}
             </button>
         )}
       </div>
@@ -327,7 +329,7 @@ const StructuresView = () => {
                 <>
                     <div className="flex items-center gap-2">
                         <Layers size={18} />
-                        Tournament Structures
+                        {t('structures.tabs.blinds')}
                     </div>
                     {isActive && (
                         <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />
@@ -348,7 +350,7 @@ const StructuresView = () => {
                 <>
                     <div className="flex items-center gap-2">
                         <DollarSign size={18} />
-                        Payout Models
+                        {t('structures.tabs.payouts')}
                     </div>
                     {isActive && (
                         <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />
