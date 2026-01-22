@@ -16,8 +16,10 @@ import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
 import MemberForm from './MemberForm';
 import MemberWalletModal from './MemberWalletModal';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const MembersView = () => {
+  const { t } = useLanguage();
   const [members, setMembers] = useState<Member[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -131,15 +133,15 @@ const MembersView = () => {
       {/* Header */}
       <div className="flex justify-between items-end mb-8">
         <div>
-          <h2 className="text-4xl font-bold text-white mb-2">Members</h2>
-          <p className="text-gray-400">Manage club access and player profiles</p>
+          <h2 className="text-4xl font-bold text-white mb-2">{t('members.title')}</h2>
+          <p className="text-gray-400">{t('members.subtitle')}</p>
         </div>
         <button 
           onClick={openCreate}
           className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95`}
         >
           <Plus size={20} strokeWidth={2.5} />
-          Create Member
+          {t('members.createBtn')}
         </button>
       </div>
 
@@ -150,7 +152,7 @@ const MembersView = () => {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
           <input 
             type="text"
-            placeholder="Search name or email..."
+            placeholder={t('members.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-3 text-white placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none transition-all`}
@@ -165,7 +167,7 @@ const MembersView = () => {
             onChange={(e) => setStatusFilter(e.target.value)}
             className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-3 text-white outline-none appearance-none cursor-pointer focus:ring-1 focus:ring-brand-green`}
           >
-            <option value="All">All Statuses</option>
+            <option value="All">{t('members.filterStatus')}</option>
             <option value="Submitted">Submitted</option>
             <option value="Pending Approval">Pending Approval</option>
             <option value="Activated">Activated</option>
@@ -189,12 +191,12 @@ const MembersView = () => {
               <thead>
                 <tr className="border-b border-[#262626] text-xs uppercase text-gray-500 font-bold tracking-wider">
                   {/* Expanded Member Column to ~35% */}
-                  <SortHeader label="Member" sortKey="fullName" className="pl-6 w-[35%]" />
-                  <SortHeader label="Tier" sortKey="tier" />
-                  <SortHeader label="Status" sortKey="status" />
-                  <SortHeader label="Age / Gender" sortKey="age" />
-                  <SortHeader label="Joined" sortKey="joinDate" />
-                  <th className="px-4 py-3 pr-6 text-right sticky top-0 bg-[#1A1A1A] z-10">Actions</th>
+                  <SortHeader label={t('members.table.member')} sortKey="fullName" className="pl-6 w-[35%]" />
+                  <SortHeader label={t('members.table.tier')} sortKey="tier" />
+                  <SortHeader label={t('members.table.status')} sortKey="status" />
+                  <SortHeader label={t('members.table.ageGender')} sortKey="age" />
+                  <SortHeader label={t('members.table.joined')} sortKey="joinDate" />
+                  <th className="px-4 py-3 pr-6 text-right sticky top-0 bg-[#1A1A1A] z-10">{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#262626]">
@@ -269,7 +271,7 @@ const MembersView = () => {
                          <button 
                            onClick={() => openEdit(member)}
                            className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
-                           title="Edit Member"
+                           title={t('common.edit')}
                          >
                            <Edit2 size={16} />
                          </button>

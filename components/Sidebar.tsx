@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Users, 
@@ -7,15 +8,18 @@ import {
   User,
   Sliders,
   Settings,
-  MonitorPlay
+  MonitorPlay,
+  Languages
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { THEME } from '../theme';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Sidebar: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const location = useLocation();
   const navigate = useNavigate();
+  const { t, language, setLanguage } = useLanguage();
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -23,20 +27,24 @@ const Sidebar: React.FC = () => {
   }, []);
 
   const menuItems = [
-    { id: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: '/members', label: 'Members', icon: Users },
-    { id: '/tables', label: 'Tables', icon: Armchair },
-    { id: '/tournaments', label: 'Tournaments', icon: Trophy },
-    { id: '/structures', label: 'Structures', icon: Sliders },
-    { id: '/clocks', label: 'Clocks', icon: MonitorPlay },
-    { id: '/settings', label: 'Settings', icon: Settings },
+    { id: '/dashboard', label: t('sidebar.dashboard'), icon: LayoutDashboard },
+    { id: '/members', label: t('sidebar.members'), icon: Users },
+    { id: '/tables', label: t('sidebar.tables'), icon: Armchair },
+    { id: '/tournaments', label: t('sidebar.tournaments'), icon: Trophy },
+    { id: '/structures', label: t('sidebar.structures'), icon: Sliders },
+    { id: '/clocks', label: t('sidebar.clocks'), icon: MonitorPlay },
+    { id: '/settings', label: t('sidebar.settings'), icon: Settings },
   ];
 
   const isActive = (path: string) => location.pathname.startsWith(path);
 
+  const toggleLanguage = () => {
+    setLanguage(language === 'en' ? 'zh' : 'en');
+  };
+
   return (
     <div className={`w-64 ${THEME.bg} border-r ${THEME.border} flex flex-col h-screen fixed left-0 top-0 z-20`}>
-      <div className="p-8">
+      <div className="p-8 flex justify-between items-center">
         <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
           <span className="text-brand-green">♠</span> Royal Flush
         </h1>
@@ -59,13 +67,24 @@ const Sidebar: React.FC = () => {
         ))}
       </nav>
 
+      {/* Language Toggle */}
+      <div className="px-6 pb-2">
+          <button 
+            onClick={toggleLanguage}
+            className="flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-white transition-colors bg-[#222] px-3 py-2 rounded-lg w-full justify-center"
+          >
+              <Languages size={14} />
+              {language === 'en' ? 'English' : '中文 (Chinese)'}
+          </button>
+      </div>
+
       {/* Live Clock */}
       <div className="px-6 pb-6 flex flex-col items-center">
          <div className="text-3xl font-bold text-gray-500 font-mono tracking-tighter">
             {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
          </div>
          <div className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mt-1">
-            {currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric'})}
+            {currentTime.toLocaleDateString(language === 'en' ? undefined : 'zh-CN', { weekday: 'short', month: 'short', day: 'numeric'})}
          </div>
       </div>
 
@@ -75,8 +94,8 @@ const Sidebar: React.FC = () => {
             <User size={18} />
           </div>
           <div>
-            <p className="text-sm font-semibold text-white">Floor Manager</p>
-            <p className="text-xs text-gray-500">Admin</p>
+            <p className="text-sm font-semibold text-white">{t('sidebar.floorManager')}</p>
+            <p className="text-xs text-gray-500">{t('sidebar.admin')}</p>
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Member, MembershipTier, Gender, MemberStatus } from '../types';
 import { THEME } from '../theme';
 import { Modal } from './Modal';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface MemberFormProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface MemberFormProps {
 }
 
 const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, initialData }) => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState<Partial<Member>>({
     fullName: '',
     nickname: '',
@@ -60,16 +62,16 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={initialData ? 'Edit Profile' : 'New Member'}
+      title={initialData ? t('members.form.titleEdit') : t('members.form.titleNew')}
       size="lg"
     >
       <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6">
         {/* Personal Info */}
         <div className="space-y-4">
-          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Personal Details</h3>
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('members.form.personal')}</h3>
           
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-300">Full Name</label>
+            <label className="text-sm font-medium text-gray-300">{t('members.form.fullName')}</label>
             <input 
               required
               type="text" 
@@ -81,7 +83,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-300">Nickname</label>
+            <label className="text-sm font-medium text-gray-300">{t('members.form.nickname')}</label>
             <input 
               type="text" 
               value={formData.nickname || ''}
@@ -93,7 +95,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-300">Age</label>
+              <label className="text-sm font-medium text-gray-300">{t('members.form.age')}</label>
               <input 
                 required
                 type="number" 
@@ -104,7 +106,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
               />
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-300">Gender</label>
+              <label className="text-sm font-medium text-gray-300">{t('members.form.gender')}</label>
               <select 
                 value={formData.gender}
                 onChange={e => setFormData({...formData, gender: e.target.value as Gender})}
@@ -121,9 +123,9 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
 
         {/* Contact Info */}
         <div className="space-y-4 pt-2">
-          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Contact</h3>
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('members.form.contact')}</h3>
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-300">Email</label>
+            <label className="text-sm font-medium text-gray-300">{t('members.form.email')}</label>
             <input 
               required
               type="email" 
@@ -134,7 +136,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
             />
           </div>
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-300">Phone</label>
+            <label className="text-sm font-medium text-gray-300">{t('members.form.phone')}</label>
             <input 
               type="tel" 
               value={formData.phone}
@@ -147,10 +149,10 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
 
         {/* Membership Info */}
         <div className="space-y-4 pt-2">
-          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Membership</h3>
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('members.form.membership')}</h3>
           
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-300">Club ID</label>
+            <label className="text-sm font-medium text-gray-300">{t('members.form.clubId')}</label>
             <input 
               type="text" 
               value={formData.club_id || ''}
@@ -162,7 +164,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-300">Tier Status</label>
+              <label className="text-sm font-medium text-gray-300">{t('members.form.tier')}</label>
               <select 
                 value={formData.tier}
                 onChange={e => setFormData({...formData, tier: e.target.value as MembershipTier})}
@@ -174,7 +176,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
               </select>
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-300">Account Status</label>
+              <label className="text-sm font-medium text-gray-300">{t('members.form.accountStatus')}</label>
               <select 
                 value={formData.status}
                 onChange={e => setFormData({...formData, status: e.target.value as MemberStatus})}
@@ -188,7 +190,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
             </div>
           </div>
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-300">Notes</label>
+            <label className="text-sm font-medium text-gray-300">{t('members.form.notes')}</label>
             <textarea 
               rows={3}
               value={formData.notes}
@@ -204,7 +206,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
             type="submit" 
             className={`w-full ${THEME.buttonPrimary} font-bold text-lg py-4 rounded-xl transition-transform active:scale-[0.98]`}
           >
-            {initialData ? 'Save Changes' : 'Create Account'}
+            {initialData ? t('members.form.submitSave') : t('members.form.submitCreate')}
           </button>
         </div>
       </form>

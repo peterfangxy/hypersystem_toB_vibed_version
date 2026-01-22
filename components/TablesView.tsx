@@ -12,8 +12,10 @@ import { PokerTable, TableStatus } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
 import TableForm from './TableForm';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const TablesView = () => {
+  const { t } = useLanguage();
   const [tables, setTables] = useState<PokerTable[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTable, setEditingTable] = useState<PokerTable | undefined>(undefined);
@@ -30,7 +32,7 @@ const TablesView = () => {
   };
 
   const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to remove this table?')) {
+    if (window.confirm(t('tables.removeConfirm'))) {
       DataService.deleteTable(id);
       setTables(DataService.getTables());
     }
@@ -67,15 +69,15 @@ const TablesView = () => {
       {/* Header */}
       <div className="flex justify-between items-end mb-8">
         <div>
-          <h2 className="text-4xl font-bold text-white mb-2">Tables</h2>
-          <p className="text-gray-400">Configure floor layout and seat capacity</p>
+          <h2 className="text-4xl font-bold text-white mb-2">{t('tables.title')}</h2>
+          <p className="text-gray-400">{t('tables.subtitle')}</p>
         </div>
         <button 
           onClick={openCreate}
           className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95`}
         >
           <Plus size={20} strokeWidth={2.5} />
-          Add Table
+          {t('tables.addBtn')}
         </button>
       </div>
 
@@ -104,12 +106,14 @@ const TablesView = () => {
                 <button 
                   onClick={() => openEdit(table)}
                   className="p-2 text-gray-400 hover:text-white hover:bg-[#333] rounded-full transition-colors"
+                  title={t('common.edit')}
                 >
                   <Edit2 size={16} />
                 </button>
                 <button 
                   onClick={() => handleDelete(table.id)}
                   className="p-2 text-gray-400 hover:text-red-500 hover:bg-[#333] rounded-full transition-colors"
+                  title={t('common.delete')}
                 >
                   <Trash2 size={16} />
                 </button>
@@ -119,7 +123,7 @@ const TablesView = () => {
             <div className="flex-1 relative z-10">
                <div className="flex items-center gap-2 text-gray-400 mb-2">
                  <Users2 size={16} />
-                 <span className="text-sm">{table.capacity} Seats</span>
+                 <span className="text-sm">{table.capacity} {t('tables.seats')}</span>
                </div>
                {table.notes && (
                  <p className="text-sm text-gray-600 line-clamp-2">{table.notes}</p>
@@ -128,7 +132,7 @@ const TablesView = () => {
 
             {/* Bottom decoration */}
             <div className="mt-4 pt-4 border-t border-[#222] flex justify-between items-center text-xs text-gray-600 relative z-10">
-               <span>ID: {table.id.slice(0,4)}</span>
+               <span>{t('tables.id')}: {table.id.slice(0,4)}</span>
                
                <button 
                  onClick={(e) => handleToggleStatus(e, table)}
@@ -137,7 +141,7 @@ const TablesView = () => {
                       ? 'bg-brand-green text-black shadow-[0_0_12px_rgba(6,193,103,0.6)] hover:scale-110 hover:shadow-[0_0_20px_rgba(6,193,103,0.8)]'
                       : 'bg-[#222] text-gray-600 hover:text-gray-300 hover:bg-[#333] hover:scale-110'
                  }`}
-                 title={table.status === 'Active' ? "Turn Off" : "Turn On"}
+                 title={table.status === 'Active' ? t('tables.turnOff') : t('tables.turnOn')}
                >
                   <Power size={16} strokeWidth={2.5} />
                </button>
@@ -153,7 +157,7 @@ const TablesView = () => {
           <div className="w-12 h-12 rounded-full bg-[#111] flex items-center justify-center mb-3">
             <Plus size={24} />
           </div>
-          <span className="font-medium">New Table</span>
+          <span className="font-medium">{t('tables.newTable')}</span>
         </button>
       </div>
 

@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { THEME } from './theme';
 import * as DataService from './services/dataService';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 import Sidebar from './components/Sidebar';
 import MembersView from './components/MembersView';
@@ -31,27 +32,29 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <Router>
-      <div className={`min-h-screen ${THEME.bg} text-white font-sans selection:bg-brand-green/30`}>
-        <Sidebar />
-        
-        <main className="pl-64 h-screen overflow-hidden relative">
-          <div className="h-full overflow-auto p-8 scroll-smooth">
-            <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<DashboardView />} />
-              <Route path="/members" element={<MembersView />} />
-              <Route path="/tables" element={<TablesView />} />
-              <Route path="/tournaments/*" element={<TournamentsView />} />
-              <Route path="/structures/*" element={<StructuresView />} />
-              <Route path="/clocks" element={<ClocksView />} />
-              <Route path="/settings/*" element={<SettingsView />} />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
-          </div>
-        </main>
-      </div>
-    </Router>
+    <LanguageProvider>
+      <Router>
+        <div className={`min-h-screen ${THEME.bg} text-white font-sans selection:bg-brand-green/30`}>
+          <Sidebar />
+          
+          <main className="pl-64 h-screen overflow-hidden relative">
+            <div className="h-full overflow-auto p-8 scroll-smooth">
+              <Routes>
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/dashboard" element={<DashboardView />} />
+                <Route path="/members" element={<MembersView />} />
+                <Route path="/tables" element={<TablesView />} />
+                <Route path="/tournaments/*" element={<TournamentsView />} />
+                <Route path="/structures/*" element={<StructuresView />} />
+                <Route path="/clocks" element={<ClocksView />} />
+                <Route path="/settings/*" element={<SettingsView />} />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            </div>
+          </main>
+        </div>
+      </Router>
+    </LanguageProvider>
   );
 };
 

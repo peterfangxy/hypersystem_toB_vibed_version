@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { Layers, Clock, Coins, PlayCircle, Coffee, Repeat, Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import { TournamentStructure, StructureItem } from '../types';
 import { THEME } from '../theme';
 import { Modal } from './Modal';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface StructureFormProps {
   isOpen: boolean;
@@ -12,6 +14,7 @@ interface StructureFormProps {
 }
 
 const StructureForm: React.FC<StructureFormProps> = ({ isOpen, onClose, onSubmit, initialData }) => {
+  const { t } = useLanguage();
   const [name, setName] = useState('');
   const [startingChips, setStartingChips] = useState(10000);
   
@@ -120,7 +123,7 @@ const StructureForm: React.FC<StructureFormProps> = ({ isOpen, onClose, onSubmit
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={initialData ? 'Edit Structure' : 'Create Structure'}
+      title={initialData ? t('structures.form.titleEdit') : t('structures.form.titleNew')}
       size="3xl"
     >
       <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden h-[80vh]">
@@ -129,7 +132,7 @@ const StructureForm: React.FC<StructureFormProps> = ({ isOpen, onClose, onSubmit
               <div className="w-1/3 p-6 border-r border-[#222] overflow-y-auto space-y-6 bg-[#1A1A1A]">
                   <div className="space-y-4">
                       <div className="space-y-1">
-                          <label className="text-sm font-medium text-gray-300">Structure Name</label>
+                          <label className="text-sm font-medium text-gray-300">{t('structures.form.name')}</label>
                           <input 
                               required
                               type="text" 
@@ -142,10 +145,10 @@ const StructureForm: React.FC<StructureFormProps> = ({ isOpen, onClose, onSubmit
 
                       <div className="pt-2 border-t border-[#333]">
                             <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-                              <Coins size={14} /> Chips
+                              <Coins size={14} /> {t('structures.form.chips')}
                             </h4>
                             <div className="space-y-1">
-                                  <label className="text-sm font-medium text-gray-300">Starting Chips</label>
+                                  <label className="text-sm font-medium text-gray-300">{t('structures.form.startingChips')}</label>
                                   <input 
                                       required
                                       type="number"
@@ -160,11 +163,11 @@ const StructureForm: React.FC<StructureFormProps> = ({ isOpen, onClose, onSubmit
 
                       <div className="pt-2 border-t border-[#333]">
                             <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-                              <Repeat size={14} /> Re-buys
+                              <Repeat size={14} /> {t('structures.form.rebuys')}
                             </h4>
                             <div className="space-y-3">
                               <div className="space-y-1">
-                                  <label className="text-sm font-medium text-gray-300">Re-buy Limit</label>
+                                  <label className="text-sm font-medium text-gray-300">{t('structures.form.rebuyLimit')}</label>
                                   <input 
                                       required
                                       type="number"
@@ -174,10 +177,10 @@ const StructureForm: React.FC<StructureFormProps> = ({ isOpen, onClose, onSubmit
                                       onChange={e => setRebuyLimit(parseInt(e.target.value))}
                                       className={`w-full ${THEME.input} rounded-xl px-4 py-2 outline-none transition-all`}
                                   />
-                                   <p className="text-[9px] text-gray-500">0 for Freezeout</p>
+                                   <p className="text-[9px] text-gray-500">{t('structures.form.freezeout')}</p>
                               </div>
                               <div className="space-y-1">
-                                  <label className="text-sm font-medium text-gray-300">Last Re-buy Level</label>
+                                  <label className="text-sm font-medium text-gray-300">{t('structures.form.lastRebuyLevel')}</label>
                                   <input 
                                       required
                                       type="number"
@@ -191,7 +194,7 @@ const StructureForm: React.FC<StructureFormProps> = ({ isOpen, onClose, onSubmit
                       </div>
 
                       <div className="p-4 bg-[#222] rounded-xl border border-[#333]">
-                          <div className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-1">Est. Tournament Length</div>
+                          <div className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-1">{t('structures.form.estLength')}</div>
                           <div className="text-2xl font-bold text-brand-green flex items-center gap-2">
                               <PlayCircle size={20} />
                               {calculateTotalDuration()}
@@ -204,11 +207,11 @@ const StructureForm: React.FC<StructureFormProps> = ({ isOpen, onClose, onSubmit
               <div className="w-2/3 flex flex-col bg-[#111]">
                   <div className="p-4 bg-[#171717] border-b border-[#222] grid grid-cols-12 gap-4 text-xs font-bold text-gray-500 uppercase tracking-wider items-center">
                       <div className="col-span-1 text-center">#</div>
-                      <div className="col-span-2">Duration</div>
-                      <div className="col-span-2">Small</div>
-                      <div className="col-span-2">Big</div>
-                      <div className="col-span-2">Ante</div>
-                      <div className="col-span-3 text-right">Actions</div>
+                      <div className="col-span-2">{t('structures.form.schedule.duration')}</div>
+                      <div className="col-span-2">{t('structures.form.schedule.small')}</div>
+                      <div className="col-span-2">{t('structures.form.schedule.big')}</div>
+                      <div className="col-span-2">{t('structures.form.schedule.ante')}</div>
+                      <div className="col-span-3 text-right">{t('common.actions')}</div>
                   </div>
                   
                   <div className="flex-1 overflow-y-auto p-4 space-y-2">
@@ -291,14 +294,14 @@ const StructureForm: React.FC<StructureFormProps> = ({ isOpen, onClose, onSubmit
                              onClick={handleAddLevel}
                              className="flex items-center justify-center gap-2 py-3 bg-[#222] hover:bg-[#2A2A2A] text-brand-green font-bold rounded-xl transition-colors border border-dashed border-[#333] hover:border-brand-green/30"
                           >
-                              <Plus size={16} /> Add Level
+                              <Plus size={16} /> {t('structures.form.schedule.addLevel')}
                           </button>
                           <button 
                              type="button"
                              onClick={handleAddBreak}
                              className="flex items-center justify-center gap-2 py-3 bg-[#222] hover:bg-[#2A2A2A] text-gray-300 font-bold rounded-xl transition-colors border border-dashed border-[#333] hover:border-gray-500"
                           >
-                              <Coffee size={16} /> Add Break
+                              <Coffee size={16} /> {t('structures.form.schedule.addBreak')}
                           </button>
                       </div>
                   </div>
@@ -312,13 +315,13 @@ const StructureForm: React.FC<StructureFormProps> = ({ isOpen, onClose, onSubmit
                   onClick={onClose}
                   className={`${THEME.buttonSecondary} px-6 py-3 rounded-xl font-bold`}
               >
-                  Cancel
+                  {t('common.cancel')}
               </button>
               <button 
                   type="submit" 
                   className={`${THEME.buttonPrimary} px-8 py-3 rounded-xl font-bold text-lg shadow-lg shadow-green-500/20`}
               >
-                  {initialData ? 'Save Changes' : 'Create Structure'}
+                  {initialData ? t('common.save') : t('structures.createStructure')}
               </button>
           </div>
       </form>
