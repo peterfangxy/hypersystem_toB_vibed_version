@@ -1,20 +1,21 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
   Edit2, 
   Clock, 
-  Trophy,
-  Search,
-  ArrowUpDown,
-  Filter,
-  Users,
-  Flag,
-  Play,
-  Ticket,
-  Copy,
-  Trash2,
-  ChevronDown,
-  ChevronUp,
+  Trophy, 
+  Search, 
+  ArrowUpDown, 
+  Filter, 
+  Users, 
+  Flag, 
+  Play, 
+  Ticket, 
+  Copy, 
+  Trash2, 
+  ChevronDown, 
+  ChevronUp, 
   Timer
 } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
@@ -178,10 +179,9 @@ const TournamentsView = () => {
     </th>
   );
 
-  // --- Sub-Components for Route Rendering ---
+  // --- Render Views as Variables ---
 
-  const ManageTournaments = () => {
-    const filteredTournaments = tournaments
+  const filteredTournaments = tournaments
         .filter(t => {
             const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase());
             const matchesStatus = statusFilter === 'All' || t.status === statusFilter;
@@ -196,7 +196,7 @@ const TournamentsView = () => {
             return 0;
         });
 
-    return (
+  const manageView = (
         <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden flex flex-col shadow-xl animate-in fade-in slide-in-from-bottom-2 flex-1 min-h-0 mb-3`}>
             {filteredTournaments.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-gray-500 h-full">
@@ -374,13 +374,11 @@ const TournamentsView = () => {
             </div>
             )}
         </div>
-    );
-  };
+  );
 
-  const TournamentTemplates = () => {
-    const filteredTemplates = templates.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredTemplates = templates.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    return (
+  const templatesView = (
         <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden flex flex-col shadow-xl animate-in fade-in slide-in-from-bottom-2 flex-1 min-h-0 mb-3`}>
              {filteredTemplates.length === 0 ? (
                  <div className="flex flex-col items-center justify-center py-20 text-gray-500 h-full">
@@ -463,8 +461,7 @@ const TournamentsView = () => {
                  </div>
              )}
           </div>
-    );
-  };
+  );
 
   return (
      <div className="h-full flex flex-col w-full">
@@ -563,8 +560,8 @@ const TournamentsView = () => {
       </div>
 
       <Routes>
-          <Route path="manage" element={<ManageTournaments />} />
-          <Route path="templates" element={<TournamentTemplates />} />
+          <Route path="manage" element={manageView} />
+          <Route path="templates" element={templatesView} />
           <Route index element={<Navigate to="manage" replace />} />
       </Routes>
 

@@ -418,9 +418,6 @@ export const updateRegistrationStatus = (regId: string, status: RegistrationStat
     const reg = regs.find(r => r.id === regId);
     if (reg) {
         reg.status = status;
-        if (status === 'Joined' && reg.buyInCount === 0) {
-            reg.buyInCount = 1;
-        }
         setLocalData(REGISTRATIONS_KEY, regs);
     }
 };

@@ -182,16 +182,12 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
         });
     } else {
         all.sort((a, b) => {
+            // Group by Status (Joined first)
             if (a.status === 'Joined' && b.status !== 'Joined') return -1;
             if (b.status === 'Joined' && a.status !== 'Joined') return 1;
             
-            if (a.status === 'Joined') {
-                if (a.assignedTable?.name !== b.assignedTable?.name) {
-                    return (a.assignedTable?.name || '').localeCompare(b.assignedTable?.name || '');
-                }
-                return (a.seatNumber || 0) - (b.seatNumber || 0);
-            }
-            return new Date(b.registeredAt).getTime() - new Date(a.registeredAt).getTime();
+            // Sort by Name (Stable)
+            return (a.member?.fullName || '').localeCompare(b.member?.fullName || '');
         });
     }
 
@@ -278,28 +274,6 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
       
       {/* Detail Metrics Header */}
       <div className="flex flex-wrap items-center gap-6 p-6 border-b border-[#222] bg-[#151515]">
-          <div className="flex items-center gap-2" title="Buy-in + Fee">
-            <div className="p-2 rounded-lg bg-[#222] text-gray-400">
-                <Ticket size={16}/>
-            </div>
-            <div>
-                <div className="text-[10px] text-gray-500 font-bold uppercase">{t('tournaments.detail.buyIn')}</div>
-                <div className="text-sm font-medium text-white">${tournament.buyIn} <span className="text-gray-500 text-xs">+ ${tournament.fee}</span></div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2" title="Max Buy-ins">
-            <div className="p-2 rounded-lg bg-[#222] text-gray-400">
-                <Repeat size={16}/>
-            </div>
-            <div>
-                <div className="text-[10px] text-gray-500 font-bold uppercase">{t('tournaments.detail.rebuys')}</div>
-                <div className="text-sm font-medium text-white">{tournament.rebuyLimit === 0 ? t('tournaments.detail.freezeout') : `Max ${tournament.rebuyLimit + 1}`}</div>
-            </div>
-          </div>
-
-          <div className="h-8 w-px bg-[#333]"></div>
-
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-brand-green/10 text-brand-green">
                 <Coins size={16} />
