@@ -15,7 +15,8 @@ import {
   Copy,
   Trash2,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Timer
 } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
 import { Tournament, TournamentStatus, TournamentStructure, PayoutStructure } from '../types';
@@ -160,13 +161,19 @@ const TournamentsView = () => {
 
   const SortHeader = ({ label, sortKey, className = "" }: { label: string, sortKey: keyof Tournament, className?: string }) => (
     <th 
-      className={`px-4 py-3 cursor-pointer hover:text-white transition-colors group select-none ${className}`}
+      className={`px-2 py-3 cursor-pointer hover:text-white transition-colors group select-none sticky top-0 bg-[#1A1A1A] z-30 border-b border-[#262626] ${className}`}
       onClick={() => handleSort(sortKey)}
     >
       <div className={`flex items-center gap-2 ${className.includes('text-right') ? 'justify-end' : ''}`}>
         {label}
         <ArrowUpDown size={14} className={`text-gray-600 group-hover:text-gray-400 ${sortConfig.key === sortKey ? 'text-brand-green' : ''}`} />
       </div>
+    </th>
+  );
+
+  const StaticHeader = ({ label, className = "" }: { label: string, className?: string }) => (
+    <th className={`px-2 py-3 sticky top-0 bg-[#1A1A1A] z-30 text-gray-500 font-bold border-b border-[#262626] ${className}`}>
+        {label}
     </th>
   );
 
@@ -189,9 +196,9 @@ const TournamentsView = () => {
         });
 
     return (
-        <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden flex flex-col mb-20 shadow-xl animate-in fade-in slide-in-from-bottom-2`}>
+        <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden flex flex-col shadow-xl animate-in fade-in slide-in-from-bottom-2 flex-1 min-h-0 mb-3`}>
             {filteredTournaments.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+            <div className="flex flex-col items-center justify-center py-20 text-gray-500 h-full">
                 <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mb-4">
                 <Trophy size={32} className="opacity-50" />
                 </div>
@@ -206,30 +213,40 @@ const TournamentsView = () => {
                 )}
             </div>
             ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-y-auto h-full relative">
                 <table className="w-full text-left border-collapse">
                 <thead>
-                    <tr className="bg-[#1A1A1A] border-b border-[#262626] text-xs uppercase text-gray-500 font-bold tracking-wider">
-                    <SortHeader label="Status" sortKey="status" className="pl-6" />
+                    <tr className="text-xs uppercase text-gray-500 font-bold tracking-wider">
+                    <SortHeader label="Status" sortKey="status" className="pl-4 w-[130px]" />
                     <SortHeader label="Date" sortKey="startDate" />
-                    <SortHeader label="Start Time" sortKey="startTime" />
-                    <SortHeader label="Tournament" sortKey="name" />
+                    <SortHeader label="Time" sortKey="startTime" />
+                    <StaticHeader label="Duration" />
+                    <SortHeader label="Tournament" sortKey="name" className="w-[30%]" />
                     <SortHeader label="Buy-In" sortKey="buyIn" />
-                    <th className="px-4 py-3">Structure</th>
-                    <th className="px-4 py-3">Players</th>
-                    <th className="px-4 py-3 pr-6 text-right">Actions</th>
+                    <StaticHeader label="Structure" />
+                    <StaticHeader label="Rebuys" />
+                    <StaticHeader label="Players" />
+                    <th className="px-2 py-3 pr-4 text-right sticky top-0 bg-[#1A1A1A] z-30 border-b border-[#262626]">Actions</th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-[#262626]">
-                    {filteredTournaments.map((tournament) => {
-                        const isExpanded = expandedTournamentId === tournament.id;
-                        return (
-                        <React.Fragment key={tournament.id}>
+                {/* 
+                    Using separate tbodies to enable sticky grouping.
+                    Sticky only works within the containing block (tbody in this case).
+                    So the row will stick to top of scroll container until the tbody is scrolled out.
+                */}
+                {filteredTournaments.map((tournament) => {
+                    const isExpanded = expandedTournamentId === tournament.id;
+                    return (
+                        <tbody key={tournament.id} className="border-b border-[#262626]">
                             <tr 
                                 onClick={() => toggleExpand(tournament.id)}
-                                className={`cursor-pointer transition-colors group ${isExpanded ? 'bg-[#222]' : 'hover:bg-[#222]'}`}
+                                className={`cursor-pointer transition-colors group ${
+                                    isExpanded 
+                                    ? 'bg-[#222] sticky top-[48px] z-20 shadow-lg' 
+                                    : 'hover:bg-[#222]'
+                                }`}
                             >
-                                <td className="px-4 py-4 pl-6" onClick={(e) => e.stopPropagation()}>
+                                <td className="px-2 py-3 pl-4" onClick={(e) => e.stopPropagation()}>
                                 {(tournament.status === 'Completed' || tournament.status === 'Cancelled') ? (
                                     <span className={`inline-block text-[10px] font-bold uppercase tracking-wider border rounded py-1 px-2 text-center min-w-[100px] cursor-default ${getStatusStyle(tournament.status)}`}>
                                         {tournament.status}
@@ -248,54 +265,51 @@ const TournamentsView = () => {
                                     </select>
                                 )}
                                 </td>
-                                <td className="px-4 py-4 text-sm font-medium text-gray-300 whitespace-nowrap">
+                                <td className="px-2 py-3 text-sm font-medium text-gray-300 whitespace-nowrap">
                                 {tournament.startDate && new Date(tournament.startDate).toLocaleDateString(undefined, {
                                     month: 'short', 
                                     day: 'numeric',
                                     year: 'numeric'
                                 })}
                                 </td>
-                                <td className="px-4 py-4">
-                                <div className="text-sm font-medium text-white whitespace-nowrap">{tournament.startTime}</div>
-                                <div className="text-xs text-gray-500 flex items-center gap-1.5 mt-0.5">
-                                    <Clock size={12} />
-                                    {Math.floor(tournament.estimatedDurationMinutes / 60)}h {tournament.estimatedDurationMinutes % 60 > 0 ? `${tournament.estimatedDurationMinutes % 60}m` : ''}
-                                </div>
+                                <td className="px-2 py-3 text-sm font-medium text-white whitespace-nowrap">
+                                    {tournament.startTime}
                                 </td>
-                                <td className="px-4 py-4">
-                                <span className="text-base font-bold text-white">{tournament.name}</span>
+                                <td className="px-2 py-3">
+                                    <div className="text-xs text-gray-400 flex items-center gap-1.5 whitespace-nowrap">
+                                        <Clock size={14} />
+                                        {Math.floor(tournament.estimatedDurationMinutes / 60)}h {tournament.estimatedDurationMinutes % 60 > 0 ? `${tournament.estimatedDurationMinutes % 60}m` : ''}
+                                    </div>
                                 </td>
-                                <td className="px-4 py-4">
-                                <div className="text-sm font-bold text-brand-green">
+                                <td className="px-2 py-3 max-w-[250px]">
+                                    <div className="text-sm font-bold text-white whitespace-nowrap overflow-hidden text-ellipsis" title={tournament.name}>
+                                        {tournament.name}
+                                    </div>
+                                </td>
+                                <td className="px-2 py-3">
+                                <div className="text-sm font-bold text-brand-green whitespace-nowrap">
                                     ${tournament.buyIn} <span className="text-gray-500 text-xs font-normal">+ ${tournament.fee}</span>
                                 </div>
                                 </td>
-                                <td className="px-4 py-4">
-                                    <div className="flex flex-col gap-0.5">
+                                <td className="px-2 py-3">
                                     {getStructureName(tournament.structureId) ? (
                                         <span className="text-sm font-medium text-white">{getStructureName(tournament.structureId)}</span>
                                     ) : (
-                                        <span className="text-sm font-medium text-gray-500 italic">Custom Structure</span>
+                                        <span className="text-sm font-medium text-gray-500 italic">Custom</span>
                                     )}
-                                    
-                                    <div className="flex items-center gap-2">
-                                        {getPayoutName(tournament.payoutStructureId) ? (
-                                            <span className="text-xs text-brand-green/80">{getPayoutName(tournament.payoutStructureId)}</span>
-                                        ) : (
-                                            <span className="text-xs text-gray-600">{tournament.payoutModel}</span>
-                                        )}
-                                        
-                                        <span className="text-[10px] text-gray-600">•</span>
-                                        
-                                        {tournament.rebuyLimit > 0 ? (
-                                            <span className="text-xs text-orange-400">{tournament.rebuyLimit}x Rebuy</span>
-                                        ) : (
-                                            <span className="text-xs text-blue-400">Freezeout</span>
-                                        )}
-                                    </div>
-                                    </div>
                                 </td>
-                                <td className="px-4 py-4">
+                                <td className="px-2 py-3">
+                                    {tournament.rebuyLimit > 0 ? (
+                                        <span className="text-xs font-bold text-orange-400 bg-orange-400/10 px-2 py-1 rounded border border-orange-400/20 whitespace-nowrap">
+                                            {tournament.rebuyLimit} Rebuy{tournament.rebuyLimit > 1 ? 's' : ''}
+                                        </span>
+                                    ) : (
+                                        <span className="text-xs font-bold text-blue-400 bg-blue-400/10 px-2 py-1 rounded border border-blue-400/20 whitespace-nowrap">
+                                            Freezeout
+                                        </span>
+                                    )}
+                                </td>
+                                <td className="px-2 py-3">
                                     <div className="flex items-center gap-2">
                                         <Users size={16} className="text-gray-500" />
                                         <span className="font-bold text-white">
@@ -304,7 +318,7 @@ const TournamentsView = () => {
                                         </span>
                                     </div>
                                 </td>
-                                <td className="px-4 py-4 pr-6 text-right" onClick={(e) => e.stopPropagation()}>
+                                <td className="px-2 py-3 pr-4 text-right" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex justify-end gap-2 items-center">
                                     {/* Action Buttons */}
                                     <button 
@@ -341,7 +355,7 @@ const TournamentsView = () => {
                             {/* Expandable Detail Panel */}
                             {isExpanded && (
                                 <tr>
-                                    <td colSpan={8} className="p-0 border-b border-[#262626]">
+                                    <td colSpan={10} className="p-0 border-b border-[#262626]">
                                         <TournamentDetailPanel 
                                             tournament={tournament} 
                                             onUpdate={refreshData}
@@ -350,10 +364,9 @@ const TournamentsView = () => {
                                     </td>
                                 </tr>
                             )}
-                        </React.Fragment>
-                        );
-                    })}
-                </tbody>
+                        </tbody>
+                    );
+                })}
                 </table>
             </div>
             )}
@@ -365,9 +378,9 @@ const TournamentsView = () => {
     const filteredTemplates = templates.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
     return (
-        <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden flex flex-col mb-20 shadow-xl animate-in fade-in slide-in-from-bottom-2`}>
+        <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden flex flex-col shadow-xl animate-in fade-in slide-in-from-bottom-2 flex-1 min-h-0 mb-3`}>
              {filteredTemplates.length === 0 ? (
-                 <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+                 <div className="flex flex-col items-center justify-center py-20 text-gray-500 h-full">
                     <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mb-4">
                         <Copy size={32} className="opacity-50" />
                     </div>
@@ -380,49 +393,49 @@ const TournamentsView = () => {
                     </button>
                  </div>
              ) : (
-                 <div className="overflow-x-auto">
+                 <div className="overflow-y-auto h-full">
                      <table className="w-full text-left border-collapse">
                          <thead>
                              <tr className="bg-[#1A1A1A] border-b border-[#262626] text-xs uppercase text-gray-500 font-bold tracking-wider">
-                                 <th className="px-4 py-3 pl-6">Template Name</th>
-                                 <th className="px-4 py-3">Est. Duration</th>
-                                 <th className="px-4 py-3">Buy-In</th>
-                                 <th className="px-4 py-3">Structure</th>
-                                 <th className="px-4 py-3">Payout Model</th>
-                                 <th className="px-4 py-3 pr-6 text-right">Actions</th>
+                                 <th className="px-2 py-3 pl-4">Template Name</th>
+                                 <th className="px-2 py-3">Est. Duration</th>
+                                 <th className="px-2 py-3">Buy-In</th>
+                                 <th className="px-2 py-3">Structure</th>
+                                 <th className="px-2 py-3">Payout Model</th>
+                                 <th className="px-2 py-3 pr-4 text-right">Actions</th>
                              </tr>
                          </thead>
                          <tbody className="divide-y divide-[#262626]">
                              {filteredTemplates.map(template => (
                                  <tr key={template.id} className="hover:bg-[#222] transition-colors group">
-                                     <td className="px-4 py-3 pl-6">
+                                     <td className="px-2 py-3 pl-4">
                                          <span className="text-base font-bold text-white">{template.name}</span>
                                      </td>
-                                     <td className="px-4 py-3">
+                                     <td className="px-2 py-3">
                                          <div className="text-sm font-medium text-gray-300">
                                             {Math.floor(template.estimatedDurationMinutes / 60)}h {template.estimatedDurationMinutes % 60 > 0 ? `${template.estimatedDurationMinutes % 60}m` : ''}
                                          </div>
                                      </td>
-                                     <td className="px-4 py-3">
+                                     <td className="px-2 py-3">
                                         <div className="text-sm font-bold text-brand-green">
                                             ${template.buyIn} <span className="text-gray-500 text-xs font-normal">+ ${template.fee}</span>
                                         </div>
                                      </td>
-                                     <td className="px-4 py-3">
+                                     <td className="px-2 py-3">
                                          {getStructureName(template.structureId) ? (
                                             <span className="text-sm font-medium text-white">{getStructureName(template.structureId)}</span>
                                         ) : (
                                             <span className="text-sm font-medium text-gray-500 italic">Custom</span>
                                         )}
                                      </td>
-                                     <td className="px-4 py-3">
+                                     <td className="px-2 py-3">
                                         {getPayoutName(template.payoutStructureId) ? (
                                             <span className="text-sm text-white">{getPayoutName(template.payoutStructureId)}</span>
                                         ) : (
                                             <span className="text-sm text-gray-500">{template.payoutModel}</span>
                                         )}
                                      </td>
-                                     <td className="px-4 py-3 pr-6 text-right">
+                                     <td className="px-2 py-3 pr-4 text-right">
                                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                              <button 
                                                 onClick={() => openEdit(template)}
@@ -451,7 +464,7 @@ const TournamentsView = () => {
   };
 
   return (
-     <div className="h-full flex flex-col max-w-7xl mx-auto">
+     <div className="h-full flex flex-col max-w-[95%] mx-auto">
       {/* Header */}
       <div className="flex justify-between items-end mb-8">
         <div>

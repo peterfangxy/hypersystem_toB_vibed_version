@@ -104,7 +104,7 @@ export interface Tournament {
   isTemplate?: boolean;
 }
 
-export type RegistrationStatus = 'Registered' | 'Approved' | 'Joined' | 'Cancelled';
+export type RegistrationStatus = 'Reserved' | 'Joined' | 'Cancelled';
 
 export interface TournamentTransaction {
   id: string;

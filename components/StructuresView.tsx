@@ -83,9 +83,9 @@ const StructuresView = () => {
 
   // --- Sub-components ---
   const BlindsList = () => (
-    <>
+    <div className="h-full flex flex-col">
     {structures.length === 0 ? (
-       <div className="flex flex-col items-center justify-center py-20 text-gray-500 animate-in fade-in">
+       <div className="flex flex-col items-center justify-center py-20 text-gray-500 h-full">
            <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mx-auto mb-4 border border-[#333]">
            <Layers size={32} className="opacity-50" />
            </div>
@@ -93,17 +93,17 @@ const StructuresView = () => {
            <button onClick={openStructCreate} className="text-brand-green hover:underline">Create your first structure</button>
        </div>
     ) : (
-       <div className="overflow-x-auto animate-in fade-in slide-in-from-bottom-2">
+       <div className="overflow-y-auto h-full animate-in fade-in slide-in-from-bottom-2">
            <table className="w-full text-left border-collapse">
            <thead>
-               <tr className="bg-[#1A1A1A] border-b border-[#262626] text-xs uppercase text-gray-500 font-bold tracking-wider">
-                   <th className="px-4 py-3 pl-6">Structure Name</th>
-                   <th className="px-4 py-3">Start Chips</th>
-                   <th className="px-4 py-3">Start Blinds</th>
-                   <th className="px-4 py-3">Levels</th>
-                   <th className="px-4 py-3">Re-buys</th>
-                   <th className="px-4 py-3">Est. Length</th>
-                   <th className="px-4 py-3 pr-6 text-right">Actions</th>
+               <tr className="border-b border-[#262626] text-xs uppercase text-gray-500 font-bold tracking-wider">
+                   <th className="px-4 py-3 pl-6 sticky top-0 bg-[#1A1A1A] z-10">Structure Name</th>
+                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10">Start Chips</th>
+                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10">Start Blinds</th>
+                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10">Levels</th>
+                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10">Re-buys</th>
+                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10">Est. Length</th>
+                   <th className="px-4 py-3 pr-6 text-right sticky top-0 bg-[#1A1A1A] z-10">Actions</th>
                </tr>
            </thead>
            <tbody className="divide-y divide-[#262626]">
@@ -178,11 +178,11 @@ const StructuresView = () => {
            </table>
        </div>
     )}
-    </>
+    </div>
   );
 
   const PayoutsList = () => (
-    <div className="flex flex-col animate-in fade-in slide-in-from-bottom-2">
+    <div className="flex flex-col h-full animate-in fade-in slide-in-from-bottom-2 overflow-y-auto">
          {/* 1. Algorithms Section */}
          <div className="p-6 border-b border-[#222]">
              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -208,7 +208,7 @@ const StructuresView = () => {
 
          {/* 2. Custom Matrices Section */}
          <div className="flex-1">
-             <div className="p-6 pb-2">
+             <div className="p-6 pb-2 sticky top-0 bg-[#171717] z-10">
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
                     <Table size={14} /> Custom Matrices
                 </h3>
@@ -286,7 +286,7 @@ const StructuresView = () => {
   );
 
   return (
-    <div className="h-full flex flex-col max-w-7xl mx-auto">
+    <div className="h-full flex flex-col max-w-[95%] mx-auto">
       {/* Header */}
       <div className="flex justify-between items-end mb-8">
         <div>
@@ -359,7 +359,7 @@ const StructuresView = () => {
       </div>
 
       {/* Content Area */}
-      <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden min-h-[400px] shadow-xl`}>
+      <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden shadow-xl flex-1 min-h-0 mb-3`}>
          <Routes>
              <Route path="blinds" element={<BlindsList />} />
              <Route path="payouts" element={<PayoutsList />} />

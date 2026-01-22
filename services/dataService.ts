@@ -400,7 +400,7 @@ export const addRegistration = (tournamentId: string, memberId: string): void =>
         id: crypto.randomUUID(),
         tournamentId,
         memberId,
-        status: 'Registered',
+        status: 'Reserved', // Default status
         registeredAt: new Date().toISOString(),
         buyInCount: 0 
     };

@@ -264,10 +264,10 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
 
   const getStatusBadge = (status: RegistrationStatus) => {
     switch (status) {
-      case 'Registered': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
-      case 'Approved': return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
+      case 'Reserved': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
       case 'Joined': return 'bg-brand-green/10 text-brand-green border-brand-green/20';
       case 'Cancelled': return 'bg-red-500/10 text-red-500 border-red-500/20';
+      default: return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
     }
   };
 
@@ -417,7 +417,7 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
 
                       {/* Table / Seat Column */}
                       <td className="px-6 py-3">
-                          {(reg.status === 'Approved' || reg.status === 'Joined') ? (
+                          {(reg.status === 'Joined') ? (
                               <div className="flex items-center gap-2">
                                   <select 
                                       value={reg.tableId || ''}
@@ -450,7 +450,7 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
                               </div>
                           ) : (
                               <span className="text-gray-600 text-xs italic">
-                                  {reg.status === 'Registered' ? 'Needs Approval' : '---'}
+                                  {reg.status === 'Reserved' ? 'On Waitlist' : '---'}
                               </span>
                           )}
                       </td>
@@ -519,16 +519,7 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
 
                           {!isTournamentLocked && (
                               <>
-                                  {reg.status === 'Registered' && (
-                                  <button 
-                                      onClick={() => handleStatusChange(reg.id, 'Approved')}
-                                      className="p-1.5 bg-purple-500/10 text-purple-500 hover:bg-purple-500 hover:text-white rounded-lg transition-colors"
-                                      title="Approve"
-                                  >
-                                      <CheckCircle2 size={16} />
-                                  </button>
-                                  )}
-                                  {reg.status === 'Approved' && (
+                                  {reg.status === 'Reserved' && (
                                   <button 
                                       onClick={() => handleStatusChange(reg.id, 'Joined')}
                                       className="p-1.5 bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white rounded-lg transition-colors"

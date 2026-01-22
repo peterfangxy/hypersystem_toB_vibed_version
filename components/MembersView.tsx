@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Users, 
@@ -115,7 +116,7 @@ const MembersView = () => {
 
   const SortHeader = ({ label, sortKey, className = "" }: { label: string, sortKey: keyof Member, className?: string }) => (
     <th 
-      className={`px-4 py-3 cursor-pointer hover:text-white transition-colors group select-none ${className}`}
+      className={`px-4 py-3 cursor-pointer hover:text-white transition-colors group select-none sticky top-0 bg-[#1A1A1A] z-10 ${className}`}
       onClick={() => handleSort(sortKey)}
     >
       <div className={`flex items-center gap-2 ${className.includes('text-right') ? 'justify-end' : ''}`}>
@@ -126,7 +127,7 @@ const MembersView = () => {
   );
 
   return (
-    <div className="h-full flex flex-col max-w-7xl mx-auto">
+    <div className="h-full flex flex-col max-w-[95%] mx-auto">
       {/* Header */}
       <div className="flex justify-between items-end mb-8">
         <div>
@@ -174,26 +175,26 @@ const MembersView = () => {
       </div>
 
       {/* Table View */}
-      <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden flex flex-col mb-20 shadow-xl`}>
+      <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden flex flex-col shadow-xl flex-1 min-h-0 mb-3`}>
         {filteredMembers.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+          <div className="flex flex-col items-center justify-center py-20 text-gray-500 h-full">
              <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mb-4">
               <Users size={32} className="opacity-50" />
             </div>
             <p className="text-lg font-medium mb-4">No members found</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-y-auto h-full">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-[#1A1A1A] border-b border-[#262626] text-xs uppercase text-gray-500 font-bold tracking-wider">
+                <tr className="border-b border-[#262626] text-xs uppercase text-gray-500 font-bold tracking-wider">
                   {/* Expanded Member Column to ~35% */}
                   <SortHeader label="Member" sortKey="fullName" className="pl-6 w-[35%]" />
                   <SortHeader label="Tier" sortKey="tier" />
                   <SortHeader label="Status" sortKey="status" />
                   <SortHeader label="Age / Gender" sortKey="age" />
                   <SortHeader label="Joined" sortKey="joinDate" />
-                  <th className="px-4 py-3 pr-6 text-right">Actions</th>
+                  <th className="px-4 py-3 pr-6 text-right sticky top-0 bg-[#1A1A1A] z-10">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#262626]">
