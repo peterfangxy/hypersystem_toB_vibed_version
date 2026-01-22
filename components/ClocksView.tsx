@@ -13,7 +13,8 @@ import {
   Trophy,
   Clock,
   Play,
-  Coins
+  Coins,
+  Calendar
 } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink } from 'react-router-dom';
 import { ClockConfig, Tournament, TournamentRegistration, TournamentStructure } from '../types';
@@ -434,8 +435,16 @@ const LiveClocks = () => {
 
     const refreshData = () => {
         const allTournaments = DataService.getTournaments();
-        // We consider 'In Progress' as live. Can also allow 'Registration' if needed for pre-game screens.
+        // Include both In Progress and Registration for Live Clocks
         const inProgress = allTournaments.filter(t => t.status === 'In Progress' || t.status === 'Registration');
+        
+        // Sort by Start Date & Time (Ascending - Sooner first)
+        inProgress.sort((a, b) => {
+            const dateA = new Date(`${a.startDate}T${a.startTime}`).getTime();
+            const dateB = new Date(`${b.startDate}T${b.startTime}`).getTime();
+            return dateA - dateB;
+        });
+
         setActiveTournaments(inProgress);
 
         const regMap: Record<string, TournamentRegistration[]> = {};
@@ -468,20 +477,31 @@ const LiveClocks = () => {
                       return (
                           <div key={tournament.id} className="bg-[#111] border border-[#333] rounded-3xl p-6 flex flex-col hover:border-brand-green/30 transition-colors shadow-xl group">
                               <div className="flex justify-between items-start mb-4">
-                                  <div>
+                                  <div className="flex-1 min-w-0 pr-2">
                                       <div className="flex items-center gap-2 mb-1">
                                           <span className={`w-2 h-2 rounded-full animate-pulse ${isLive ? 'bg-red-500' : 'bg-blue-500'}`}></span>
                                           <span className={`text-xs font-bold ${isLive ? 'text-red-500' : 'text-blue-500'}`}>
                                             {isLive ? 'LIVE' : 'REGISTRATION'}
                                           </span>
                                       </div>
-                                      <h3 className="text-xl font-bold text-white line-clamp-1">{tournament.name}</h3>
+                                      <h3 className="text-xl font-bold text-white truncate" title={tournament.name}>{tournament.name}</h3>
                                   </div>
-                                  <div className="p-2 bg-[#222] rounded-full text-gray-400">
+                                  <div className="p-2 bg-[#222] rounded-full text-gray-400 shrink-0">
                                       <Trophy size={18} />
                                   </div>
                               </div>
                               
+                              <div className="flex items-center gap-4 text-gray-400 text-xs mb-4 bg-[#1A1A1A] p-2 rounded-lg border border-[#222]">
+                                  <div className="flex items-center gap-1.5">
+                                      <Calendar size={14} />
+                                      {tournament.startDate ? new Date(tournament.startDate).toLocaleDateString() : 'TBD'}
+                                  </div>
+                                  <div className="flex items-center gap-1.5">
+                                      <Clock size={14} />
+                                      {tournament.startTime || 'TBD'}
+                                  </div>
+                              </div>
+
                               <div className="flex items-center gap-4 text-gray-500 text-sm mb-6">
                                   <div className="flex items-center gap-1.5">
                                       <Users size={14} />
@@ -542,7 +562,7 @@ const ClocksView = () => {
                 <>
                     <div className="flex items-center gap-2">
                         <Play size={18} />
-                        {t('sidebar.liveClock')}
+                        LIVE CLOCKS
                     </div>
                     {isActive && (
                         <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />
