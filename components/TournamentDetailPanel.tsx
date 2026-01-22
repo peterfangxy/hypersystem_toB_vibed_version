@@ -23,6 +23,7 @@ import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
 import { BuyinMgmtModal, EnrichedRegistration } from './BuyinMgmtModal';
 import AddPlayerModal from './AddPlayerModal';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface TournamentDetailPanelProps {
   tournament: Tournament;
@@ -31,6 +32,7 @@ interface TournamentDetailPanelProps {
 }
 
 const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournament, onUpdate, onClose }) => {
+  const { t } = useLanguage();
   const [registrations, setRegistrations] = useState<TournamentRegistration[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [tables, setTables] = useState<PokerTable[]>([]);
@@ -281,7 +283,7 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
                 <Ticket size={16}/>
             </div>
             <div>
-                <div className="text-[10px] text-gray-500 font-bold uppercase">Buy-in</div>
+                <div className="text-[10px] text-gray-500 font-bold uppercase">{t('tournaments.detail.buyIn')}</div>
                 <div className="text-sm font-medium text-white">${tournament.buyIn} <span className="text-gray-500 text-xs">+ ${tournament.fee}</span></div>
             </div>
           </div>
@@ -291,8 +293,8 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
                 <Repeat size={16}/>
             </div>
             <div>
-                <div className="text-[10px] text-gray-500 font-bold uppercase">Re-buys</div>
-                <div className="text-sm font-medium text-white">{tournament.rebuyLimit === 0 ? 'Freezeout' : `Max ${tournament.rebuyLimit + 1}`}</div>
+                <div className="text-[10px] text-gray-500 font-bold uppercase">{t('tournaments.detail.rebuys')}</div>
+                <div className="text-sm font-medium text-white">{tournament.rebuyLimit === 0 ? t('tournaments.detail.freezeout') : `Max ${tournament.rebuyLimit + 1}`}</div>
             </div>
           </div>
 
@@ -303,7 +305,7 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
                 <Coins size={16} />
             </div>
             <div>
-                <div className="text-[10px] text-gray-500 font-bold uppercase">Prize Pool</div>
+                <div className="text-[10px] text-gray-500 font-bold uppercase">{t('tournaments.detail.prizePool')}</div>
                 <div className="text-base font-bold text-white">${totalPrizePool.toLocaleString()}</div>
             </div>
           </div>
@@ -313,7 +315,7 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
                 <Banknote size={16} />
             </div>
             <div>
-                <div className="text-[10px] text-gray-500 font-bold uppercase">House Fees</div>
+                <div className="text-[10px] text-gray-500 font-bold uppercase">{t('tournaments.detail.houseFees')}</div>
                 <div className="text-sm font-medium text-gray-300">${totalFees.toLocaleString()}</div>
             </div>
           </div>
@@ -329,8 +331,8 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
       {isProcessing && (
           <div className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center text-white rounded-b-3xl">
               <Loader2 size={48} className="animate-spin text-brand-green mb-4" />
-              <h3 className="text-2xl font-bold mb-2">Calculating Results...</h3>
-              <p className="text-gray-400">Verifying chip counts and allocating prizes</p>
+              <h3 className="text-2xl font-bold mb-2">{t('tournaments.detail.calculating')}</h3>
+              <p className="text-gray-400">{t('tournaments.detail.verifying')}</p>
           </div>
       )}
 
@@ -340,7 +342,7 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
               <input 
                 type="text"
-                placeholder="Search registered players..."
+                placeholder={t('tournaments.detail.searchPlayers')}
                 value={registrationSearch}
                 onChange={(e) => setRegistrationSearch(e.target.value)}
                 className={`w-full ${THEME.input} rounded-xl pl-10 pr-4 py-2 text-sm outline-none transition-all focus:ring-1 focus:ring-brand-green bg-[#1A1A1A]`}
@@ -353,7 +355,7 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
                 className={`bg-[#222] hover:bg-[#2A2A2A] text-brand-green border border-brand-green/20 hover:border-brand-green/50 px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-sm transition-all`}
               >
                 <Plus size={16} />
-                <span>Add Player</span>
+                <span>{t('tournaments.detail.addPlayer')}</span>
               </button>
           )}
       </div>
@@ -363,22 +365,22 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
           <table className="w-full text-left border-collapse">
               <thead className="bg-[#151515] text-[10px] uppercase text-gray-500 font-bold tracking-wider">
                 <tr>
-                  <th className="px-6 py-3 w-[25%]">Player</th>
-                  <th className="px-6 py-3 w-[10%]">Status</th>
-                  <th className="px-6 py-3 w-[20%]">Table / Seat</th>
-                  <th className="px-6 py-3 text-center w-[10%]">Entries</th>
-                  <th className="px-6 py-3 text-right w-[15%]">Chips In/Out</th>
+                  <th className="px-6 py-3 w-[25%]">{t('tournaments.detail.table.player')}</th>
+                  <th className="px-6 py-3 w-[10%]">{t('tournaments.detail.table.status')}</th>
+                  <th className="px-6 py-3 w-[20%]">{t('tournaments.detail.table.seat')}</th>
+                  <th className="px-6 py-3 text-center w-[10%]">{t('tournaments.detail.table.entries')}</th>
+                  <th className="px-6 py-3 text-right w-[15%]">{t('tournaments.detail.table.chips')}</th>
                   {isTournamentLocked && (
-                       <th className="px-6 py-3 text-right text-brand-green w-[10%]">Winnings</th>
+                       <th className="px-6 py-3 text-right text-brand-green w-[10%]">{t('tournaments.detail.table.winnings')}</th>
                   )}
-                  <th className="px-6 py-3 text-right w-[10%]">Manage</th>
+                  <th className="px-6 py-3 text-right w-[10%]">{t('tournaments.detail.table.manage')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#222]">
                 {enrichedRegistrations.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-12 text-center text-gray-600 text-sm">
-                      {registrationSearch ? 'No matching players found.' : 'No players registered yet.'}
+                      {registrationSearch ? t('common.noData') : t('common.noData')}
                     </td>
                   </tr>
                 ) : (
@@ -466,7 +468,7 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
                       <td className="px-6 py-3 text-right">
                           <div className="flex flex-col items-end gap-1">
                              <div className="text-[10px] text-gray-500 uppercase">
-                                 In: <span className="text-gray-400 font-mono">{(reg.buyInCount * tournament.startingChips).toLocaleString()}</span>
+                                 {t('tournaments.detail.table.in')}: <span className="text-gray-400 font-mono">{(reg.buyInCount * tournament.startingChips).toLocaleString()}</span>
                              </div>
                              <div className="flex items-center justify-end gap-2">
                                  <input 
@@ -474,7 +476,7 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
                                       min="0"
                                       value={reg.finalChipCount === 0 && document.activeElement !== document.getElementById(`chips-${reg.id}`) ? '' : reg.finalChipCount}
                                       onChange={(e) => handleChipChange(reg.id, parseInt(e.target.value) || 0)}
-                                      placeholder="Final"
+                                      placeholder={t('tournaments.detail.table.final')}
                                       disabled={isTournamentLocked}
                                       id={`chips-${reg.id}`}
                                       className={`w-20 bg-[#151515] border rounded px-2 py-1 text-right text-white text-xs outline-none transition-colors placeholder:text-gray-700 font-mono ${
@@ -531,7 +533,7 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
                                   <button 
                                       onClick={() => handleDelete(reg.id)}
                                       className="p-1.5 text-gray-600 hover:bg-red-500/10 hover:text-red-500 rounded-lg transition-colors"
-                                      title="Remove"
+                                      title={t('common.delete')}
                                   >
                                       <Trash2 size={16} />
                                   </button>
@@ -551,11 +553,11 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
           <div className="bg-[#151515] border-t border-[#333] p-4 flex justify-between items-center rounded-b-3xl">
               <div className="flex items-center gap-4 flex-1">
                   <div className="bg-[#222] px-3 py-2 rounded-lg border border-[#333]">
-                      <span className="text-gray-500 block text-[10px] font-bold uppercase mb-0.5">Chips In Play</span>
+                      <span className="text-gray-500 block text-[10px] font-bold uppercase mb-0.5">{t('tournaments.detail.chipsInPlay')}</span>
                       <span className="text-white font-mono font-medium text-sm">{totalChipsInPlay.toLocaleString()}</span>
                   </div>
                   <div className="bg-[#222] px-3 py-2 rounded-lg border border-[#333]">
-                      <span className="text-gray-500 block text-[10px] font-bold uppercase mb-0.5">Chips Counted</span>
+                      <span className="text-gray-500 block text-[10px] font-bold uppercase mb-0.5">{t('tournaments.detail.chipsCounted')}</span>
                        <span className={`font-mono font-medium text-sm ${isChipsBalanced ? 'text-brand-green' : 'text-red-400'}`}>
                           {totalChipsCounted.toLocaleString()}
                       </span>
@@ -564,7 +566,7 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
                        <div className="flex items-center gap-3 text-red-400 bg-red-950/20 px-3 py-2 rounded-lg border border-red-500/20">
                           <AlertTriangle size={16} />
                           <div>
-                              <span className="block text-[10px] font-bold uppercase opacity-80">Discrepancy</span>
+                              <span className="block text-[10px] font-bold uppercase opacity-80">{t('tournaments.detail.discrepancy')}</span>
                               <span className="font-mono font-bold text-sm">
                                   {chipDifference > 0 ? '-' : '+'}{Math.abs(chipDifference).toLocaleString()}
                               </span>
@@ -583,7 +585,7 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
                   }`}
               >
                   {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <Trophy size={14} />}
-                  Complete Tournament
+                  {t('tournaments.detail.complete')}
               </button>
           </div>
         )}

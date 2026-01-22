@@ -16,7 +16,8 @@ export const translations = {
       manage: "Manage",
       close: "Close",
       confirm: "Confirm",
-      processing: "Processing..."
+      processing: "Processing...",
+      noData: "No data found"
     },
     sidebar: {
       dashboard: "Dashboard",
@@ -95,6 +96,102 @@ export const translations = {
         submitCreate: "Create Table",
         submitSave: "Save Changes"
       }
+    },
+    tournaments: {
+      title: "Tournaments",
+      subtitle: "Schedule events and manage structures",
+      tabs: {
+        manage: "Manage Tournaments",
+        templates: "Tournament Templates"
+      },
+      btn: {
+        createEvent: "Create Event",
+        createTemplate: "Create Template"
+      },
+      filter: {
+        search: "Search tournaments...",
+        searchTemplates: "Search templates...",
+        status: "All Statuses"
+      },
+      table: {
+        status: "Status",
+        date: "Date",
+        time: "Time",
+        duration: "Duration",
+        tournament: "Tournament",
+        buyIn: "Buy-In",
+        structure: "Structure",
+        rebuys: "Rebuys",
+        players: "Players",
+        templateName: "Template Name",
+        payoutModel: "Payout Model",
+        estDuration: "Est. Duration",
+        empty: "No tournaments found",
+        emptyTemplates: "No templates found",
+        createFirst: "Create your first event",
+        createFirstTemplate: "Create your first template"
+      },
+      form: {
+        titleNew: "New Tournament",
+        titleEdit: "Edit Tournament",
+        titleNewTemplate: "New Template",
+        titleEditTemplate: "Edit Template",
+        quickStart: "Quick Start",
+        importTemplate: "Import settings from a template",
+        selectTemplate: "Select a template...",
+        generalInfo: "General Information",
+        name: "Tournament Name",
+        templateName: "Template Name",
+        date: "Date",
+        time: "Time",
+        estDuration: "Est. Duration (Min)",
+        status: "Status",
+        description: "Description",
+        structurePayouts: "Structure & Payouts",
+        structure: "Tournament Structure",
+        selectStructure: "Select a structure...",
+        payoutModel: "Payout Model",
+        selectPayout: "Select a payout model...",
+        clockLayout: "Tournament Clock Layout",
+        selectTheme: "Select Theme",
+        preview: "Live Preview",
+        financials: "Financials & Capacity",
+        buyIn: "Buy-In ($)",
+        fee: "Rake/Fee ($)",
+        maxPlayers: "Max Players",
+        assignTables: "Assign Tables (Optional)",
+        saveChanges: "Save Changes",
+        create: "Create Tournament",
+        createTemplate: "Create Template",
+        readOnly: "This tournament is {status} and cannot be edited."
+      },
+      detail: {
+        buyIn: "Buy-in",
+        rebuys: "Re-buys",
+        freezeout: "Freezeout",
+        prizePool: "Prize Pool",
+        houseFees: "House Fees",
+        chipsInPlay: "Chips In Play",
+        chipsCounted: "Chips Counted",
+        discrepancy: "Discrepancy",
+        complete: "Complete Tournament",
+        confirmResults: "Confirm Results & Complete",
+        calculating: "Calculating Results...",
+        verifying: "Verifying chip counts and allocating prizes",
+        addPlayer: "Add Player",
+        searchPlayers: "Search registered players...",
+        table: {
+          player: "Player",
+          status: "Status",
+          seat: "Table / Seat",
+          entries: "Entries",
+          chips: "Chips In/Out",
+          winnings: "Winnings",
+          manage: "Manage",
+          in: "In",
+          final: "Final"
+        }
+      }
     }
   },
   zh: {
@@ -113,7 +210,8 @@ export const translations = {
       manage: "管理",
       close: "关闭",
       confirm: "确认",
-      processing: "处理中..."
+      processing: "处理中...",
+      noData: "暂无数据"
     },
     sidebar: {
       dashboard: "仪表盘",
@@ -191,6 +289,102 @@ export const translations = {
         notes: "备注",
         submitCreate: "创建牌桌",
         submitSave: "保存更改"
+      }
+    },
+    tournaments: {
+      title: "锦标赛",
+      subtitle: "赛事排期与结构管理",
+      tabs: {
+        manage: "赛事管理",
+        templates: "赛事模板"
+      },
+      btn: {
+        createEvent: "创建赛事",
+        createTemplate: "创建模板"
+      },
+      filter: {
+        search: "搜索赛事...",
+        searchTemplates: "搜索模板...",
+        status: "所有状态"
+      },
+      table: {
+        status: "状态",
+        date: "日期",
+        time: "时间",
+        duration: "时长",
+        tournament: "赛事名称",
+        buyIn: "买入",
+        structure: "盲注结构",
+        rebuys: "重购规则",
+        players: "玩家",
+        templateName: "模板名称",
+        payoutModel: "奖励模式",
+        estDuration: "预计时长",
+        empty: "暂无赛事",
+        emptyTemplates: "暂无模板",
+        createFirst: "创建您的第一个赛事",
+        createFirstTemplate: "创建您的第一个模板"
+      },
+      form: {
+        titleNew: "新建赛事",
+        titleEdit: "编辑赛事",
+        titleNewTemplate: "新建模板",
+        titleEditTemplate: "编辑模板",
+        quickStart: "快速开始",
+        importTemplate: "从模板导入设置",
+        selectTemplate: "选择模板...",
+        generalInfo: "基本信息",
+        name: "赛事名称",
+        templateName: "模板名称",
+        date: "日期",
+        time: "时间",
+        estDuration: "预计时长 (分钟)",
+        status: "状态",
+        description: "描述",
+        structurePayouts: "结构与奖励",
+        structure: "赛事结构",
+        selectStructure: "选择结构...",
+        payoutModel: "奖励模式",
+        selectPayout: "选择奖励模式...",
+        clockLayout: "计时器布局",
+        selectTheme: "选择主题",
+        preview: "实时预览",
+        financials: "财务与容量",
+        buyIn: "买入 ($)",
+        fee: "服务费 ($)",
+        maxPlayers: "最大人数",
+        assignTables: "分配牌桌 (可选)",
+        saveChanges: "保存更改",
+        create: "创建赛事",
+        createTemplate: "创建模板",
+        readOnly: "该赛事状态为 {status}，无法编辑。"
+      },
+      detail: {
+        buyIn: "买入",
+        rebuys: "重购",
+        freezeout: "冻结赛 (Freezeout)",
+        prizePool: "奖池",
+        houseFees: "服务费",
+        chipsInPlay: "总筹码量",
+        chipsCounted: "清点筹码",
+        discrepancy: "差异",
+        complete: "结束赛事",
+        confirmResults: "确认结果并结束",
+        calculating: "计算结果中...",
+        verifying: "正在核对筹码并分配奖金",
+        addPlayer: "添加玩家",
+        searchPlayers: "搜索已报名玩家...",
+        table: {
+          player: "玩家",
+          status: "状态",
+          seat: "牌桌 / 座位",
+          entries: "买入数",
+          chips: "筹码 (入/出)",
+          winnings: "奖金",
+          manage: "管理",
+          in: "入",
+          final: "出"
+        }
       }
     }
   }
