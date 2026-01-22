@@ -13,14 +13,16 @@ import {
   Play,
   Ticket,
   Copy,
-  Trash2
+  Trash2,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
 import { Tournament, TournamentStatus, TournamentStructure, PayoutStructure } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
 import TournamentForm from './TournamentForm';
-import TournamentParticipantsView from './TournamentParticipantsView';
+import TournamentDetailPanel from './TournamentDetailPanel';
 
 const TournamentsView = () => {
   const location = useLocation();
@@ -35,8 +37,8 @@ const TournamentsView = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTournament, setEditingTournament] = useState<Tournament | undefined>(undefined);
   
-  // Navigation State for Drilldown
-  const [selectedTournamentId, setSelectedTournamentId] = useState<string | null>(null);
+  // Accordion State
+  const [expandedTournamentId, setExpandedTournamentId] = useState<string | null>(null);
 
   // Filtering & Sorting State (Shared or lifted)
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,6 +56,7 @@ const TournamentsView = () => {
   useEffect(() => {
     setSearchQuery('');
     setStatusFilter('All');
+    setExpandedTournamentId(null);
   }, [isTemplatesTab]);
 
   const refreshData = () => {
@@ -107,13 +110,8 @@ const TournamentsView = () => {
     setIsFormOpen(true);
   };
   
-  const openParticipants = (tournament: Tournament) => {
-      setSelectedTournamentId(tournament.id);
-  };
-
-  const handleBackFromParticipants = () => {
-      setSelectedTournamentId(null);
-      refreshData();
+  const toggleExpand = (id: string) => {
+      setExpandedTournamentId(prev => prev === id ? null : id);
   };
 
   const handleSort = (key: keyof Tournament) => {
@@ -223,135 +221,138 @@ const TournamentsView = () => {
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-[#262626]">
-                    {filteredTournaments.map((tournament) => (
-                    <tr key={tournament.id} className="hover:bg-[#222] transition-colors group">
-                        <td className="px-4 py-3 pl-6">
-                        {(tournament.status === 'Completed' || tournament.status === 'Cancelled') ? (
-                            <span className={`inline-block text-[10px] font-bold uppercase tracking-wider border rounded py-1 px-2 text-center min-w-[100px] cursor-default ${getStatusStyle(tournament.status)}`}>
-                                {tournament.status}
-                            </span>
-                        ) : (
-                            <select
-                                value={tournament.status}
-                                onChange={(e) => handleStatusChange(tournament, e.target.value as TournamentStatus)}
-                                className={`text-[10px] font-bold uppercase tracking-wider border rounded py-0.5 px-2 outline-none cursor-pointer appearance-none text-center min-w-[100px] transition-colors ${getStatusStyle(tournament.status)}`}
+                    {filteredTournaments.map((tournament) => {
+                        const isExpanded = expandedTournamentId === tournament.id;
+                        return (
+                        <React.Fragment key={tournament.id}>
+                            <tr 
+                                onClick={() => toggleExpand(tournament.id)}
+                                className={`cursor-pointer transition-colors group ${isExpanded ? 'bg-[#222]' : 'hover:bg-[#222]'}`}
                             >
-                                {getValidStatusOptions(tournament.status).map(opt => (
-                                    <option key={opt} value={opt} className="bg-[#171717] text-white">
-                                        {opt}
-                                    </option>
-                                ))}
-                            </select>
-                        )}
-                        </td>
-                        <td className="px-4 py-3 text-sm font-medium text-gray-300 whitespace-nowrap">
-                        {tournament.startDate && new Date(tournament.startDate).toLocaleDateString(undefined, {
-                            month: 'short', 
-                            day: 'numeric',
-                            year: 'numeric'
-                        })}
-                        </td>
-                        <td className="px-4 py-3">
-                        <div className="text-sm font-medium text-white whitespace-nowrap">{tournament.startTime}</div>
-                        <div className="text-xs text-gray-500 flex items-center gap-1.5 mt-0.5">
-                            <Clock size={12} />
-                            {Math.floor(tournament.estimatedDurationMinutes / 60)}h {tournament.estimatedDurationMinutes % 60 > 0 ? `${tournament.estimatedDurationMinutes % 60}m` : ''}
-                        </div>
-                        </td>
-                        <td className="px-4 py-3">
-                        <span className="text-base font-bold text-white">{tournament.name}</span>
-                        </td>
-                        <td className="px-4 py-3">
-                        <div className="text-sm font-bold text-brand-green">
-                            ${tournament.buyIn} <span className="text-gray-500 text-xs font-normal">+ ${tournament.fee}</span>
-                        </div>
-                        </td>
-                        <td className="px-4 py-3">
-                            <div className="flex flex-col gap-0.5">
-                            {getStructureName(tournament.structureId) ? (
-                                <span className="text-sm font-medium text-white">{getStructureName(tournament.structureId)}</span>
-                            ) : (
-                                <span className="text-sm font-medium text-gray-500 italic">Custom Structure</span>
-                            )}
+                                <td className="px-4 py-4 pl-6" onClick={(e) => e.stopPropagation()}>
+                                {(tournament.status === 'Completed' || tournament.status === 'Cancelled') ? (
+                                    <span className={`inline-block text-[10px] font-bold uppercase tracking-wider border rounded py-1 px-2 text-center min-w-[100px] cursor-default ${getStatusStyle(tournament.status)}`}>
+                                        {tournament.status}
+                                    </span>
+                                ) : (
+                                    <select
+                                        value={tournament.status}
+                                        onChange={(e) => handleStatusChange(tournament, e.target.value as TournamentStatus)}
+                                        className={`text-[10px] font-bold uppercase tracking-wider border rounded py-0.5 px-2 outline-none cursor-pointer appearance-none text-center min-w-[100px] transition-colors ${getStatusStyle(tournament.status)}`}
+                                    >
+                                        {getValidStatusOptions(tournament.status).map(opt => (
+                                            <option key={opt} value={opt} className="bg-[#171717] text-white">
+                                                {opt}
+                                            </option>
+                                        ))}
+                                    </select>
+                                )}
+                                </td>
+                                <td className="px-4 py-4 text-sm font-medium text-gray-300 whitespace-nowrap">
+                                {tournament.startDate && new Date(tournament.startDate).toLocaleDateString(undefined, {
+                                    month: 'short', 
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                })}
+                                </td>
+                                <td className="px-4 py-4">
+                                <div className="text-sm font-medium text-white whitespace-nowrap">{tournament.startTime}</div>
+                                <div className="text-xs text-gray-500 flex items-center gap-1.5 mt-0.5">
+                                    <Clock size={12} />
+                                    {Math.floor(tournament.estimatedDurationMinutes / 60)}h {tournament.estimatedDurationMinutes % 60 > 0 ? `${tournament.estimatedDurationMinutes % 60}m` : ''}
+                                </div>
+                                </td>
+                                <td className="px-4 py-4">
+                                <span className="text-base font-bold text-white">{tournament.name}</span>
+                                </td>
+                                <td className="px-4 py-4">
+                                <div className="text-sm font-bold text-brand-green">
+                                    ${tournament.buyIn} <span className="text-gray-500 text-xs font-normal">+ ${tournament.fee}</span>
+                                </div>
+                                </td>
+                                <td className="px-4 py-4">
+                                    <div className="flex flex-col gap-0.5">
+                                    {getStructureName(tournament.structureId) ? (
+                                        <span className="text-sm font-medium text-white">{getStructureName(tournament.structureId)}</span>
+                                    ) : (
+                                        <span className="text-sm font-medium text-gray-500 italic">Custom Structure</span>
+                                    )}
+                                    
+                                    <div className="flex items-center gap-2">
+                                        {getPayoutName(tournament.payoutStructureId) ? (
+                                            <span className="text-xs text-brand-green/80">{getPayoutName(tournament.payoutStructureId)}</span>
+                                        ) : (
+                                            <span className="text-xs text-gray-600">{tournament.payoutModel}</span>
+                                        )}
+                                        
+                                        <span className="text-[10px] text-gray-600">•</span>
+                                        
+                                        {tournament.rebuyLimit > 0 ? (
+                                            <span className="text-xs text-orange-400">{tournament.rebuyLimit}x Rebuy</span>
+                                        ) : (
+                                            <span className="text-xs text-blue-400">Freezeout</span>
+                                        )}
+                                    </div>
+                                    </div>
+                                </td>
+                                <td className="px-4 py-4">
+                                    <div className="flex items-center gap-2">
+                                        <Users size={16} className="text-gray-500" />
+                                        <span className="font-bold text-white">
+                                            {registrationCounts[tournament.id] || 0}
+                                            <span className="text-gray-500 font-normal"> / {tournament.maxPlayers}</span>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td className="px-4 py-4 pr-6 text-right" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex justify-end gap-2 items-center">
+                                    {/* Action Buttons */}
+                                    <button 
+                                        onClick={() => toggleExpand(tournament.id)}
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                                            isExpanded 
+                                            ? 'bg-brand-green text-black' 
+                                            : 'bg-[#222] text-gray-400 hover:bg-[#333] hover:text-white'
+                                        }`}
+                                    >
+                                        {isExpanded ? (
+                                            <>Close <ChevronUp size={14} /></>
+                                        ) : (
+                                            <>Manage <ChevronDown size={14} /></>
+                                        )}
+                                    </button>
+
+                                    <button 
+                                        onClick={() => openEdit(tournament)}
+                                        disabled={tournament.status === 'Completed' || tournament.status === 'Cancelled'}
+                                        className={`p-1.5 rounded-full transition-colors ${
+                                            tournament.status === 'Completed' || tournament.status === 'Cancelled'
+                                            ? 'text-gray-700 cursor-not-allowed'
+                                            : 'text-gray-500 hover:text-white hover:bg-[#333]'
+                                        }`}
+                                        title="Edit Tournament"
+                                    >
+                                        <Edit2 size={16} />
+                                    </button>
+                                </div>
+                                </td>
+                            </tr>
                             
-                            <div className="flex items-center gap-2">
-                                {getPayoutName(tournament.payoutStructureId) ? (
-                                    <span className="text-xs text-brand-green/80">{getPayoutName(tournament.payoutStructureId)}</span>
-                                ) : (
-                                    <span className="text-xs text-gray-600">{tournament.payoutModel}</span>
-                                )}
-                                
-                                <span className="text-[10px] text-gray-600">•</span>
-                                
-                                {tournament.rebuyLimit > 0 ? (
-                                    <span className="text-xs text-orange-400">{tournament.rebuyLimit}x Rebuy</span>
-                                ) : (
-                                    <span className="text-xs text-blue-400">Freezeout</span>
-                                )}
-                            </div>
-                            </div>
-                        </td>
-                        <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                                <Users size={16} className="text-gray-500" />
-                                <span className="font-bold text-white">
-                                    {registrationCounts[tournament.id] || 0}
-                                    <span className="text-gray-500 font-normal"> / {tournament.maxPlayers}</span>
-                                </span>
-                            </div>
-                        </td>
-                        <td className="px-4 py-3 pr-6 text-right">
-                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            {tournament.status === 'Scheduled' && (
-                                <button
-                                    onClick={() => handleStatusChange(tournament, 'Registration')}
-                                    className="p-1.5 text-brand-green bg-brand-green/10 border border-brand-green/50 hover:bg-brand-green hover:text-black rounded-full transition-colors mr-1"
-                                    title="Open Registration"
-                                >
-                                    <Ticket size={16} />
-                                </button>
+                            {/* Expandable Detail Panel */}
+                            {isExpanded && (
+                                <tr>
+                                    <td colSpan={8} className="p-0 border-b border-[#262626]">
+                                        <TournamentDetailPanel 
+                                            tournament={tournament} 
+                                            onUpdate={refreshData}
+                                            onClose={() => setExpandedTournamentId(null)}
+                                        />
+                                    </td>
+                                </tr>
                             )}
-                            {tournament.status === 'Registration' && (
-                                <button
-                                    onClick={() => handleStatusChange(tournament, 'In Progress')}
-                                    className="p-1.5 text-yellow-500 bg-yellow-500/10 border border-yellow-500/50 hover:bg-yellow-500 hover:text-black rounded-full transition-colors mr-1"
-                                    title="Start Tournament"
-                                >
-                                    <Play size={16} fill="currentColor" />
-                                </button>
-                            )}
-                            {tournament.status === 'In Progress' && (
-                                <button 
-                                    onClick={() => openParticipants(tournament)}
-                                    className="p-1.5 text-white bg-red-500/10 border border-red-500/50 hover:bg-red-500 hover:text-white rounded-full transition-colors"
-                                    title="End Tournament"
-                                >
-                                    <Flag size={16} />
-                                </button>
-                            )}
-                            <button 
-                                onClick={() => openParticipants(tournament)}
-                                className="p-1.5 text-gray-500 hover:text-brand-green hover:bg-[#333] rounded-full transition-colors"
-                                title="Manage Players"
-                            >
-                                <Users size={16} />
-                            </button>
-                            <button 
-                                onClick={() => openEdit(tournament)}
-                                disabled={tournament.status === 'Completed' || tournament.status === 'Cancelled'}
-                                className={`p-1.5 rounded-full transition-colors ${
-                                    tournament.status === 'Completed' || tournament.status === 'Cancelled'
-                                    ? 'text-gray-700 cursor-not-allowed'
-                                    : 'text-gray-500 hover:text-white hover:bg-[#333]'
-                                }`}
-                                title={tournament.status === 'Completed' || tournament.status === 'Cancelled' ? "Cannot edit completed tournament" : "Edit Tournament"}
-                            >
-                                <Edit2 size={16} />
-                            </button>
-                        </div>
-                        </td>
-                    </tr>
-                    ))}
+                        </React.Fragment>
+                        );
+                    })}
                 </tbody>
                 </table>
             </div>
@@ -448,16 +449,6 @@ const TournamentsView = () => {
           </div>
     );
   };
-
-  // If a tournament is selected, show the detail view
-  if (selectedTournamentId) {
-      return (
-          <TournamentParticipantsView 
-            tournamentId={selectedTournamentId}
-            onBack={handleBackFromParticipants}
-          />
-      );
-  }
 
   return (
      <div className="h-full flex flex-col max-w-7xl mx-auto">
