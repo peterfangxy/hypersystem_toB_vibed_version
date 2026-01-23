@@ -81,8 +81,11 @@ const MembersView = () => {
 
   const filteredMembers = members
     .filter(m => {
-      const matchesSearch = m.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            m.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const term = searchTerm.toLowerCase();
+      const matchesSearch = m.fullName.toLowerCase().includes(term) ||
+                            m.email.toLowerCase().includes(term) ||
+                            (m.club_id && m.club_id.toLowerCase().includes(term)) ||
+                            (m.phone && m.phone.toLowerCase().includes(term));
       const matchesStatus = statusFilter === 'All' || m.status === statusFilter;
       return matchesSearch && matchesStatus;
     })
@@ -189,11 +192,12 @@ const MembersView = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-[#262626] text-xs uppercase text-gray-500 font-bold tracking-wider">
-                  {/* Expanded Member Column to ~35% */}
-                  <SortHeader label={t('members.table.member')} sortKey="fullName" className="pl-6 w-[35%]" />
+                  <SortHeader label={t('members.table.member')} sortKey="fullName" className="pl-6" />
+                  <SortHeader label={t('members.table.email')} sortKey="email" />
+                  <SortHeader label={t('members.table.phone')} sortKey="phone" />
+                  <SortHeader label={t('members.table.clubId')} sortKey="club_id" />
                   <SortHeader label={t('members.table.tier')} sortKey="tier" />
                   <SortHeader label={t('members.table.status')} sortKey="status" />
-                  <SortHeader label={t('members.table.ageGender')} sortKey="age" />
                   <SortHeader label={t('members.table.joined')} sortKey="joinDate" />
                   <th className="px-4 py-3 pr-6 text-right sticky top-0 bg-[#1A1A1A] z-10">{t('common.actions')}</th>
                 </tr>
@@ -208,11 +212,20 @@ const MembersView = () => {
                             alt={member.fullName} 
                             className="w-10 h-10 rounded-full object-cover bg-gray-800"
                         />
-                         <div className="flex flex-col">
-                           <span className="text-base font-bold text-white">{member.fullName}</span>
-                           <span className="text-xs text-gray-500">{member.email}</span>
+                         <div>
+                           <span className="text-base font-bold text-white block">{member.fullName}</span>
+                           {member.nickname && <span className="text-xs text-gray-500">"{member.nickname}"</span>}
                          </div>
                        </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-400">
+                        {member.email}
+                    </td>
+                    <td className="px-4 py-3 text-sm font-medium text-gray-300">
+                        {member.phone || '---'}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-sm text-gray-300">
+                        {member.club_id || '---'}
                     </td>
                     <td className="px-4 py-3">
                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${getTierColor(member.tier)}`}>
@@ -223,9 +236,6 @@ const MembersView = () => {
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${getStatusStyle(member.status)}`}>
                             {member.status}
                          </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-300">
-                        {member.age} • <span className="text-xs text-gray-500">{member.gender}</span>
                     </td>
                     <td className="px-4 py-3 text-sm font-medium text-gray-300">
                         {new Date(member.joinDate).toLocaleDateString(undefined, {

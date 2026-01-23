@@ -35,13 +35,15 @@ export const translations = {
       title: "Members",
       subtitle: "Manage club access and player profiles",
       createBtn: "Create Member",
-      searchPlaceholder: "Search name or email...",
+      searchPlaceholder: "Search name, ID, phone...",
       filterStatus: "All Statuses",
       table: {
         member: "Member",
+        email: "Email",
+        clubId: "Club ID",
         tier: "Tier",
         status: "Status",
-        ageGender: "Age / Gender",
+        phone: "Phone",
         joined: "Joined"
       },
       form: {
@@ -460,13 +462,15 @@ export const translations = {
       title: "会员列表",
       subtitle: "管理俱乐部会员及档案",
       createBtn: "创建会员",
-      searchPlaceholder: "搜索姓名或邮箱...",
+      searchPlaceholder: "搜索姓名、ID或电话...",
       filterStatus: "所有状态",
       table: {
         member: "会员",
+        email: "邮箱",
+        clubId: "会员ID",
         tier: "等级",
         status: "状态",
-        ageGender: "年龄 / 性别",
+        phone: "电话",
         joined: "加入时间"
       },
       form: {
