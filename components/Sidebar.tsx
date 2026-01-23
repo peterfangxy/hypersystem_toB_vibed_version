@@ -29,9 +29,9 @@ const Sidebar: React.FC = () => {
   const menuItems = [
     { id: '/dashboard', label: t('sidebar.dashboard'), icon: LayoutDashboard },
     { id: '/members', label: t('sidebar.members'), icon: Users },
-    { id: '/tables', label: t('sidebar.tables'), icon: Armchair },
     { id: '/tournaments', label: t('sidebar.tournaments'), icon: Trophy },
     { id: '/structures', label: t('sidebar.structures'), icon: Sliders },
+    { id: '/tables', label: t('sidebar.tables'), icon: Armchair },
     { id: '/clocks', label: t('sidebar.clocks'), icon: MonitorPlay },
     { id: '/settings', label: t('sidebar.settings'), icon: Settings },
   ];
@@ -71,19 +71,19 @@ const Sidebar: React.FC = () => {
       <div className="px-6 pb-2">
           <button 
             onClick={toggleLanguage}
-            className="flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-white transition-colors bg-[#222] px-3 py-2 rounded-lg w-full justify-center"
+            className="flex items-center gap-2 text-[9px] font-bold text-gray-500 hover:text-white transition-colors bg-[#222] px-2 py-1 rounded-lg w-full justify-center uppercase tracking-wider"
           >
-              <Languages size={14} />
-              {language === 'en' ? 'English' : '中文 (Chinese)'}
+              <Languages size={10} />
+              {language === 'en' ? 'English' : '中文'}
           </button>
       </div>
 
       {/* Live Clock */}
       <div className="px-6 pb-6 flex flex-col items-center">
-         <div className="text-3xl font-bold text-gray-500 font-mono tracking-tighter">
+         <div className="text-xl font-bold text-gray-500 font-mono tracking-tighter">
             {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
          </div>
-         <div className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mt-1">
+         <div className="text-[9px] font-bold text-gray-600 uppercase tracking-widest mt-0.5">
             {currentTime.toLocaleDateString(language === 'en' ? undefined : 'zh-CN', { weekday: 'short', month: 'short', day: 'numeric'})}
          </div>
       </div>

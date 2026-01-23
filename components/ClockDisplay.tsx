@@ -20,6 +20,8 @@ const ClockDisplay: React.FC<ClockDisplayProps> = ({
   className = ''
 }) => {
   
+  const fields = config.fields || [];
+
   const renderField = (field: ClockField) => {
     // 1. Handle Shapes & Lines (No text data needed)
     if (field.type === 'shape_rect') {
@@ -111,7 +113,7 @@ const ClockDisplay: React.FC<ClockDisplayProps> = ({
             left: 0,
             pointerEvents: 'none' // Display only
         }}>
-            {config.fields.map(field => (
+            {fields.map(field => (
                 <div
                     key={field.id}
                     style={{
@@ -119,7 +121,7 @@ const ClockDisplay: React.FC<ClockDisplayProps> = ({
                         left: `${field.x}%`,
                         top: `${field.y}%`,
                         transform: 'translate(-50%, -50%)',
-                        zIndex: config.fields.findIndex(f => f.id === field.id),
+                        zIndex: fields.findIndex(f => f.id === field.id),
                     }}
                 >
                     {renderField(field)}

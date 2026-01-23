@@ -279,6 +279,11 @@ export const translations = {
     clocks: {
       title: "Clocks",
       subtitle: "Design tournament screens and digital signage",
+      tabs: {
+        tournaments: "Tournament Clocks",
+        tables: "Table Clocks",
+        layouts: "Layout Editor"
+      },
       btn: {
         new: "New Clock"
       },
@@ -287,7 +292,20 @@ export const translations = {
       },
       empty: {
         title: "Design New Screen",
-        subtitle: "Drag & drop visual editor"
+        subtitle: "Drag & drop visual editor",
+        noTournaments: "No Tournaments Active",
+        noTournamentsDesc: "Set a tournament to \"In Progress\" or \"Registration\" to see it appear here.",
+        noTables: "No Tables Found",
+        noTablesDesc: "Create tables in the Tables tab to assign clocks to them."
+      },
+      live: {
+        tournamentClock: "Tournament Clock",
+        tableClock: "Table Clock",
+        idle: "Waiting for Tournament...",
+        error: "Configuration Error",
+        duplicate: "Duplicate Tournaments",
+        duplicateDesc: "This table is assigned to multiple active tournaments.",
+        assignedTo: "Assigned To"
       },
       editor: {
         headerName: "Clock Name",
@@ -686,6 +704,11 @@ export const translations = {
     clocks: {
       title: "计时器",
       subtitle: "设计赛事屏幕和数字标牌",
+      tabs: {
+        tournaments: "赛事时钟",
+        tables: "牌桌时钟",
+        layouts: "布局编辑器"
+      },
       btn: {
         new: "新建时钟"
       },
@@ -694,7 +717,20 @@ export const translations = {
       },
       empty: {
         title: "设计新屏幕",
-        subtitle: "拖放式可视化编辑器"
+        subtitle: "拖放式可视化编辑器",
+        noTournaments: "暂无活跃赛事",
+        noTournamentsDesc: "将赛事状态设为“进行中”或“报名中”即可在此处显示。",
+        noTables: "暂无牌桌",
+        noTablesDesc: "请先在牌桌管理中创建牌桌。"
+      },
+      live: {
+        tournamentClock: "赛事时钟",
+        tableClock: "牌桌时钟",
+        idle: "等待赛事开始...",
+        error: "配置错误",
+        duplicate: "赛事冲突",
+        duplicateDesc: "该牌桌被分配到了多个活跃赛事中。",
+        assignedTo: "当前赛事"
       },
       editor: {
         headerName: "时钟名称",

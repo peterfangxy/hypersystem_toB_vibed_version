@@ -3,13 +3,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Layers, 
   DollarSign, 
-  Trophy,
-  Armchair,
-  Check,
-  ChevronDown,
-  Cpu,
-  Table,
-  Sparkles,
+  Trophy, 
+  Armchair, 
+  Check, 
+  ChevronDown, 
+  Cpu, 
+  Table, 
+  Sparkles, 
   MonitorPlay
 } from 'lucide-react';
 import { Tournament, PayoutModel, TournamentStatus, PokerTable, TournamentStructure, PayoutStructure, ClockConfig } from '../types';
@@ -248,18 +248,41 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
 
   const getClockData = () => {
       // Find Next Level from Structure
-      let nextLevel = { sb: 200, bb: 400, ante: 400 }; // Default mock
-      if (selectedStruct) {
+      let currentLevel = { sb: 100, bb: 200, ante: 0 };
+      let nextLevel = { sb: 200, bb: 400, ante: 0 }; 
+
+      if (selectedStruct && selectedStruct.items) {
           const lvls = selectedStruct.items.filter(i => i.type === 'Level');
+          if (lvls.length > 0) {
+              const l = lvls[0];
+              currentLevel = { 
+                  sb: l.smallBlind || 0, 
+                  bb: l.bigBlind || 0, 
+                  ante: l.ante || 0 
+              };
+          }
           if (lvls.length > 1) {
-              nextLevel = { sb: lvls[1].smallBlind || 0, bb: lvls[1].bigBlind || 0, ante: lvls[1].ante || 0 };
+              const l = lvls[1];
+              nextLevel = { 
+                  sb: l.smallBlind || 0, 
+                  bb: l.bigBlind || 0, 
+                  ante: l.ante || 0 
+              };
+          }
+      } else if (formData.startingBlinds) {
+          // Fallback if no structure selected, try to parse Blinds string
+          const parts = formData.startingBlinds.split('/');
+          if (parts.length === 2) {
+              currentLevel.sb = parseInt(parts[0]) || 100;
+              currentLevel.bb = parseInt(parts[1]) || 200;
+              // Assuming 0 ante if manually entered without structure
+              currentLevel.ante = 0; 
           }
       }
 
       // Dynamic Mock Data
       const maxP = formData.maxPlayers || 50;
-      // Mock entries: use 12, but clamp to maxPlayers if maxPlayers is small
-      const currentEntries = Math.min(12, maxP); 
+      const currentEntries = 0; 
       
       const startingChips = formData.startingChips || 10000;
       const buyIn = formData.buyIn || 100;
@@ -269,10 +292,10 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
           tournament_desc: formData.description || 'Event Description',
           timer: '12:34',
           blind_countdown: '12:34',
-          blind_level: formData.startingBlinds || '100/200',
+          blind_level: `${currentLevel.sb}/${currentLevel.bb}`,
           next_blinds: `${nextLevel.sb}/${nextLevel.bb}`,
-          ante: formData.startingBlinds?.split('/')[1] || '200',
-          next_ante: nextLevel.ante.toString(),
+          ante: currentLevel.ante > 0 ? currentLevel.ante.toLocaleString() : '0',
+          next_ante: nextLevel.ante > 0 ? nextLevel.ante.toLocaleString() : '0',
           starting_chips: startingChips.toLocaleString(),
           rebuy_limit: formData.rebuyLimit ? `${formData.rebuyLimit}` : 'Freezeout',
           
