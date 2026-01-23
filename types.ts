@@ -18,8 +18,16 @@ export interface Member {
   club_id?: string;
   email: string;
   phone: string;
+  
+  // Demographics
+  birthDate?: string; // ISO Date YYYY-MM-DD
   age: number;
   gender: Gender;
+  
+  // Identity
+  idPhotoFrontUrl?: string;
+  idPhotoBackUrl?: string;
+
   joinDate: string;
   tier: MembershipTier;
   status: MemberStatus;
