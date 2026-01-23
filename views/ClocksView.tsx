@@ -26,7 +26,6 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 // --- Sub-Component: Live Clock Runner (Overlay) ---
 const LiveClockRunner = ({ tournament, onClose }: { tournament: Tournament, onClose: () => void }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [timerSeconds, setTimerSeconds] = useState(0); 
   const [config, setConfig] = useState<ClockConfig | null>(null);
@@ -46,45 +45,41 @@ const LiveClockRunner = ({ tournament, onClose }: { tournament: Tournament, onCl
     prizePool: 0
   });
 
-  // 0. Fullscreen & Resize Handling
+  // 0. Fullscreen & Resize Lifecycle
   useEffect(() => {
-      const enterFullscreen = async () => {
-          if (containerRef.current) {
-              try {
-                  await containerRef.current.requestFullscreen();
-              } catch (err) {
-                  console.error("Error attempting to enable fullscreen:", err);
-              }
-          }
+      // Handle Window Resize
+      const handleResize = () => {
+          setDimensions({ w: window.innerWidth, h: window.innerHeight });
       };
 
+      // Handle Fullscreen Exit (ESC or F11)
       const handleFullscreenChange = () => {
-          // If we are no longer in fullscreen (e.g. user pressed ESC), close the clock
           if (!document.fullscreenElement) {
               onClose();
           }
       };
 
-      const handleResize = () => {
-          setDimensions({ w: window.innerWidth, h: window.innerHeight });
-      };
-
-      // Enter fullscreen immediately
-      enterFullscreen();
-
-      // Listeners
-      document.addEventListener('fullscreenchange', handleFullscreenChange);
-      window.addEventListener('resize', handleResize);
-      
-      return () => {
-          document.removeEventListener('fullscreenchange', handleFullscreenChange);
-          window.removeEventListener('resize', handleResize);
-          // Force exit fullscreen if component unmounts but still in fullscreen mode
-          if (document.fullscreenElement) {
-              document.exitFullscreen().catch(err => console.error(err));
+      // Handle direct ESC key (fallback if not in fullscreen or browser passes it through)
+      const handleKeyDown = (e: KeyboardEvent) => {
+          if (e.key === 'Escape') {
+              if (document.fullscreenElement) {
+                  document.exitFullscreen().catch(console.error);
+              } else {
+                  onClose();
+              }
           }
       };
-  }, []); // Run once on mount
+
+      window.addEventListener('resize', handleResize);
+      document.addEventListener('fullscreenchange', handleFullscreenChange);
+      document.addEventListener('keydown', handleKeyDown);
+      
+      return () => {
+          window.removeEventListener('resize', handleResize);
+          document.removeEventListener('fullscreenchange', handleFullscreenChange);
+          document.removeEventListener('keydown', handleKeyDown);
+      };
+  }, [onClose]);
 
   // 1. Initial Data Load (Runs once or when tournament/structure changes)
   useEffect(() => {
@@ -285,7 +280,7 @@ const LiveClockRunner = ({ tournament, onClose }: { tournament: Tournament, onCl
   };
 
   return (
-    <div ref={containerRef} className="fixed inset-0 z-50 bg-black overflow-hidden animate-in fade-in duration-500">
+    <div className="fixed inset-0 z-[100] bg-black overflow-hidden animate-in fade-in duration-300">
       <ClockDisplay 
         config={config} 
         data={getClockData()} 
@@ -293,9 +288,10 @@ const LiveClockRunner = ({ tournament, onClose }: { tournament: Tournament, onCl
         scale={Math.min(dimensions.w / 1280, dimensions.h / 720)} 
         className="w-full h-full flex items-center justify-center"
       />
+      {/* Hidden control to exit via mouse if needed */}
       <button 
         onClick={handleManualClose}
-        className="absolute top-4 right-4 bg-black/50 hover:bg-red-500/80 text-white p-3 rounded-full backdrop-blur-md transition-all z-[60] group cursor-pointer"
+        className="absolute top-4 right-4 bg-black/30 hover:bg-red-500/80 text-white/50 hover:text-white p-3 rounded-full backdrop-blur-md transition-all z-[110] group cursor-pointer opacity-0 hover:opacity-100"
       >
         <X size={24} />
       </button>
@@ -483,6 +479,19 @@ const LiveClocks = () => {
         setRegistrationsMap(regMap);
     };
 
+    const handleOpenClock = async (tournament: Tournament) => {
+        // Trigger Fullscreen on user gesture (click)
+        try {
+            if (!document.fullscreenElement) {
+                await document.documentElement.requestFullscreen();
+            }
+        } catch (err) {
+            console.warn("Fullscreen denied:", err);
+        }
+        // Then set state to render the overlay
+        setFullScreenTournament(tournament);
+    };
+
     return (
         <div className="flex-1 animate-in fade-in slide-in-from-bottom-2 mt-4">
            {activeTournaments.length === 0 ? (
@@ -543,7 +552,7 @@ const LiveClocks = () => {
                               </div>
 
                               <button 
-                                onClick={() => setFullScreenTournament(tournament)}
+                                onClick={() => handleOpenClock(tournament)}
                                 className={`mt-auto w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${THEME.buttonPrimary}`}
                               >
                                   <Maximize2 size={18} /> Open Clock
