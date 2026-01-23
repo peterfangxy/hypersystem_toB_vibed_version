@@ -213,7 +213,7 @@ export const SEED_PAYOUTS: PayoutStructure[] = [
 
 export const SEED_TOURNAMENTS: Tournament[] = [
     {
-        id: 'tour_1',
+        id: 'evt-2023-0841',
         name: 'Friday Night Turbo',
         startDate: new Date().toISOString().split('T')[0],
         startTime: '19:00',
@@ -236,7 +236,7 @@ export const SEED_TOURNAMENTS: Tournament[] = [
         tableIds: ['t1', 't2', 't3']
     },
     {
-        id: 'tour_2',
+        id: 'evt-2023-0842',
         name: 'Sunday Deepstack',
         startDate: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0], // 2 days from now
         startTime: '14:00',
@@ -259,7 +259,7 @@ export const SEED_TOURNAMENTS: Tournament[] = [
         tableIds: ['t1', 't2', 't3', 't4']
     },
     {
-        id: 'tour_3',
+        id: 'evt-2023-0845',
         name: 'Wednesday Rebuy Madness',
         startDate: new Date(Date.now() + 86400000 * 5).toISOString().split('T')[0], // 5 days from now
         startTime: '19:30',
@@ -282,7 +282,7 @@ export const SEED_TOURNAMENTS: Tournament[] = [
         tableIds: ['t2', 't3']
     },
     {
-        id: 'tour_test_1min',
+        id: 'evt-test-9901',
         name: 'Test: 1-Min Blinds',
         startDate: new Date().toISOString().split('T')[0],
         startTime: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false}), // Starts now
@@ -305,7 +305,7 @@ export const SEED_TOURNAMENTS: Tournament[] = [
         tableIds: ['t1']
     },
     {
-        id: 'tour_test_breaks',
+        id: 'evt-test-9902',
         name: 'Test: Frequent Breaks',
         startDate: new Date().toISOString().split('T')[0],
         startTime: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false}), // Starts now
@@ -328,7 +328,7 @@ export const SEED_TOURNAMENTS: Tournament[] = [
         tableIds: ['t2']
     },
     {
-        id: 'tour_hr',
+        id: 'evt-2023-0900',
         name: 'High Roller Championship',
         startDate: new Date(Date.now() + 86400000 * 14).toISOString().split('T')[0],
         startTime: '16:00',

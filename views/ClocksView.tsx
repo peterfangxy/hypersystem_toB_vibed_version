@@ -14,9 +14,10 @@ import {
   Clock,
   Play,
   Coins,
-  Calendar
+  Calendar,
+  Minimize2
 } from 'lucide-react';
-import { Routes, Route, Navigate, NavLink } from 'react-router-dom';
+import { Routes, Route, Navigate, NavLink, useNavigate, useParams } from 'react-router-dom';
 import { ClockConfig, Tournament, TournamentRegistration, TournamentStructure } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
@@ -24,13 +25,18 @@ import ClockEditor from '../components/ClockEditor';
 import ClockDisplay from '../components/ClockDisplay';
 import { useLanguage } from '../contexts/LanguageContext';
 
-// --- Sub-Component: Live Clock Runner (Overlay) ---
-const LiveClockRunner = ({ tournament, onClose }: { tournament: Tournament, onClose: () => void }) => {
+// --- Sub-Component: Live Clock Runner (Page) ---
+const LiveClockRunner = () => {
+  const { tournamentId } = useParams();
+  const navigate = useNavigate();
+  const [tournament, setTournament] = useState<Tournament | null>(null);
+  
   const [currentTime, setCurrentTime] = useState(new Date());
   const [timerSeconds, setTimerSeconds] = useState(0); 
   const [config, setConfig] = useState<ClockConfig | null>(null);
   const [structure, setStructure] = useState<TournamentStructure | null>(null);
   const [dimensions, setDimensions] = useState({ w: window.innerWidth, h: window.innerHeight });
+  const [isFullscreen, setIsFullscreen] = useState(false);
   
   // Logic State
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
@@ -47,42 +53,50 @@ const LiveClockRunner = ({ tournament, onClose }: { tournament: Tournament, onCl
 
   // 0. Fullscreen & Resize Lifecycle
   useEffect(() => {
-      // Handle Window Resize
       const handleResize = () => {
           setDimensions({ w: window.innerWidth, h: window.innerHeight });
       };
 
-      // Handle Fullscreen Exit (ESC or F11)
       const handleFullscreenChange = () => {
-          if (!document.fullscreenElement) {
-              onClose();
-          }
-      };
-
-      // Handle direct ESC key (fallback if not in fullscreen or browser passes it through)
-      const handleKeyDown = (e: KeyboardEvent) => {
-          if (e.key === 'Escape') {
-              if (document.fullscreenElement) {
-                  document.exitFullscreen().catch(console.error);
-              } else {
-                  onClose();
-              }
+          const isFs = !!document.fullscreenElement;
+          setIsFullscreen(isFs);
+          if (!isFs) {
+              // If user exits fullscreen via ESC, we navigate back to list
+              navigate('/clocks/live');
           }
       };
 
       window.addEventListener('resize', handleResize);
       document.addEventListener('fullscreenchange', handleFullscreenChange);
-      document.addEventListener('keydown', handleKeyDown);
       
+      // Initial check
+      setIsFullscreen(!!document.fullscreenElement);
+
       return () => {
           window.removeEventListener('resize', handleResize);
           document.removeEventListener('fullscreenchange', handleFullscreenChange);
-          document.removeEventListener('keydown', handleKeyDown);
+          // Safety: Exit fullscreen if unmounting (e.g. back button)
+          if (document.fullscreenElement) {
+              document.exitFullscreen().catch(() => {});
+          }
       };
-  }, [onClose]);
+  }, [navigate]);
 
-  // 1. Initial Data Load (Runs once or when tournament/structure changes)
+  // 1. Fetch Tournament Data
   useEffect(() => {
+      const t = DataService.getTournaments().find(t => t.id === tournamentId);
+      if (t) {
+          setTournament(t);
+      } else {
+          // Invalid ID
+          navigate('/clocks/live');
+      }
+  }, [tournamentId, navigate]);
+
+  // 2. Initial Data Load (Runs once or when tournament/structure changes)
+  useEffect(() => {
+    if (!tournament) return;
+
     const allConfigs = DataService.getClockConfigs();
     const specificConfig = allConfigs.find(c => c.id === tournament.clockConfigId);
     const defaultConfig = allConfigs.find(c => c.isDefault);
@@ -107,8 +121,10 @@ const LiveClockRunner = ({ tournament, onClose }: { tournament: Tournament, onCl
     });
   }, [tournament]);
 
-  // 2. Timer Loop (Calculates exact position in structure based on Wall Clock Time)
+  // 3. Timer Loop (Calculates exact position in structure based on Wall Clock Time)
   useEffect(() => {
+    if (!tournament) return;
+
     const updateTimer = () => {
         const now = new Date();
         setCurrentTime(now);
@@ -187,15 +203,26 @@ const LiveClockRunner = ({ tournament, onClose }: { tournament: Tournament, onCl
     return () => clearInterval(timer);
   }, [tournament, structure]);
 
-  const handleManualClose = () => {
-      if (document.fullscreenElement) {
-          document.exitFullscreen().catch(err => console.error(err));
+  const toggleFullscreen = async () => {
+      if (!document.fullscreenElement) {
+          try {
+              await document.documentElement.requestFullscreen();
+          } catch(e) { console.error(e); }
       } else {
-          onClose();
+          document.exitFullscreen().catch(console.error);
       }
   };
 
-  if (!config) return <div className="fixed inset-0 bg-black z-50 flex items-center justify-center text-white">Loading configuration...</div>;
+  const handleClose = () => {
+      if (document.fullscreenElement) {
+          document.exitFullscreen().catch(console.error);
+          // The event listener will trigger navigation
+      } else {
+          navigate('/clocks/live');
+      }
+  };
+
+  if (!tournament || !config) return <div className="fixed inset-0 bg-black z-50 flex items-center justify-center text-white font-bold">Loading Clock...</div>;
 
   const formatSeconds = (totalSeconds: number) => {
     const m = Math.floor(totalSeconds / 60);
@@ -288,13 +315,25 @@ const LiveClockRunner = ({ tournament, onClose }: { tournament: Tournament, onCl
         scale={Math.min(dimensions.w / 1280, dimensions.h / 720)} 
         className="w-full h-full flex items-center justify-center"
       />
-      {/* Hidden control to exit via mouse if needed */}
-      <button 
-        onClick={handleManualClose}
-        className="absolute top-4 right-4 bg-black/30 hover:bg-red-500/80 text-white/50 hover:text-white p-3 rounded-full backdrop-blur-md transition-all z-[110] group cursor-pointer opacity-0 hover:opacity-100"
-      >
-        <X size={24} />
-      </button>
+      
+      {/* Control Overlay */}
+      <div className="absolute top-4 right-4 flex gap-2 z-[110] opacity-0 hover:opacity-100 transition-opacity">
+          <button 
+            onClick={toggleFullscreen}
+            className="bg-black/30 hover:bg-black/60 text-white/50 hover:text-white p-3 rounded-full backdrop-blur-md transition-all"
+            title={isFullscreen ? "Exit Fullscreen" : "Maximize"}
+          >
+            {isFullscreen ? <Minimize2 size={24} /> : <Maximize2 size={24} />}
+          </button>
+          
+          <button 
+            onClick={handleClose}
+            className="bg-black/30 hover:bg-red-500/80 text-white/50 hover:text-white p-3 rounded-full backdrop-blur-md transition-all"
+            title="Close Clock"
+          >
+            <X size={24} />
+          </button>
+      </div>
     </div>
   );
 };
@@ -450,9 +489,9 @@ const ClockLayouts = () => {
 // --- Sub-Component: Live Tournaments List ---
 const LiveClocks = () => {
     const { t } = useLanguage();
+    const navigate = useNavigate();
     const [activeTournaments, setActiveTournaments] = useState<Tournament[]>([]);
     const [registrationsMap, setRegistrationsMap] = useState<Record<string, TournamentRegistration[]>>({});
-    const [fullScreenTournament, setFullScreenTournament] = useState<Tournament | null>(null);
 
     useEffect(() => {
         refreshData();
@@ -488,8 +527,8 @@ const LiveClocks = () => {
         } catch (err) {
             console.warn("Fullscreen denied:", err);
         }
-        // Then set state to render the overlay
-        setFullScreenTournament(tournament);
+        // Navigate to the live clock route
+        navigate(tournament.id);
     };
 
     return (
@@ -562,13 +601,6 @@ const LiveClocks = () => {
                   })}
               </div>
            )}
-
-           {fullScreenTournament && (
-               <LiveClockRunner 
-                  tournament={fullScreenTournament} 
-                  onClose={() => setFullScreenTournament(null)} 
-               />
-           )}
         </div>
     );
 };
@@ -590,8 +622,9 @@ const ClocksView = () => {
       <div className="flex gap-8 mb-6 border-b border-[#222]">
         <NavLink
           to="live"
+          end={false} // Allow matching sub-routes but check below manually if needed or rely on NavLink smarts
           className={({isActive}) => `pb-4 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
-            isActive 
+            isActive && location.hash.includes('/live') // basic check, NavLink isActive usually enough
               ? 'text-white' 
               : 'text-gray-500 hover:text-gray-300'
           }`}
@@ -634,6 +667,7 @@ const ClocksView = () => {
       <div className="flex-1 relative">
           <Routes>
               <Route path="live" element={<LiveClocks />} />
+              <Route path="live/:tournamentId" element={<LiveClockRunner />} />
               <Route path="layouts" element={<ClockLayouts />} />
               <Route index element={<Navigate to="live" replace />} />
           </Routes>

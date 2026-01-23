@@ -232,9 +232,15 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
 
   const getModalTitle = () => {
     if (initialData) {
-        if (isReadOnly) return 'Tournament Details (Read Only)';
-        if (isTemplateMode) return t('tournaments.form.titleEditTemplate');
-        return t('tournaments.form.titleEdit');
+        const mainTitle = isReadOnly ? 'Tournament Details (Read Only)' : (isTemplateMode ? t('tournaments.form.titleEditTemplate') : t('tournaments.form.titleEdit'));
+        return (
+            <div>
+                <h2 className="text-xl font-bold text-white">{mainTitle}</h2>
+                {!isTemplateMode && initialData.id && (
+                    <p className="text-xs text-gray-500 font-mono mt-1 uppercase tracking-wider">ID: {initialData.id}</p>
+                )}
+            </div>
+        );
     }
     return isTemplateMode ? t('tournaments.form.titleNewTemplate') : t('tournaments.form.titleNew');
   };
