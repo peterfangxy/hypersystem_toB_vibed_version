@@ -26,10 +26,12 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 // --- Sub-Component: Live Clock Runner (Overlay) ---
 const LiveClockRunner = ({ tournament, onClose }: { tournament: Tournament, onClose: () => void }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [timerSeconds, setTimerSeconds] = useState(0); 
   const [config, setConfig] = useState<ClockConfig | null>(null);
   const [structure, setStructure] = useState<TournamentStructure | null>(null);
+  const [dimensions, setDimensions] = useState({ w: window.innerWidth, h: window.innerHeight });
   
   // Logic State
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
@@ -43,6 +45,46 @@ const LiveClockRunner = ({ tournament, onClose }: { tournament: Tournament, onCl
     avgStack: 0,
     prizePool: 0
   });
+
+  // 0. Fullscreen & Resize Handling
+  useEffect(() => {
+      const enterFullscreen = async () => {
+          if (containerRef.current) {
+              try {
+                  await containerRef.current.requestFullscreen();
+              } catch (err) {
+                  console.error("Error attempting to enable fullscreen:", err);
+              }
+          }
+      };
+
+      const handleFullscreenChange = () => {
+          // If we are no longer in fullscreen (e.g. user pressed ESC), close the clock
+          if (!document.fullscreenElement) {
+              onClose();
+          }
+      };
+
+      const handleResize = () => {
+          setDimensions({ w: window.innerWidth, h: window.innerHeight });
+      };
+
+      // Enter fullscreen immediately
+      enterFullscreen();
+
+      // Listeners
+      document.addEventListener('fullscreenchange', handleFullscreenChange);
+      window.addEventListener('resize', handleResize);
+      
+      return () => {
+          document.removeEventListener('fullscreenchange', handleFullscreenChange);
+          window.removeEventListener('resize', handleResize);
+          // Force exit fullscreen if component unmounts but still in fullscreen mode
+          if (document.fullscreenElement) {
+              document.exitFullscreen().catch(err => console.error(err));
+          }
+      };
+  }, []); // Run once on mount
 
   // 1. Initial Data Load (Runs once or when tournament/structure changes)
   useEffect(() => {
@@ -150,6 +192,14 @@ const LiveClockRunner = ({ tournament, onClose }: { tournament: Tournament, onCl
     return () => clearInterval(timer);
   }, [tournament, structure]);
 
+  const handleManualClose = () => {
+      if (document.fullscreenElement) {
+          document.exitFullscreen().catch(err => console.error(err));
+      } else {
+          onClose();
+      }
+  };
+
   if (!config) return <div className="fixed inset-0 bg-black z-50 flex items-center justify-center text-white">Loading configuration...</div>;
 
   const formatSeconds = (totalSeconds: number) => {
@@ -235,16 +285,17 @@ const LiveClockRunner = ({ tournament, onClose }: { tournament: Tournament, onCl
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black overflow-hidden animate-in fade-in duration-500">
+    <div ref={containerRef} className="fixed inset-0 z-50 bg-black overflow-hidden animate-in fade-in duration-500">
       <ClockDisplay 
         config={config} 
         data={getClockData()} 
-        scale={Math.min(window.innerWidth / 1280, window.innerHeight / 720)} // Simple responsive fit
+        // Dynamic scaling based on current window dimensions (which updates on resize/fullscreen)
+        scale={Math.min(dimensions.w / 1280, dimensions.h / 720)} 
         className="w-full h-full flex items-center justify-center"
       />
       <button 
-        onClick={onClose}
-        className="absolute top-4 right-4 bg-black/50 hover:bg-red-500/80 text-white p-3 rounded-full backdrop-blur-md transition-all z-[60] group"
+        onClick={handleManualClose}
+        className="absolute top-4 right-4 bg-black/50 hover:bg-red-500/80 text-white p-3 rounded-full backdrop-blur-md transition-all z-[60] group cursor-pointer"
       >
         <X size={24} />
       </button>
@@ -402,7 +453,6 @@ const ClockLayouts = () => {
 
 // --- Sub-Component: Live Tournaments List ---
 const LiveClocks = () => {
-    // ... (Same as before, simplified for this snippet context)
     const { t } = useLanguage();
     const [activeTournaments, setActiveTournaments] = useState<Tournament[]>([]);
     const [registrationsMap, setRegistrationsMap] = useState<Record<string, TournamentRegistration[]>>({});
