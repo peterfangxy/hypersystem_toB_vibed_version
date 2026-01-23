@@ -113,21 +113,38 @@ const ClockRunner = () => {
           }
           setTableInfo(table);
 
-          // Find active tournaments using this table
-          const activeTournaments = DataService.getTournaments().filter(t => 
-              ['In Progress', 'Registration'].includes(t.status || '') && 
+          // Get all assigned tournaments
+          const assignedTournaments = DataService.getTournaments().filter(t => 
               t.tableIds && t.tableIds.includes(tableId)
           );
 
-          if (activeTournaments.length === 0) {
-              setStatus('idle');
-              setActiveTournament(null);
-          } else if (activeTournaments.length > 1) {
+          const inProgress = assignedTournaments.filter(t => t.status === 'In Progress');
+          const registration = assignedTournaments.filter(t => t.status === 'Registration');
+
+          // Logic:
+          // 1. In Progress takes absolute priority.
+          // 2. If > 1 In Progress, it's an error (physical overlap).
+          // 3. If 0 In Progress, look for Registration.
+          // 4. If Registration exists, pick the earliest start time (upcoming).
+          
+          if (inProgress.length > 1) {
               setStatus('error');
               setActiveTournament(null);
-          } else {
-              setActiveTournament(activeTournaments[0]);
+          } else if (inProgress.length === 1) {
+              setActiveTournament(inProgress[0]);
               setStatus('active');
+          } else if (registration.length > 0) {
+              // Sort by date to find the next upcoming event
+              registration.sort((a, b) => {
+                  const dateA = new Date(`${a.startDate}T${a.startTime}`).getTime();
+                  const dateB = new Date(`${b.startDate}T${b.startTime}`).getTime();
+                  return dateA - dateB;
+              });
+              setActiveTournament(registration[0]);
+              setStatus('active');
+          } else {
+              setStatus('idle');
+              setActiveTournament(null);
           }
       }
   }, [tournamentId, tableId, navigate]);
@@ -178,6 +195,7 @@ const ClockRunner = () => {
         const elapsedSeconds = (now.getTime() - start.getTime()) / 1000;
 
         if (elapsedSeconds < 0) {
+            // Before start, show first level duration
             if (structure && structure.items.length > 0) {
                  setTimerSeconds(structure.items[0].duration * 60);
             } else {
@@ -429,17 +447,28 @@ const TableClocksList = () => {
         const allTables = DataService.getTables().filter(t => t.status !== 'Archived');
         setTables(allTables);
 
-        const tournaments = DataService.getTournaments().filter(t => ['In Progress', 'Registration'].includes(t.status || ''));
+        const allTournaments = DataService.getTournaments();
         
         const mapping: Record<string, string | null> = {};
         
         allTables.forEach(table => {
-            // Find tournaments running on this table
-            const matches = tournaments.filter(t => t.tableIds && t.tableIds.includes(table.id));
-            if (matches.length === 1) {
-                mapping[table.id] = matches[0].name;
-            } else if (matches.length > 1) {
+            const assigned = allTournaments.filter(t => t.tableIds && t.tableIds.includes(table.id));
+            
+            const inProgress = assigned.filter(t => t.status === 'In Progress');
+            const registration = assigned.filter(t => t.status === 'Registration');
+
+            if (inProgress.length > 1) {
                 mapping[table.id] = 'ERROR: Overlap';
+            } else if (inProgress.length === 1) {
+                mapping[table.id] = inProgress[0].name;
+            } else if (registration.length > 0) {
+                 // Sort to find the one we would show
+                 registration.sort((a, b) => {
+                    const dateA = new Date(`${a.startDate}T${a.startTime}`).getTime();
+                    const dateB = new Date(`${b.startDate}T${b.startTime}`).getTime();
+                    return dateA - dateB;
+                });
+                mapping[table.id] = registration[0].name; // Show the upcoming one
             } else {
                 mapping[table.id] = null;
             }
