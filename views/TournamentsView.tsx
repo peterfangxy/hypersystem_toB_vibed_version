@@ -373,12 +373,7 @@ const TournamentsView = () => {
 
                                     <button 
                                         onClick={() => openEdit(tournament)}
-                                        disabled={tournament.status === 'Completed' || tournament.status === 'Cancelled'}
-                                        className={`p-1.5 rounded-full transition-colors ${
-                                            tournament.status === 'Completed' || tournament.status === 'Cancelled'
-                                            ? 'text-gray-700 cursor-not-allowed'
-                                            : 'text-gray-500 hover:text-white hover:bg-[#333]'
-                                        }`}
+                                        className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
                                         title={t('common.edit')}
                                     >
                                         <Edit2 size={16} />

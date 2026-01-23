@@ -24,6 +24,7 @@ import { THEME } from '../theme';
 import { BuyinMgmtModal, EnrichedRegistration } from './BuyinMgmtModal';
 import AddPlayerModal from './AddPlayerModal';
 import { useLanguage } from '../contexts/LanguageContext';
+import NumberInput from './ui/NumberInput';
 
 interface TournamentDetailPanelProps {
   tournament: Tournament;
@@ -318,19 +319,20 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
                 <tr>
                   <th className="px-6 py-3 w-[25%]">{t('tournaments.detail.table.player')}</th>
                   <th className="px-6 py-3 w-[10%]">{t('tournaments.detail.table.status')}</th>
-                  <th className="px-6 py-3 w-[20%]">{t('tournaments.detail.table.seat')}</th>
+                  <th className="px-6 py-3 w-[15%]">{t('tournaments.detail.table.seat')}</th>
                   <th className="px-6 py-3 text-center w-[10%]">{t('tournaments.detail.table.entries')}</th>
-                  <th className="px-6 py-3 text-right w-[15%]">{t('tournaments.detail.table.chips')}</th>
+                  <th className="px-6 py-3 text-right w-[10%]">{t('tournaments.detail.table.chipsIn')}</th>
+                  <th className="px-6 py-3 text-right w-[15%]">{t('tournaments.detail.table.chipsOut')}</th>
                   {isTournamentLocked && (
                        <th className="px-6 py-3 text-right text-brand-green w-[10%]">{t('tournaments.detail.table.winnings')}</th>
                   )}
-                  <th className="px-6 py-3 text-right w-[10%]">{t('tournaments.detail.table.manage')}</th>
+                  <th className="px-6 py-3 text-right w-[5%]">{t('tournaments.detail.table.manage')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#222]">
                 {enrichedRegistrations.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-gray-600 text-sm">
+                    <td colSpan={8} className="py-12 text-center text-gray-600 text-sm">
                       {registrationSearch ? t('common.noData') : t('common.noData')}
                     </td>
                   </tr>
@@ -415,29 +417,26 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
                           </span>
                       </td>
 
-                      {/* Chips Column */}
+                      {/* Chips In Column */}
                       <td className="px-6 py-3 text-right">
-                          <div className="flex flex-col items-end gap-1">
-                             <div className="text-[10px] text-gray-500 uppercase">
-                                 {t('tournaments.detail.table.in')}: <span className="text-gray-400 font-mono">{(reg.buyInCount * tournament.startingChips).toLocaleString()}</span>
-                             </div>
-                             <div className="flex items-center justify-end gap-2">
-                                 <input 
-                                      type="number" 
-                                      min="0"
-                                      value={reg.finalChipCount === 0 && document.activeElement !== document.getElementById(`chips-${reg.id}`) ? '' : reg.finalChipCount}
-                                      onChange={(e) => handleChipChange(reg.id, parseInt(e.target.value) || 0)}
-                                      placeholder={t('tournaments.detail.table.final')}
-                                      disabled={isTournamentLocked}
-                                      id={`chips-${reg.id}`}
-                                      className={`w-20 bg-[#151515] border rounded px-2 py-1 text-right text-white text-xs outline-none transition-colors placeholder:text-gray-700 font-mono ${
-                                      isTournamentLocked 
-                                      ? 'border-[#333] opacity-50 cursor-not-allowed' 
-                                      : 'border-[#333] focus:border-brand-green focus:bg-[#1A1A1A]'
-                                      }`}
-                                  />
-                             </div>
-                          </div>
+                          <span className="text-gray-400 font-mono text-sm">{(reg.buyInCount * tournament.startingChips).toLocaleString()}</span>
+                      </td>
+
+                      {/* Chips Out Column */}
+                      <td className="px-6 py-3 text-right">
+                          <NumberInput 
+                              value={reg.finalChipCount}
+                              onChange={(val) => handleChipChange(reg.id, val || 0)}
+                              min={0}
+                              disabled={isTournamentLocked}
+                              size="sm"
+                              align="right"
+                              className={`w-32 ml-auto ${isTournamentLocked ? 'opacity-50' : ''}`}
+                              variant="bordered"
+                              enableScroll={false}
+                              allowEmpty={true}
+                              placeholder="0"
+                          />
                        </td>
 
                       {/* Winnings Column */}

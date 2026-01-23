@@ -12,6 +12,7 @@ import { Tournament, TournamentRegistration, Member, PokerTable, TournamentTrans
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
 import { Modal } from './ui/Modal';
+import NumberInput from './ui/NumberInput';
 
 export interface EnrichedRegistration extends TournamentRegistration {
     member?: Member;
@@ -175,15 +176,21 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                                             {/* Inputs with right alignment */}
                                             {['rebuyDiscount', 'membershipDiscount', 'voucherDiscount', 'campaignDiscount', 'depositPaid'].map((field) => (
                                                 <td key={field} className="px-2 py-3 text-right">
-                                                    <input 
-                                                        type="number"
-                                                        min="0"
+                                                    <NumberInput 
                                                         value={(tx as any)[field]}
-                                                        onChange={(e) => handleTransactionChange(idx, field as keyof TournamentTransaction, parseFloat(e.target.value) || 0)}
-                                                        className={`w-24 bg-[#222] border rounded px-2 py-1 text-right text-sm text-white outline-none focus:border-brand-green focus:bg-[#111] transition-colors ${
-                                                            field === 'depositPaid' && isOverBalance ? 'border-red-500/50 text-red-200' : 'border-[#333]'
+                                                        onChange={(val) => handleTransactionChange(idx, field as keyof TournamentTransaction, val ?? 0)}
+                                                        min={0}
+                                                        allowEmpty={true}
+                                                        enableScroll={false}
+                                                        align="right"
+                                                        size="sm"
+                                                        variant="transparent"
+                                                        className={`w-24 border rounded ${
+                                                            field === 'depositPaid' && isOverBalance 
+                                                            ? 'border-red-500/50 bg-red-900/10' 
+                                                            : 'border-[#333] bg-[#222]'
                                                         }`}
-                                                        onFocus={e => e.target.select()}
+                                                        placeholder="0"
                                                     />
                                                 </td>
                                             ))}

@@ -189,7 +189,9 @@ export const translations = {
           winnings: "Winnings",
           manage: "Manage",
           in: "In",
-          final: "Final"
+          final: "Final",
+          chipsIn: "Chips In",
+          chipsOut: "Chips Out"
         }
       }
     },
@@ -594,7 +596,9 @@ export const translations = {
           winnings: "奖金",
           manage: "管理",
           in: "入",
-          final: "出"
+          final: "出",
+          chipsIn: "初始筹码",
+          chipsOut: "最终筹码"
         }
       }
     },
@@ -723,7 +727,7 @@ export const translations = {
         displayOrder: "显示层级",
         duplicate: "复制组件",
         remove: "移除组件",
-        selectToEdit: "在画布上选择一个组件以编辑其属性。"
+        selectToEdit: "Select a widget on the canvas to edit its properties."
       },
       widgets: {
         tournament_name: "赛事名称",
