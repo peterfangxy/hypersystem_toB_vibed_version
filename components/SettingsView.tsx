@@ -20,91 +20,26 @@ import { ClubSettings, TeamMember, AccessRole } from '../types';
 import * as DataService from '../services/dataService';
 import { useLanguage } from '../contexts/LanguageContext';
 
-const SettingsView = () => {
-  const { t } = useLanguage();
-  const [settings, setSettings] = useState<ClubSettings>(DataService.getClubSettings());
-  const [team, setTeam] = useState<TeamMember[]>([]);
-  const [isSaved, setIsSaved] = useState(false);
+const getRoleBadge = (role: AccessRole) => {
+    switch(role) {
+        case 'Owner': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
+        case 'Admin': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+        case 'Operator': return 'bg-brand-green/10 text-brand-green border-brand-green/20';
+        default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
+    }
+};
 
-  useEffect(() => {
-    setTeam(DataService.getTeamMembers());
-  }, []);
+// --- Extracted Components ---
 
-  // -- Theme Helper --
-  const applyTheme = (theme: typeof settings.theme) => {
-      const root = document.documentElement;
-      root.style.setProperty('--color-brand-green', theme.primaryColor);
-      root.style.setProperty('--color-brand-black', theme.backgroundColor);
-      root.style.setProperty('--color-brand-dark', theme.cardColor);
-      
-      // Typography & Borders
-      root.style.setProperty('--color-brand-white', theme.textColor);
-      root.style.setProperty('--color-brand-gray', theme.secondaryTextColor);
-      root.style.setProperty('--color-brand-border', theme.borderColor);
-  };
-
-  const handleSaveSettings = (e?: React.FormEvent) => {
-      if (e) e.preventDefault();
-      DataService.saveClubSettings(settings);
-      applyTheme(settings.theme);
-      
-      setIsSaved(true);
-      setTimeout(() => setIsSaved(false), 2000);
-  };
-
-  const handleThemeChange = (key: keyof typeof settings.theme, value: string) => {
-      const newTheme = { ...settings.theme, [key]: value };
-      setSettings({ ...settings, theme: newTheme });
-      applyTheme(newTheme); // Live preview
-  };
-
-  const handleResetTheme = () => {
-      const defaults = {
-          primaryColor: '#06C167',
-          backgroundColor: '#000000',
-          cardColor: '#171717',
-          textColor: '#FFFFFF',
-          secondaryTextColor: '#A3A3A3',
-          borderColor: '#333333'
-      };
-      setSettings(prev => ({ ...prev, theme: defaults }));
-      applyTheme(defaults);
-  };
-
-  // -- Team Logic --
-  const handleInviteUser = () => {
-      // Mock invite
-      const newMember: TeamMember = {
-          id: crypto.randomUUID(),
-          fullName: 'New User',
-          email: 'user@example.com',
-          role: 'Viewer',
-          status: 'Pending',
-          avatarUrl: ''
-      };
-      DataService.saveTeamMember(newMember);
-      setTeam(DataService.getTeamMembers());
-  };
-
-  const handleRemoveUser = (id: string) => {
-      if(window.confirm(t('settings.team.confirmRemove'))) {
-          DataService.deleteTeamMember(id);
-          setTeam(DataService.getTeamMembers());
-      }
-  };
-
-  const getRoleBadge = (role: AccessRole) => {
-      switch(role) {
-          case 'Owner': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
-          case 'Admin': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
-          case 'Operator': return 'bg-brand-green/10 text-brand-green border-brand-green/20';
-          default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
-      }
-  };
-
-  // --- Sub-Components ---
-  const GeneralSettings = () => (
-      <form onSubmit={handleSaveSettings} className={`${THEME.card} border ${THEME.border} rounded-3xl p-8 space-y-6 animate-in fade-in`}>
+const GeneralSettings = ({ settings, setSettings, onSave }: { 
+    settings: ClubSettings, 
+    setSettings: React.Dispatch<React.SetStateAction<ClubSettings>>, 
+    onSave: (e?: React.FormEvent) => void 
+}) => {
+    const { t } = useLanguage();
+    
+    return (
+      <form onSubmit={onSave} className={`${THEME.card} border ${THEME.border} rounded-3xl p-8 space-y-6 animate-in fade-in`}>
           <div className="space-y-4">
               <h3 className="text-lg font-bold text-white mb-6">{t('settings.general.title')}</h3>
               
@@ -178,9 +113,17 @@ const SettingsView = () => {
               </button>
           </div>
       </form>
-  );
+    );
+};
 
-  const TeamSettings = () => (
+const TeamSettings = ({ team, onInvite, onRemove }: {
+    team: TeamMember[],
+    onInvite: () => void,
+    onRemove: (id: string) => void
+}) => {
+    const { t } = useLanguage();
+    
+    return (
       <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden animate-in fade-in`}>
           <div className="p-6 border-b border-[#222] flex justify-between items-center">
               <div>
@@ -188,7 +131,7 @@ const SettingsView = () => {
                   <p className="text-sm text-gray-500">{t('settings.team.subtitle')}</p>
               </div>
               <button 
-                 onClick={handleInviteUser}
+                 onClick={onInvite}
                  className={`${THEME.buttonPrimary} px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2`}
               >
                   <Plus size={16} /> {t('settings.team.invite')}
@@ -221,7 +164,7 @@ const SettingsView = () => {
                           </div>
 
                           <button 
-                            onClick={() => handleRemoveUser(member.id)}
+                            onClick={() => onRemove(member.id)}
                             disabled={member.role === 'Owner'}
                             className="p-2 text-gray-600 hover:text-red-500 hover:text-white hover:bg-[#111] rounded-full transition-colors disabled:opacity-0"
                           >
@@ -241,9 +184,18 @@ const SettingsView = () => {
               </div>
           </div>
       </div>
-  );
+    );
+};
 
-  const ThemeSettings = () => (
+const ThemeSettings = ({ settings, onThemeChange, onReset, onSave }: {
+    settings: ClubSettings,
+    onThemeChange: (key: keyof ClubSettings['theme'], value: string) => void,
+    onReset: () => void,
+    onSave: () => void
+}) => {
+    const { t } = useLanguage();
+
+    return (
       <div className={`${THEME.card} border ${THEME.border} rounded-3xl p-8 space-y-8 animate-in fade-in`}>
            <div className="flex justify-between items-start">
               <div>
@@ -251,7 +203,7 @@ const SettingsView = () => {
                   <p className="text-gray-400 text-sm">{t('settings.appearance.subtitle')}</p>
               </div>
               <button 
-                 onClick={handleResetTheme}
+                 onClick={onReset}
                  className="text-xs font-bold text-gray-500 hover:text-white flex items-center gap-1 bg-[#222] px-3 py-1.5 rounded-lg border border-[#333]"
               >
                   <RotateCcw size={12} /> {t('settings.appearance.reset')}
@@ -270,7 +222,7 @@ const SettingsView = () => {
                               <input 
                                 type="color" 
                                 value={settings.theme.primaryColor}
-                                onChange={(e) => handleThemeChange('primaryColor', e.target.value)}
+                                onChange={(e) => onThemeChange('primaryColor', e.target.value)}
                                 className="w-12 h-12 rounded-xl cursor-pointer bg-transparent border-none p-0"
                               />
                               <div className="flex flex-col">
@@ -286,7 +238,7 @@ const SettingsView = () => {
                               <input 
                                 type="color" 
                                 value={settings.theme.backgroundColor}
-                                onChange={(e) => handleThemeChange('backgroundColor', e.target.value)}
+                                onChange={(e) => onThemeChange('backgroundColor', e.target.value)}
                                 className="w-12 h-12 rounded-xl cursor-pointer bg-transparent border-none p-0"
                               />
                               <div className="flex flex-col">
@@ -302,7 +254,7 @@ const SettingsView = () => {
                               <input 
                                 type="color" 
                                 value={settings.theme.cardColor}
-                                onChange={(e) => handleThemeChange('cardColor', e.target.value)}
+                                onChange={(e) => onThemeChange('cardColor', e.target.value)}
                                 className="w-12 h-12 rounded-xl cursor-pointer bg-transparent border-none p-0"
                               />
                               <div className="flex flex-col">
@@ -325,7 +277,7 @@ const SettingsView = () => {
                               <input 
                                 type="color" 
                                 value={settings.theme.textColor || '#FFFFFF'}
-                                onChange={(e) => handleThemeChange('textColor', e.target.value)}
+                                onChange={(e) => onThemeChange('textColor', e.target.value)}
                                 className="w-12 h-12 rounded-xl cursor-pointer bg-transparent border-none p-0"
                               />
                               <div className="flex flex-col">
@@ -341,7 +293,7 @@ const SettingsView = () => {
                               <input 
                                 type="color" 
                                 value={settings.theme.secondaryTextColor || '#A3A3A3'}
-                                onChange={(e) => handleThemeChange('secondaryTextColor', e.target.value)}
+                                onChange={(e) => onThemeChange('secondaryTextColor', e.target.value)}
                                 className="w-12 h-12 rounded-xl cursor-pointer bg-transparent border-none p-0"
                               />
                               <div className="flex flex-col">
@@ -357,7 +309,7 @@ const SettingsView = () => {
                               <input 
                                 type="color" 
                                 value={settings.theme.borderColor || '#333333'}
-                                onChange={(e) => handleThemeChange('borderColor', e.target.value)}
+                                onChange={(e) => onThemeChange('borderColor', e.target.value)}
                                 className="w-12 h-12 rounded-xl cursor-pointer bg-transparent border-none p-0"
                               />
                               <div className="flex flex-col">
@@ -390,12 +342,86 @@ const SettingsView = () => {
           </div>
 
           <div className="pt-4 flex justify-end">
-               <button onClick={() => handleSaveSettings()} className={`${THEME.buttonPrimary} px-8 py-3 rounded-xl font-bold flex items-center gap-2`}>
+               <button onClick={() => onSave()} className={`${THEME.buttonPrimary} px-8 py-3 rounded-xl font-bold flex items-center gap-2`}>
                   <Save size={18} /> {t('settings.appearance.save')}
               </button>
           </div>
       </div>
-  );
+    );
+};
+
+const SettingsView = () => {
+  const { t } = useLanguage();
+  const [settings, setSettings] = useState<ClubSettings>(DataService.getClubSettings());
+  const [team, setTeam] = useState<TeamMember[]>([]);
+  const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    setTeam(DataService.getTeamMembers());
+  }, []);
+
+  // -- Theme Helper --
+  const applyTheme = (theme: typeof settings.theme) => {
+      const root = document.documentElement;
+      root.style.setProperty('--color-brand-green', theme.primaryColor);
+      root.style.setProperty('--color-brand-black', theme.backgroundColor);
+      root.style.setProperty('--color-brand-dark', theme.cardColor);
+      
+      // Typography & Borders
+      root.style.setProperty('--color-brand-white', theme.textColor);
+      root.style.setProperty('--color-brand-gray', theme.secondaryTextColor);
+      root.style.setProperty('--color-brand-border', theme.borderColor);
+  };
+
+  const handleSaveSettings = (e?: React.FormEvent) => {
+      if (e) e.preventDefault();
+      DataService.saveClubSettings(settings);
+      applyTheme(settings.theme);
+      
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 2000);
+  };
+
+  const handleThemeChange = (key: keyof typeof settings.theme, value: string) => {
+      const newTheme = { ...settings.theme, [key]: value };
+      setSettings({ ...settings, theme: newTheme });
+      applyTheme(newTheme); // Live preview
+  };
+
+  const handleResetTheme = () => {
+      const defaults = {
+          primaryColor: '#06C167',
+          backgroundColor: '#000000',
+          cardColor: '#171717',
+          textColor: '#FFFFFF',
+          secondaryTextColor: '#A3A3A3',
+          borderColor: '#333333'
+      };
+      setSettings(prev => ({ ...prev, theme: defaults }));
+      applyTheme(defaults);
+  };
+
+  // -- Team Logic --
+  const handleInviteUser = () => {
+      // Mock invite
+      const newMember: TeamMember = {
+          id: crypto.randomUUID(),
+          fullName: 'New User',
+          email: 'user@example.com',
+          role: 'Viewer',
+          status: 'Pending',
+          avatarUrl: ''
+      };
+      DataService.saveTeamMember(newMember);
+      setTeam(DataService.getTeamMembers());
+  };
+
+  const handleRemoveUser = (id: string) => {
+      if(window.confirm(t('settings.team.confirmRemove'))) {
+          DataService.deleteTeamMember(id);
+          setTeam(DataService.getTeamMembers());
+      }
+  };
 
   return (
     <div className="h-full flex flex-col w-full">
@@ -481,9 +507,9 @@ const SettingsView = () => {
       {/* Content Area */}
       <div className="flex-1 pb-10">
           <Routes>
-              <Route path="general" element={<GeneralSettings />} />
-              <Route path="team" element={<TeamSettings />} />
-              <Route path="appearance" element={<ThemeSettings />} />
+              <Route path="general" element={<GeneralSettings settings={settings} setSettings={setSettings} onSave={handleSaveSettings} />} />
+              <Route path="team" element={<TeamSettings team={team} onInvite={handleInviteUser} onRemove={handleRemoveUser} />} />
+              <Route path="appearance" element={<ThemeSettings settings={settings} onThemeChange={handleThemeChange} onReset={handleResetTheme} onSave={handleSaveSettings} />} />
               <Route index element={<Navigate to="general" replace />} />
           </Routes>
       </div>

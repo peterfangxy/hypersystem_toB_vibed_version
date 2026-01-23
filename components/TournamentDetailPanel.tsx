@@ -272,46 +272,8 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
   return (
     <div className="bg-[#111] rounded-b-3xl border-x border-b border-[#333] shadow-inner animate-in slide-in-from-top-4 duration-300 relative">
       
-      {/* Detail Metrics Header */}
-      <div className="flex flex-wrap items-center gap-6 p-6 border-b border-[#222] bg-[#151515]">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-brand-green/10 text-brand-green">
-                <Coins size={16} />
-            </div>
-            <div>
-                <div className="text-[10px] text-gray-500 font-bold uppercase">{t('tournaments.detail.prizePool')}</div>
-                <div className="text-base font-bold text-white">${totalPrizePool.toLocaleString()}</div>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-[#222] text-gray-400">
-                <Banknote size={16} />
-            </div>
-            <div>
-                <div className="text-[10px] text-gray-500 font-bold uppercase">{t('tournaments.detail.houseFees')}</div>
-                <div className="text-sm font-medium text-gray-300">${totalFees.toLocaleString()}</div>
-            </div>
-          </div>
-
-          <div className="ml-auto">
-              <button onClick={onClose} className="p-2 text-gray-500 hover:text-white rounded-full hover:bg-[#222]">
-                  <X size={20} />
-              </button>
-          </div>
-      </div>
-
-      {/* Processing Overlay */}
-      {isProcessing && (
-          <div className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center text-white rounded-b-3xl">
-              <Loader2 size={48} className="animate-spin text-brand-green mb-4" />
-              <h3 className="text-2xl font-bold mb-2">{t('tournaments.detail.calculating')}</h3>
-              <p className="text-gray-400">{t('tournaments.detail.verifying')}</p>
-          </div>
-      )}
-
-      {/* Controls */}
-      <div className="p-4 border-b border-[#222] flex gap-4 bg-[#111]">
+      {/* Condensed Header: Search, Add Player, Close */}
+      <div className="flex items-center gap-4 p-4 border-b border-[#222] bg-[#151515]">
           <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
               <input 
@@ -326,13 +288,28 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
           {!isTournamentLocked && (
               <button 
                 onClick={() => setIsAddPlayerOpen(true)}
-                className={`bg-[#222] hover:bg-[#2A2A2A] text-brand-green border border-brand-green/20 hover:border-brand-green/50 px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-sm transition-all`}
+                className={`bg-[#222] hover:bg-[#2A2A2A] text-brand-green border border-brand-green/20 hover:border-brand-green/50 px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-sm transition-all whitespace-nowrap`}
               >
                 <Plus size={16} />
                 <span>{t('tournaments.detail.addPlayer')}</span>
               </button>
           )}
+
+          <div className="h-8 w-px bg-[#333] mx-2"></div>
+
+          <button onClick={onClose} className="p-2 text-gray-500 hover:text-white rounded-full hover:bg-[#222] transition-colors">
+              <X size={20} />
+          </button>
       </div>
+
+      {/* Processing Overlay */}
+      {isProcessing && (
+          <div className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center text-white rounded-b-3xl">
+              <Loader2 size={48} className="animate-spin text-brand-green mb-4" />
+              <h3 className="text-2xl font-bold mb-2">{t('tournaments.detail.calculating')}</h3>
+              <p className="text-gray-400">{t('tournaments.detail.verifying')}</p>
+          </div>
+      )}
 
       {/* Table Container */}
       <div className="overflow-x-auto min-h-[300px]">
@@ -522,10 +499,24 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
             </table>
       </div>
 
-       {/* Reconciliation Footer */}
-       {isInProgress && (
-          <div className="bg-[#151515] border-t border-[#333] p-4 flex justify-between items-center rounded-b-3xl">
-              <div className="flex items-center gap-4 flex-1">
+       {/* Combined Footer: Financials + Chips + Actions */}
+       <div className="bg-[#151515] border-t border-[#333] p-4 flex flex-wrap gap-4 items-center justify-between rounded-b-3xl">
+          <div className="flex flex-wrap gap-4 flex-1">
+              
+              {/* Financials Group */}
+              <div className="flex items-center gap-3 pr-4 border-r border-[#333]">
+                  <div className="bg-[#222] px-3 py-2 rounded-lg border border-[#333]">
+                      <span className="text-brand-green block text-[10px] font-bold uppercase mb-0.5">{t('tournaments.detail.prizePool')}</span>
+                      <span className="text-white font-mono font-medium text-sm">${totalPrizePool.toLocaleString()}</span>
+                  </div>
+                  <div className="bg-[#222] px-3 py-2 rounded-lg border border-[#333]">
+                      <span className="text-gray-500 block text-[10px] font-bold uppercase mb-0.5">{t('tournaments.detail.houseFees')}</span>
+                      <span className="text-gray-300 font-mono font-medium text-sm">${totalFees.toLocaleString()}</span>
+                  </div>
+              </div>
+
+              {/* Chips Group */}
+              <div className="flex items-center gap-3">
                   <div className="bg-[#222] px-3 py-2 rounded-lg border border-[#333]">
                       <span className="text-gray-500 block text-[10px] font-bold uppercase mb-0.5">{t('tournaments.detail.chipsInPlay')}</span>
                       <span className="text-white font-mono font-medium text-sm">{totalChipsInPlay.toLocaleString()}</span>
@@ -548,11 +539,13 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
                       </div>
                   )}
               </div>
-              
+          </div>
+          
+          {isInProgress && (
               <button 
                   onClick={handleConfirmCompletion}
                   disabled={!isChipsBalanced || isProcessing}
-                  className={`px-6 py-2 rounded-xl font-bold flex items-center gap-2 shadow-lg transition-all active:scale-95 text-xs shrink-0 ${
+                  className={`px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition-all active:scale-95 text-xs shrink-0 ${
                       !isChipsBalanced || isProcessing
                       ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-[#333]'
                       : 'bg-brand-green text-black hover:bg-brand-green/90 shadow-green-500/20 hover:scale-105'
@@ -561,8 +554,8 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
                   {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <Trophy size={14} />}
                   {t('tournaments.detail.complete')}
               </button>
-          </div>
-        )}
+          )}
+      </div>
 
       <AddPlayerModal 
         isOpen={isAddPlayerOpen}

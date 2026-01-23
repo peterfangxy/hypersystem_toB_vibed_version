@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Plus, 
   Edit2, 
@@ -30,6 +30,7 @@ const TournamentsView = () => {
   const { t } = useLanguage();
   const location = useLocation();
   const isTemplatesTab = location.pathname.includes('/templates');
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [templates, setTemplates] = useState<Tournament[]>([]);
@@ -61,6 +62,39 @@ const TournamentsView = () => {
     setStatusFilter('All');
     setExpandedTournamentId(null);
   }, [isTemplatesTab]);
+
+  // Handle Auto-Scroll on Expand
+  useEffect(() => {
+    if (expandedTournamentId) {
+        // Use a timeout to ensure DOM layout has settled after expand/collapse animations or state updates
+        const timer = setTimeout(() => {
+            const container = scrollContainerRef.current;
+            const row = document.getElementById(`tournament-row-${expandedTournamentId}`);
+            
+            if (container && row) {
+                const containerRect = container.getBoundingClientRect();
+                const rowRect = row.getBoundingClientRect();
+                const currentScroll = container.scrollTop;
+                
+                // Calculate position relative to container
+                const relativeTop = rowRect.top - containerRect.top;
+                
+                // Target offset: 30px from top (matching sticky position)
+                const targetOffset = 30;
+                const diff = relativeTop - targetOffset;
+
+                // Only scroll if not already in position (with small tolerance)
+                if (Math.abs(diff) > 2) {
+                    container.scrollTo({
+                        top: currentScroll + diff,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+        }, 150); // 150ms delay for layout stability
+        return () => clearTimeout(timer);
+    }
+  }, [expandedTournamentId]);
 
   const refreshData = () => {
     setTournaments(DataService.getTournaments());
@@ -214,7 +248,7 @@ const TournamentsView = () => {
                 )}
             </div>
             ) : (
-            <div className="overflow-y-auto h-full relative">
+            <div ref={scrollContainerRef} className="overflow-y-auto h-full relative">
                 <table className="w-full text-left border-collapse">
                 <thead>
                     <tr className="text-xs uppercase text-gray-500 font-bold tracking-wider">
@@ -240,10 +274,11 @@ const TournamentsView = () => {
                     return (
                         <tbody key={tournament.id} className="border-b border-[#262626]">
                             <tr 
+                                id={`tournament-row-${tournament.id}`}
                                 onClick={() => toggleExpand(tournament.id)}
                                 className={`cursor-pointer transition-colors group ${
                                     isExpanded 
-                                    ? 'bg-[#222] sticky top-[48px] z-20 shadow-lg' 
+                                    ? 'bg-[#222] sticky top-[30px] z-20' 
                                     : 'hover:bg-[#222]'
                                 }`}
                             >
