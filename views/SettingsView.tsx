@@ -12,20 +12,24 @@ import {
   Mail, 
   Phone, 
   MapPin, 
-  RotateCcw
+  RotateCcw,
+  Settings
 } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink } from 'react-router-dom';
 import { THEME } from '../theme';
 import { ClubSettings, TeamMember, AccessRole } from '../types';
 import * as DataService from '../services/dataService';
 import { useLanguage } from '../contexts/LanguageContext';
+import RoleConfigModal from '../components/RoleConfigModal';
+import InviteMemberModal from '../components/InviteMemberModal';
 
 const getRoleBadge = (role: AccessRole) => {
     switch(role) {
         case 'Owner': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
         case 'Admin': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
         case 'Operator': return 'bg-brand-green/10 text-brand-green border-brand-green/20';
-        default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
+        case 'Viewer': return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
+        default: return 'bg-orange-500/10 text-orange-400 border-orange-500/20'; // Custom roles
     }
 };
 
@@ -116,10 +120,11 @@ const GeneralSettings = ({ settings, setSettings, onSave }: {
     );
 };
 
-const TeamSettings = ({ team, onInvite, onRemove }: {
+const TeamSettings = ({ team, onInvite, onRemove, onOpenConfig }: {
     team: TeamMember[],
     onInvite: () => void,
-    onRemove: (id: string) => void
+    onRemove: (id: string) => void,
+    onOpenConfig: () => void
 }) => {
     const { t } = useLanguage();
     
@@ -130,20 +135,28 @@ const TeamSettings = ({ team, onInvite, onRemove }: {
                   <h3 className="text-lg font-bold text-white">{t('settings.team.title')}</h3>
                   <p className="text-sm text-gray-500">{t('settings.team.subtitle')}</p>
               </div>
-              <button 
-                 onClick={onInvite}
-                 className={`${THEME.buttonPrimary} px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2`}
-              >
-                  <Plus size={16} /> {t('settings.team.invite')}
-              </button>
+              <div className="flex gap-3">
+                  <button 
+                     onClick={onOpenConfig}
+                     className="px-4 py-2 bg-[#222] hover:bg-[#2A2A2A] text-gray-300 border border-[#333] rounded-lg font-bold text-sm flex items-center gap-2 transition-all"
+                  >
+                      <Settings size={16} /> Access Configs
+                  </button>
+                  <button 
+                     onClick={onInvite}
+                     className={`${THEME.buttonPrimary} px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2`}
+                  >
+                      <Plus size={16} /> {t('settings.team.invite')}
+                  </button>
+              </div>
           </div>
           
           <div className="divide-y divide-[#222]">
               {team.map(member => (
                   <div key={member.id} className="p-4 flex items-center justify-between hover:bg-[#222] transition-colors group">
                       <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-full bg-[#111] flex items-center justify-center text-gray-400 font-bold">
-                              {member.avatarUrl ? <img src={member.avatarUrl} className="w-full h-full rounded-full object-cover"/> : member.fullName.charAt(0)}
+                          <div className="w-10 h-10 rounded-full bg-[#111] flex items-center justify-center text-gray-400 font-bold overflow-hidden">
+                              {member.avatarUrl ? <img src={member.avatarUrl} className="w-full h-full object-cover"/> : member.fullName.charAt(0)}
                           </div>
                           <div>
                               <div className="font-bold text-white">{member.fullName}</div>
@@ -355,6 +368,8 @@ const SettingsView = () => {
   const [settings, setSettings] = useState<ClubSettings>(DataService.getClubSettings());
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [isSaved, setIsSaved] = useState(false);
+  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
   useEffect(() => {
     setTeam(DataService.getTeamMembers());
@@ -402,13 +417,12 @@ const SettingsView = () => {
   };
 
   // -- Team Logic --
-  const handleInviteUser = () => {
-      // Mock invite
+  const handleSendInvite = (email: string, role: string) => {
       const newMember: TeamMember = {
           id: crypto.randomUUID(),
-          fullName: 'New User',
-          email: 'user@example.com',
-          role: 'Viewer',
+          fullName: email.split('@')[0], // Simple username assumption
+          email: email,
+          role: role,
           status: 'Pending',
           avatarUrl: ''
       };
@@ -508,11 +522,22 @@ const SettingsView = () => {
       <div className="flex-1 pb-10">
           <Routes>
               <Route path="general" element={<GeneralSettings settings={settings} setSettings={setSettings} onSave={handleSaveSettings} />} />
-              <Route path="team" element={<TeamSettings team={team} onInvite={handleInviteUser} onRemove={handleRemoveUser} />} />
+              <Route path="team" element={<TeamSettings team={team} onInvite={() => setIsInviteModalOpen(true)} onRemove={handleRemoveUser} onOpenConfig={() => setIsConfigModalOpen(true)} />} />
               <Route path="appearance" element={<ThemeSettings settings={settings} onThemeChange={handleThemeChange} onReset={handleResetTheme} onSave={handleSaveSettings} />} />
               <Route index element={<Navigate to="general" replace />} />
           </Routes>
       </div>
+
+      <RoleConfigModal 
+        isOpen={isConfigModalOpen}
+        onClose={() => setIsConfigModalOpen(false)}
+      />
+
+      <InviteMemberModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+        onInvite={handleSendInvite}
+      />
     </div>
   );
 };

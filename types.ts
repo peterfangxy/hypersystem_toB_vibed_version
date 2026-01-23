@@ -209,7 +209,20 @@ export interface MemberFinancials {
 
 // --- Settings & Access ---
 
-export type AccessRole = 'Owner' | 'Admin' | 'Operator' | 'Viewer';
+// Allows any string for custom roles, but keeps semantic names for checking
+export type AccessRole = string; 
+
+export type PermissionLevel = 'no_access' | 'view' | 'edit';
+
+export type AppModule = 'dashboard' | 'members' | 'tables' | 'tournaments' | 'structures' | 'clocks' | 'settings';
+
+export interface RoleDefinition {
+    id: string;
+    name: string;
+    description?: string;
+    isSystem?: boolean; // Cannot delete/rename system roles
+    permissions: Record<AppModule, PermissionLevel>;
+}
 
 export interface TeamMember {
     id: string;

@@ -13,7 +13,8 @@ import {
   RegistrationStatus,
   TournamentTransaction,
   PaymentMethod,
-  ClockConfig
+  ClockConfig,
+  RoleDefinition
 } from '../types';
 
 import {
@@ -23,7 +24,8 @@ import {
   SEED_PAYOUTS,
   SEED_TOURNAMENTS,
   SEED_CLOCKS,
-  SEED_TEMPLATES
+  SEED_TEMPLATES,
+  SEED_ROLES
 } from './mockData';
 
 // Storage Keys
@@ -38,6 +40,7 @@ const REGISTRATIONS_KEY = 'rf_registrations';
 const FINANCIALS_KEY = 'rf_financials';
 const TEAM_KEY = 'rf_team';
 const CLOCKS_KEY = 'rf_clocks';
+const ROLES_KEY = 'rf_roles';
 
 // Helpers
 function getLocalData<T>(key: string): T | null {
@@ -437,6 +440,32 @@ export const saveTeamMember = (member: TeamMember): void => {
 export const deleteTeamMember = (id: string): void => {
     const team = getTeamMembers().filter(t => t.id !== id);
     setLocalData(TEAM_KEY, team);
+};
+
+// --- Roles ---
+export const getRoleConfigs = (): RoleDefinition[] => {
+    const roles = getLocalData<RoleDefinition[]>(ROLES_KEY);
+    if (!roles || roles.length === 0) {
+        setLocalData(ROLES_KEY, SEED_ROLES);
+        return SEED_ROLES;
+    }
+    return roles;
+};
+
+export const saveRoleConfig = (role: RoleDefinition): void => {
+    const roles = getRoleConfigs();
+    const idx = roles.findIndex(r => r.id === role.id);
+    if (idx >= 0) {
+        roles[idx] = role;
+    } else {
+        roles.push(role);
+    }
+    setLocalData(ROLES_KEY, roles);
+};
+
+export const deleteRoleConfig = (id: string): void => {
+    const roles = getRoleConfigs().filter(r => r.id !== id);
+    setLocalData(ROLES_KEY, roles);
 };
 
 // --- Clocks ---

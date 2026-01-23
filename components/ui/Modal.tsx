@@ -42,6 +42,9 @@ export const Modal: React.FC<ModalProps> = ({
 
   if (!isOpen) return null;
 
+  // Use slimmer padding for smaller modals (and now xl) to save vertical space
+  const headerPadding = ['sm', 'md', 'lg', 'xl'].includes(size) ? 'p-4' : 'p-6';
+
   return (
     <div 
       className="fixed inset-0 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
@@ -50,7 +53,7 @@ export const Modal: React.FC<ModalProps> = ({
       <div className={`${THEME.card} border ${THEME.border} rounded-3xl w-full ${sizeClasses[size]} shadow-2xl overflow-hidden flex flex-col max-h-[95vh] relative animate-in zoom-in-95 duration-200`}>
         {/* Header */}
         {(title || onClose) && (
-          <div className="flex justify-between items-start p-6 border-b border-[#222] shrink-0">
+          <div className={`flex justify-between items-start ${headerPadding} border-b border-[#222] shrink-0`}>
             <div className="flex-1">
               {typeof title === 'string' ? (
                 <h2 className="text-xl font-bold text-white">{title}</h2>
@@ -60,7 +63,7 @@ export const Modal: React.FC<ModalProps> = ({
             </div>
             <button 
               onClick={onClose} 
-              className="text-gray-400 hover:text-white rounded-full p-2 hover:bg-[#333] transition-colors ml-4"
+              className="text-gray-400 hover:text-white rounded-full p-1 hover:bg-[#333] transition-colors ml-4"
               aria-label="Close modal"
             >
               <X size={20} />

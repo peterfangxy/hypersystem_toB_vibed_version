@@ -134,6 +134,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
       formData.startingBlinds,
       formData.name,
       formData.description,
+      formData.maxPlayers,
       isOpen
   ]);
 
@@ -255,6 +256,14 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
           }
       }
 
+      // Dynamic Mock Data
+      const maxP = formData.maxPlayers || 50;
+      // Mock entries: use 12, but clamp to maxPlayers if maxPlayers is small
+      const currentEntries = Math.min(12, maxP); 
+      
+      const startingChips = formData.startingChips || 10000;
+      const buyIn = formData.buyIn || 100;
+
       return {
           tournament_name: formData.name || 'Tournament Name',
           tournament_desc: formData.description || 'Event Description',
@@ -262,15 +271,17 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
           blind_countdown: '12:34',
           blind_level: formData.startingBlinds || '100/200',
           next_blinds: `${nextLevel.sb}/${nextLevel.bb}`,
-          ante: formData.startingBlinds?.split('/')[1] || '200', // Mock BB Ante
+          ante: formData.startingBlinds?.split('/')[1] || '200',
           next_ante: nextLevel.ante.toString(),
-          starting_chips: (formData.startingChips || 10000).toLocaleString(),
+          starting_chips: startingChips.toLocaleString(),
           rebuy_limit: formData.rebuyLimit ? `${formData.rebuyLimit}` : 'Freezeout',
-          players_count: `12 / ${formData.maxPlayers || 50}`,
-          entries_count: '12',
-          total_chips: (12 * (formData.startingChips || 10000)).toLocaleString(),
-          avg_stack: (formData.startingChips || 10000).toLocaleString(),
-          payout_total: `$${(12 * (formData.buyIn || 100)).toLocaleString()}`,
+          
+          players_count: `${currentEntries} / ${maxP}`,
+          entries_count: `${currentEntries}`,
+          total_chips: (currentEntries * startingChips).toLocaleString(),
+          avg_stack: startingChips.toLocaleString(),
+          payout_total: `$${(currentEntries * buyIn).toLocaleString()}`,
+          
           next_break: '15m',
           current_time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
           current_date: new Date().toLocaleDateString(),

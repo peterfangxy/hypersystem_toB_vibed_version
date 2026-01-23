@@ -7,8 +7,57 @@ import {
   PayoutStructure,
   ClockConfig,
   MembershipTier,
-  PayoutModel
+  PayoutModel,
+  RoleDefinition
 } from '../types';
+
+export const SEED_ROLES: RoleDefinition[] = [
+    {
+        id: 'role_admin',
+        name: 'Admin',
+        description: 'Full access to all system modules and configurations.',
+        isSystem: true,
+        permissions: {
+            dashboard: 'edit',
+            members: 'edit',
+            tables: 'edit',
+            tournaments: 'edit',
+            structures: 'edit',
+            clocks: 'edit',
+            settings: 'edit'
+        }
+    },
+    {
+        id: 'role_operator',
+        name: 'Operator',
+        description: 'Can run tournaments and manage tables, but restricted from system settings.',
+        isSystem: false,
+        permissions: {
+            dashboard: 'view',
+            members: 'view', // Can see members but not edit profiles
+            tables: 'edit', // Can open/close tables
+            tournaments: 'edit', // Can run tournaments
+            structures: 'view', // Can see but not change structures
+            clocks: 'edit', // Can run clocks
+            settings: 'no_access'
+        }
+    },
+    {
+        id: 'role_viewer',
+        name: 'Viewer',
+        description: 'Read-only access for staff to view live status.',
+        isSystem: false,
+        permissions: {
+            dashboard: 'view',
+            members: 'no_access',
+            tables: 'view',
+            tournaments: 'view',
+            structures: 'view',
+            clocks: 'view',
+            settings: 'no_access'
+        }
+    }
+];
 
 export const SEED_MEMBERS: Member[] = [
   { id: 'm1', fullName: 'Daniel Negreanu', nickname: 'Kid Poker', club_id: 'RFC-1001', email: 'dnegs@gg.com', phone: '555-0101', age: 48, gender: 'Male', joinDate: '2023-01-15', tier: MembershipTier.DIAMOND, status: 'Activated', avatarUrl: 'https://ui-avatars.com/api/?name=Daniel+Negreanu&background=random' },
@@ -34,7 +83,7 @@ export const SEED_STRUCTURES: TournamentStructure[] = [
         id: 'struct_turbo',
         name: 'Turbo Daily (BB Ante)',
         startingChips: 20000,
-        rebuyLimit: 1,
+        rebuyLimit: 3,
         lastRebuyLevel: 6,
         items: [
             { type: 'Level', duration: 15, smallBlind: 100, bigBlind: 200, ante: 200, level: 1 },
@@ -71,8 +120,8 @@ export const SEED_STRUCTURES: TournamentStructure[] = [
         id: 'struct_test_1min',
         name: 'TEST: Hyper Turbo (1min)',
         startingChips: 5000,
-        rebuyLimit: 0,
-        lastRebuyLevel: 0,
+        rebuyLimit: 1,
+        lastRebuyLevel: 3,
         items: [
             { type: 'Level', duration: 1, smallBlind: 100, bigBlind: 200, ante: 0, level: 1 },
             { type: 'Level', duration: 1, smallBlind: 200, bigBlind: 400, ante: 0, level: 2 },
