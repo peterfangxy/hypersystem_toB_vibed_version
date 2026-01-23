@@ -84,6 +84,22 @@ export const SEED_STRUCTURES: TournamentStructure[] = [
         ]
     },
     {
+        id: 'struct_test_breaks',
+        name: 'TEST: 1min Level + Break',
+        startingChips: 10000,
+        rebuyLimit: 0,
+        lastRebuyLevel: 0,
+        items: [
+            { type: 'Level', duration: 1, smallBlind: 100, bigBlind: 200, ante: 0, level: 1 },
+            { type: 'Break', duration: 1 },
+            { type: 'Level', duration: 1, smallBlind: 200, bigBlind: 400, ante: 0, level: 2 },
+            { type: 'Break', duration: 1 },
+            { type: 'Level', duration: 1, smallBlind: 300, bigBlind: 600, ante: 600, level: 3 },
+            { type: 'Break', duration: 1 },
+            { type: 'Level', duration: 1, smallBlind: 400, bigBlind: 800, ante: 800, level: 4 },
+        ]
+    },
+    {
         id: 'struct_pko',
         name: 'Progressive KO',
         startingChips: 25000,
@@ -238,6 +254,29 @@ export const SEED_TOURNAMENTS: Tournament[] = [
         status: 'In Progress',
         description: 'Rapid fire test tournament. 1 min levels.',
         tableIds: ['t1']
+    },
+    {
+        id: 'tour_test_breaks',
+        name: 'Test: Frequent Breaks',
+        startDate: new Date().toISOString().split('T')[0],
+        startTime: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false}), // Starts now
+        estimatedDurationMinutes: 60,
+        buyIn: 0,
+        fee: 0,
+        maxPlayers: 10,
+        startingChips: 10000,
+        startingBlinds: '100/200',
+        blindLevelMinutes: 1,
+        blindIncreasePercent: 0,
+        rebuyLimit: 0,
+        lastRebuyLevel: 0,
+        payoutModel: PayoutModel.FIXED,
+        structureId: 'struct_test_breaks',
+        payoutStructureId: 'custom_3',
+        clockConfigId: 'default_clock',
+        status: 'In Progress',
+        description: 'Test tournament with breaks after every level.',
+        tableIds: ['t2']
     },
     {
         id: 'tour_hr',
