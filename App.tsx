@@ -6,13 +6,13 @@ import * as DataService from './services/dataService';
 import { LanguageProvider } from './contexts/LanguageContext';
 
 import Sidebar from './components/Sidebar';
-import MembersView from './components/MembersView';
-import TablesView from './components/TablesView';
-import TournamentsView from './components/TournamentsView';
-import StructuresView from './components/StructuresView';
-import DashboardView from './components/DashboardView';
-import SettingsView from './components/SettingsView';
-import ClocksView from './components/ClocksView';
+import DashboardView from './views/DashboardView';
+import MembersView from './views/MembersView';
+import TablesView from './views/TablesView';
+import TournamentsView from './views/TournamentsView';
+import StructuresView from './views/StructuresView';
+import SettingsView from './views/SettingsView';
+import ClocksView from './views/ClocksView';
 
 const App: React.FC = () => {
   useEffect(() => {

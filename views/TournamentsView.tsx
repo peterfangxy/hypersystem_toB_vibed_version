@@ -22,8 +22,8 @@ import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom'
 import { Tournament, TournamentStatus, TournamentStructure, PayoutStructure } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
-import TournamentForm from './TournamentForm';
-import TournamentDetailPanel from './TournamentDetailPanel';
+import TournamentForm from '../components/TournamentForm';
+import TournamentDetailPanel from '../components/TournamentDetailPanel';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const TournamentsView = () => {

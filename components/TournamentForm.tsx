@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Layers, 
   DollarSign, 
@@ -10,14 +10,15 @@ import {
   Cpu,
   Table,
   Sparkles,
-  MonitorPlay,
-  Loader2
+  MonitorPlay
 } from 'lucide-react';
 import { Tournament, PayoutModel, TournamentStatus, PokerTable, TournamentStructure, PayoutStructure, ClockConfig } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
-import { Modal } from './Modal';
+import { Modal } from './ui/Modal';
+import NumberInput from './ui/NumberInput';
 import { useLanguage } from '../contexts/LanguageContext';
+import ClockDisplay from './ClockDisplay';
 
 interface TournamentFormProps {
   isOpen: boolean;
@@ -58,11 +59,12 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
   const [clockConfigs, setClockConfigs] = useState<ClockConfig[]>([]);
   const [templates, setTemplates] = useState<Tournament[]>([]);
   
-  // Preview loading state
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
-
-  // Check if form should be read-only
   const isReadOnly = !isTemplateMode && initialData && (initialData.status === 'Completed' || initialData.status === 'Cancelled');
+
+  // Preview Scaling Refs
+  const previewRef = useRef<HTMLDivElement>(null);
+  const [previewScale, setPreviewScale] = useState(1);
 
   useEffect(() => {
     if (isOpen) {
@@ -84,7 +86,6 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
           buyIn: 100,
           fee: 10,
           maxPlayers: 50,
-          // Defaults that will be overwritten by structure selection usually
           rebuyLimit: 1,
           lastRebuyLevel: 6,
           startingChips: 10000,
@@ -103,7 +104,23 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
     }
   }, [initialData, isOpen, isTemplateMode]);
 
-  // Effect to trigger loading animation on relevant changes
+  useEffect(() => {
+      // Calculate preview scale based on container width
+      const updateScale = () => {
+          if (previewRef.current) {
+              const width = previewRef.current.offsetWidth;
+              // Assuming 1280px is the standard "design" width for the clock editor canvas
+              setPreviewScale(width / 1280); 
+          }
+      };
+      
+      if (isOpen) {
+          setTimeout(updateScale, 100);
+          window.addEventListener('resize', updateScale);
+      }
+      return () => window.removeEventListener('resize', updateScale);
+  }, [isOpen]);
+
   useEffect(() => {
       if (isOpen) {
           setIsPreviewLoading(true);
@@ -139,8 +156,6 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
       }
       const struct = structures.find(s => s.id === structId);
       if (struct) {
-          // Snapshot values for display consistency in legacy views
-          // Use first level for snapshot data
           const firstLevel = struct.items.find(i => i.type === 'Level');
           const blindsStr = firstLevel ? `${firstLevel.smallBlind}/${firstLevel.bigBlind}` : '100/200';
           const defaultDuration = firstLevel ? firstLevel.duration : 20;
@@ -149,7 +164,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
               ...prev,
               structureId: structId,
               startingChips: struct.startingChips,
-              blindLevelMinutes: defaultDuration, // Fallback/Reference duration
+              blindLevelMinutes: defaultDuration,
               startingBlinds: blindsStr,
               rebuyLimit: struct.rebuyLimit,
               lastRebuyLevel: struct.lastRebuyLevel
@@ -167,7 +182,6 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
            setFormData(prev => ({
                ...prev,
                payoutStructureId: structId,
-               // If it's a known algorithm, update the legacy enum for compatibility
                payoutModel: struct.name.includes('ICM') ? PayoutModel.ICM : 
                             struct.name.includes('Chip EV') ? PayoutModel.CHIP_EV : 
                             PayoutModel.FIXED
@@ -179,8 +193,6 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
       const template = templates.find(t => t.id === templateId);
       if (!template) return;
 
-      // Merge template fields into current form data
-      // We explicitly preserve Date, Time, Status from the current form (or defaults)
       setFormData(prev => ({
           ...prev,
           name: template.name,
@@ -199,8 +211,6 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
           structureId: template.structureId,
           payoutStructureId: template.payoutStructureId,
           clockConfigId: template.clockConfigId,
-          // Optional: Import table assignments if the template has them? 
-          // Usually templates are structure-focused, but let's allow it.
           tableIds: template.tableIds || []
       }));
   };
@@ -217,19 +227,54 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
   };
 
   const selectedStruct = structures.find(s => s.id === formData.structureId);
-  // Get levels for preview logic
   const levels = selectedStruct?.items.filter(i => i.type === 'Level') || [];
   const level1 = levels[0];
-  const level2 = levels[1];
 
   const getModalTitle = () => {
     if (initialData) {
-        if (isReadOnly) return 'Tournament Details (Read Only)'; // No direct translation for this specific edge case string, keeping as is or adding complex key
+        if (isReadOnly) return 'Tournament Details (Read Only)';
         if (isTemplateMode) return t('tournaments.form.titleEditTemplate');
         return t('tournaments.form.titleEdit');
     }
     return isTemplateMode ? t('tournaments.form.titleNewTemplate') : t('tournaments.form.titleNew');
   };
+
+  const getClockData = () => {
+      // Find Next Level from Structure
+      let nextLevel = { sb: 200, bb: 400, ante: 400 }; // Default mock
+      if (selectedStruct) {
+          const lvls = selectedStruct.items.filter(i => i.type === 'Level');
+          if (lvls.length > 1) {
+              nextLevel = { sb: lvls[1].smallBlind || 0, bb: lvls[1].bigBlind || 0, ante: lvls[1].ante || 0 };
+          }
+      }
+
+      return {
+          tournament_name: formData.name || 'Tournament Name',
+          tournament_desc: formData.description || 'Event Description',
+          timer: '12:34',
+          blind_countdown: '12:34',
+          blind_level: formData.startingBlinds || '100/200',
+          next_blinds: `${nextLevel.sb}/${nextLevel.bb}`,
+          ante: formData.startingBlinds?.split('/')[1] || '200', // Mock BB Ante
+          next_ante: nextLevel.ante.toString(),
+          starting_chips: (formData.startingChips || 10000).toLocaleString(),
+          rebuy_limit: formData.rebuyLimit ? `${formData.rebuyLimit}` : 'Freezeout',
+          players_count: `12 / ${formData.maxPlayers || 50}`,
+          entries_count: '12',
+          total_chips: (12 * (formData.startingChips || 10000)).toLocaleString(),
+          avg_stack: (formData.startingChips || 10000).toLocaleString(),
+          payout_total: `$${(12 * (formData.buyIn || 100)).toLocaleString()}`,
+          next_break: '15m',
+          current_time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+          current_date: new Date().toLocaleDateString(),
+          start_time: formData.startTime || '19:00',
+          start_date: formData.startDate || new Date().toLocaleDateString(),
+          est_end_time: '23:00'
+      };
+  };
+
+  const selectedClockConfig = clockConfigs.find(c => c.id === formData.clockConfigId);
 
   return (
     <Modal
@@ -240,7 +285,6 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
     >
       <form onSubmit={handleSubmit} className="p-6 overflow-y-auto">
         
-        {/* Import Template Section - Only visible when creating a new Tournament */}
         {!isTemplateMode && !initialData && templates.length > 0 && (
             <div className="mb-8 bg-[#1A1A1A] border border-[#333] p-4 rounded-xl flex items-center justify-between group hover:border-brand-green/30 transition-colors shadow-lg shadow-black/20">
                 <div className="flex items-center gap-3">
@@ -316,14 +360,14 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                     
                     <div className={`${isTemplateMode ? 'col-span-4' : 'col-span-1'} space-y-1`}>
                         <label className="text-sm font-medium text-gray-300">{t('tournaments.form.estDuration')}</label>
-                        <input 
-                            required
-                            type="number"
-                            min="30"
-                            step="30"
+                        <NumberInput
                             value={formData.estimatedDurationMinutes}
-                            onChange={e => setFormData({...formData, estimatedDurationMinutes: parseInt(e.target.value)})}
-                            className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed`}
+                            onChange={(val) => setFormData({...formData, estimatedDurationMinutes: val})}
+                            min={30}
+                            step={30}
+                            suffix="min"
+                            disabled={isReadOnly}
+                            size="lg"
                         />
                     </div>
                     
@@ -364,7 +408,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                 </h3>
                 
                 <div className="grid grid-cols-2 gap-6">
-                    {/* Tournament Structure Selector */}
+                    {/* Structure Selector */}
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-300">{t('tournaments.form.structure')}</label>
                         <div className="relative">
@@ -381,7 +425,6 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" size={16} />
                         </div>
                         
-                        {/* Preview Card */}
                         {selectedStruct && (
                             <div className="bg-[#1A1A1A] border border-[#333] rounded-xl p-3 flex flex-col justify-between text-xs animate-in fade-in slide-in-from-top-2 gap-2">
                                 <div className="flex justify-between">
@@ -400,7 +443,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                         )}
                     </div>
 
-                    {/* Payout Model Selector */}
+                    {/* Payout Selector */}
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-300">{t('tournaments.form.payoutModel')}</label>
                         <div className="relative">
@@ -417,7 +460,6 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" size={16} />
                         </div>
 
-                        {/* Preview info for Payout */}
                         {formData.payoutStructureId && (
                             <div className="bg-[#1A1A1A] border border-[#333] rounded-xl p-3 text-sm animate-in fade-in slide-in-from-top-2">
                                 {(() => {
@@ -440,7 +482,6 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                     </div>
                 </div>
 
-                {/* Clock Config Selector Section */}
                 <div className="bg-[#1A1A1A] border border-[#333] rounded-xl p-4">
                     <div className="flex justify-between items-center mb-4">
                         <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
@@ -467,13 +508,9 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" size={16} />
                             </div>
                             
-                            {/* Clock Info Description */}
-                            {formData.clockConfigId && (
-                                <div className="text-xs text-gray-500 mt-2 p-3 bg-[#222] rounded-lg border border-[#333] italic">
-                                    {(() => {
-                                        const c = clockConfigs.find(config => config.id === formData.clockConfigId);
-                                        return c?.description ? c.description : `${c?.fields.length || 0} active widgets configured.`;
-                                    })()}
+                            {selectedClockConfig?.description && (
+                                <div className="mt-4 p-3 bg-[#222] rounded-xl border border-[#333]">
+                                    <p className="text-xs text-gray-400 leading-relaxed">{selectedClockConfig.description}</p>
                                 </div>
                             )}
                         </div>
@@ -481,114 +518,29 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                         {/* Right: Visual Preview */}
                         <div className="md:col-span-2">
                              <label className="text-xs text-gray-500 font-bold uppercase mb-2 block">{t('tournaments.form.preview')}</label>
-                             {formData.clockConfigId ? (
-                                 <div className="aspect-video w-full rounded-lg border border-[#333] overflow-hidden relative shadow-inner" style={{backgroundColor: clockConfigs.find(c => c.id === formData.clockConfigId)?.backgroundColor || '#000'}}>
-                                     
-                                     {/* Loading Overlay */}
-                                     {isPreviewLoading && (
-                                         <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-sm flex items-center justify-center animate-in fade-in duration-200">
-                                             <Loader2 className="text-brand-green animate-spin" size={32} />
-                                         </div>
-                                     )}
-
-                                     {/* Mini render of clock fields */}
-                                     {(() => {
-                                         const c = clockConfigs.find(config => config.id === formData.clockConfigId);
-                                         if (!c) return null;
-                                         
-                                         return (
-                                             <div className="w-full h-full relative transform scale-[0.5] origin-top-left" style={{ width: '200%', height: '200%' }}>
-                                                 {c.fields.map(field => {
-                                                     // Rendering logic from ClockEditor for preview
-                                                     // We map field types to real form data
-                                                     let displayValue = '---';
-                                                     
-                                                     // Data Mappings
-                                                     if (field.type === 'tournament_name') displayValue = formData.name || 'Tournament Name';
-                                                     else if (field.type === 'tournament_desc') displayValue = formData.description || '';
-                                                     else if (field.type === 'timer') displayValue = '20:00';
-                                                     else if (field.type === 'blind_countdown') displayValue = '20:00';
-                                                     
-                                                     // --- BLINDS & ANTES MAPPING ---
-                                                     else if (field.type === 'blind_level') {
-                                                         displayValue = level1 ? `${level1.smallBlind}/${level1.bigBlind}` : (formData.startingBlinds || '100/200');
-                                                     }
-                                                     else if (field.type === 'ante') {
-                                                         displayValue = level1 ? (level1.ante || 0).toString() : '0';
-                                                     }
-                                                     else if (field.type === 'next_blinds') {
-                                                         displayValue = level2 ? `${level2.smallBlind}/${level2.bigBlind}` : '---';
-                                                     }
-                                                     else if (field.type === 'next_ante') {
-                                                         displayValue = level2 ? (level2.ante || 0).toString() : '---';
-                                                     }
-                                                     // ------------------------------
-
-                                                     else if (field.type === 'players_count') displayValue = `0 / ${formData.maxPlayers || 50}`;
-                                                     else if (field.type === 'entries_count') displayValue = '0';
-                                                     else if (field.type === 'total_chips') displayValue = '0'; // Would be entries * startingChips
-                                                     else if (field.type === 'avg_stack') displayValue = (formData.startingChips || 0).toLocaleString(); // Initially same as starting chips
-                                                     else if (field.type === 'starting_chips') displayValue = (formData.startingChips || 0).toLocaleString();
-                                                     else if (field.type === 'rebuy_limit') displayValue = formData.rebuyLimit === 0 ? 'Freezeout' : `${formData.rebuyLimit} Limit`;
-                                                     else if (field.type === 'payout_total') displayValue = `$0`;
-                                                     else if (field.type === 'start_time') displayValue = formData.startTime || '19:00';
-                                                     else if (field.type === 'start_date') displayValue = formData.startDate ? new Date(formData.startDate).toLocaleDateString() : 'Today';
-                                                     else if (field.type === 'current_time') displayValue = '12:00';
-                                                     
-                                                     // Basic style application
-                                                     const style: React.CSSProperties = {
-                                                         position: 'absolute',
-                                                         left: `${field.x}%`,
-                                                         top: `${field.y}%`,
-                                                         transform: 'translate(-50%, -50%)',
-                                                         color: field.color,
-                                                         fontSize: `${field.fontSize}px`,
-                                                         fontWeight: field.fontWeight,
-                                                         textAlign: field.align,
-                                                         whiteSpace: 'nowrap'
-                                                     };
-                                                     
-                                                     return (
-                                                         <div key={field.id} style={style}>
-                                                             {field.showLabel && field.labelText && <div className="text-[0.4em] opacity-70 mb-[0.1em]">{field.labelText}</div>}
-                                                             {field.type.startsWith('shape_') ? (
-                                                                 <div style={{
-                                                                     width: field.width, 
-                                                                     height: field.height, 
-                                                                     backgroundColor: field.color,
-                                                                     border: `${field.borderWidth}px solid ${field.borderColor}`,
-                                                                     borderRadius: field.type.includes('circle') ? '50%' : '0'
-                                                                 }}/>
-                                                             ) : (
-                                                                 field.type === 'custom_text' ? field.customText : 
-                                                                 field.type === 'line' ? (
-                                                                     <div style={{
-                                                                         width: field.width,
-                                                                         height: field.height,
-                                                                         backgroundColor: field.color,
-                                                                         borderRadius: '999px'
-                                                                     }} />
-                                                                 ) :
-                                                                 displayValue
-                                                             )}
-                                                         </div>
-                                                     )
-                                                 })}
-                                             </div>
-                                         )
-                                     })()}
-                                 </div>
-                             ) : (
-                                 <div className="aspect-video w-full rounded-lg border border-dashed border-[#333] bg-[#111] flex items-center justify-center text-gray-600 text-xs">
-                                     No layout selected
-                                 </div>
-                             )}
+                             <div 
+                                ref={previewRef}
+                                className="aspect-video w-full rounded-lg border border-[#333] overflow-hidden relative shadow-inner bg-black"
+                             >
+                                 {selectedClockConfig ? (
+                                     <ClockDisplay 
+                                        config={selectedClockConfig} 
+                                        data={getClockData()} 
+                                        scale={previewScale} 
+                                     />
+                                 ) : (
+                                     <div className="w-full h-full flex flex-col items-center justify-center text-gray-600 bg-[#111]">
+                                        <MonitorPlay size={32} className="opacity-20 mb-2" />
+                                        <span className="text-xs">No layout selected</span>
+                                    </div>
+                                 )}
+                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Financials (Inputs) */}
+            {/* Financials (Inputs) using NumberInput */}
             <div className="space-y-4 pt-2 border-t border-[#222]">
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2 mt-4">
                 <DollarSign size={14} /> {t('tournaments.form.financials')}
@@ -598,24 +550,24 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                         <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
                             <label className="text-sm font-medium text-gray-300">{t('tournaments.form.buyIn')}</label>
-                            <input 
-                            required
-                            type="number" 
-                            min="0"
-                            value={formData.buyIn}
-                            onChange={e => setFormData({...formData, buyIn: parseInt(e.target.value)})}
-                            className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed`}
+                            <NumberInput 
+                                value={formData.buyIn}
+                                onChange={(val) => setFormData({...formData, buyIn: val})}
+                                min={0}
+                                prefix="$"
+                                size="lg"
+                                disabled={isReadOnly}
                             />
                         </div>
                         <div className="space-y-1">
                             <label className="text-sm font-medium text-gray-300">{t('tournaments.form.fee')}</label>
-                            <input 
-                            required
-                            type="number" 
-                            min="0"
-                            value={formData.fee}
-                            onChange={e => setFormData({...formData, fee: parseInt(e.target.value)})}
-                            className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed`}
+                            <NumberInput 
+                                value={formData.fee}
+                                onChange={(val) => setFormData({...formData, fee: val})}
+                                min={0}
+                                prefix="$"
+                                size="lg"
+                                disabled={isReadOnly}
                             />
                         </div>
                         </div>
@@ -623,13 +575,14 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
 
                     <div className="space-y-1">
                         <label className="text-sm font-medium text-gray-300">{t('tournaments.form.maxPlayers')}</label>
-                        <input 
-                        required
-                        type="number" 
-                        min="2"
-                        value={formData.maxPlayers}
-                        onChange={e => setFormData({...formData, maxPlayers: parseInt(e.target.value)})}
-                        className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed`}
+                        <NumberInput 
+                            value={formData.maxPlayers}
+                            onChange={(val) => setFormData({...formData, maxPlayers: val})}
+                            min={2}
+                            step={1}
+                            enableScroll={true}
+                            size="lg"
+                            disabled={isReadOnly}
                         />
                     </div>
                 </div>

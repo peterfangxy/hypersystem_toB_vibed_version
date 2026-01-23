@@ -5,8 +5,8 @@ import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom'
 import { THEME } from '../theme';
 import { TournamentStructure, PayoutStructure } from '../types';
 import * as DataService from '../services/dataService';
-import StructureForm from './StructureForm';
-import PayoutModelForm from './PayoutModelForm';
+import StructureForm from '../components/StructureForm';
+import PayoutModelForm from '../components/PayoutModelForm';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const StructuresView = () => {

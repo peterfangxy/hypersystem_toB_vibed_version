@@ -12,7 +12,7 @@ import {
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
 import { Tournament } from '../types';
-import TournamentForm from './TournamentForm';
+import TournamentForm from '../components/TournamentForm';
 
 interface DashboardStats {
   totalMembers: number;

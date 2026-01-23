@@ -14,8 +14,8 @@ import {
 import { Member, MemberStatus, MembershipTier } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
-import MemberForm from './MemberForm';
-import MemberWalletModal from './MemberWalletModal';
+import MemberForm from '../components/MemberForm';
+import MemberWalletModal from '../components/MemberWalletModal';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const MembersView = () => {

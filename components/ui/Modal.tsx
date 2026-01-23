@@ -1,6 +1,7 @@
+
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
-import { THEME } from '../theme';
+import { THEME } from '../../theme';
 
 export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl';
 

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, AlertCircle, CheckCircle2, Table, LayoutList } from 'lucide-react';
 import { PayoutStructure, PayoutRule } from '../types';
 import { THEME } from '../theme';
-import { Modal } from './Modal';
+import { Modal } from './ui/Modal';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface PayoutModelFormProps {

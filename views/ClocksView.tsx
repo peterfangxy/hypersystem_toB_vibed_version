@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Plus, 
   MonitorPlay, 
@@ -20,7 +20,8 @@ import { Routes, Route, Navigate, NavLink } from 'react-router-dom';
 import { ClockConfig, Tournament, TournamentRegistration, TournamentStructure } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
-import ClockEditor from './ClockEditor';
+import ClockEditor from '../components/ClockEditor';
+import ClockDisplay from '../components/ClockDisplay';
 import { useLanguage } from '../contexts/LanguageContext';
 
 // --- Sub-Component: Live Clock Runner (Overlay) ---
@@ -157,7 +158,7 @@ const LiveClockRunner = ({ tournament, onClose }: { tournament: Tournament, onCl
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  const getFieldValue = (type: string) => {
+  const getClockData = () => {
     // Determine Current Item data
     const currentItem = structure?.items[currentLevelIndex];
     
@@ -184,128 +185,63 @@ const LiveClockRunner = ({ tournament, onClose }: { tournament: Tournament, onCl
         // Format
         const h = Math.floor(totalSec / 3600);
         const m = Math.floor((totalSec % 3600) / 60);
-        // const s = Math.floor(totalSec % 60);
         
         if (h > 0) return `${h}h ${m}m`;
         return `${m}m`;
     };
 
-    switch(type) {
-      case 'tournament_name': return tournament.name;
-      case 'tournament_desc': return tournament.description || '';
-      case 'timer': return isFinished ? "ENDED" : formatSeconds(timerSeconds);
-      case 'blind_countdown': return isFinished ? "00:00" : formatSeconds(timerSeconds);
-      
-      // Blinds & Structure
-      case 'blind_level': 
-          if (isFinished) return "ENDED";
-          if (isBreak) return "BREAK";
-          if (currentItem && currentItem.type === 'Level') {
-               return `${currentItem.smallBlind}/${currentItem.bigBlind}`;
-          }
-          return tournament.startingBlinds; // Fallback
+    const getBlindString = (item: any) => {
+        if (!item) return '-';
+        if (item.type === 'Level') return `${item.smallBlind}/${item.bigBlind}`;
+        return '-';
+    };
 
-      case 'ante': 
-          if (isFinished) return "-";
-          if (isBreak) return "-";
-          if (currentItem && currentItem.type === 'Level') {
-               return (currentItem.ante || 0).toString();
-          }
-          return '0';
+    const getAnteString = (item: any) => {
+        if (!item || item.type !== 'Level') return '-';
+        return (item.ante || 0).toString();
+    };
 
-      case 'next_blinds': 
-          if (isFinished) return "-/-";
-          if (nextLevelItem) return `${nextLevelItem.smallBlind}/${nextLevelItem.bigBlind}`;
-          return '---';
-
-      case 'next_ante': 
-          if (isFinished) return "-";
-          if (nextLevelItem) return (nextLevelItem.ante || 0).toString();
-          return '-';
-
-      case 'next_break':
-          if (isFinished) return "-";
-          return getTimeUntilNextBreak();
-
-      // Stats
-      case 'players_count': return `${stats.players} / ${tournament.maxPlayers}`;
-      case 'entries_count': return `${stats.entries}`;
-      case 'total_chips': return stats.chipsInPlay.toLocaleString();
-      case 'avg_stack': return stats.avgStack.toLocaleString();
-      case 'payout_total': return `$${stats.prizePool.toLocaleString()}`;
-      
-      // Configs
-      case 'starting_chips': return tournament.startingChips.toLocaleString();
-      case 'rebuy_limit': return tournament.rebuyLimit === 0 ? 'Freezeout' : `${tournament.rebuyLimit} Limit`;
-
-      // Time
-      case 'current_time': return currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      case 'current_date': return currentTime.toLocaleDateString();
-      case 'start_time': return tournament.startTime || '--:--';
-      case 'start_date': return tournament.startDate ? new Date(tournament.startDate).toLocaleDateString() : '---';
-      case 'est_end_time': 
-          if (tournament.startTime && tournament.startDate) {
-              const start = new Date(`${tournament.startDate}T${tournament.startTime}`);
-              // Add estimated minutes
-              const end = new Date(start.getTime() + tournament.estimatedDurationMinutes * 60000);
-              if (!isNaN(end.getTime())) {
-                  return end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-              }
-          }
-          return '---';
-
-      default: return '---';
-    }
+    return {
+        tournament_name: tournament.name,
+        tournament_desc: tournament.description || '',
+        timer: isFinished ? "ENDED" : formatSeconds(timerSeconds),
+        blind_countdown: isFinished ? "00:00" : formatSeconds(timerSeconds),
+        
+        blind_level: isFinished ? "ENDED" : (isBreak ? "BREAK" : getBlindString(currentItem) || tournament.startingBlinds),
+        ante: isFinished ? "-" : (isBreak ? "-" : getAnteString(currentItem)),
+        
+        next_blinds: isFinished ? "-/-" : getBlindString(nextLevelItem),
+        next_ante: isFinished ? "-" : getAnteString(nextLevelItem),
+        
+        players_count: `${stats.players} / ${tournament.maxPlayers}`,
+        entries_count: `${stats.entries}`,
+        total_chips: stats.chipsInPlay.toLocaleString(),
+        avg_stack: stats.avgStack.toLocaleString(),
+        payout_total: `$${stats.prizePool.toLocaleString()}`,
+        
+        starting_chips: tournament.startingChips.toLocaleString(),
+        rebuy_limit: tournament.rebuyLimit === 0 ? 'Freezeout' : `${tournament.rebuyLimit} Limit`,
+        
+        next_break: isFinished ? "-" : getTimeUntilNextBreak(),
+        
+        current_time: currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        current_date: currentTime.toLocaleDateString(),
+        start_time: tournament.startTime || '--:--',
+        start_date: tournament.startDate ? new Date(tournament.startDate).toLocaleDateString() : '---',
+        est_end_time: tournament.startTime && tournament.startDate 
+            ? new Date(new Date(`${tournament.startDate}T${tournament.startTime}`).getTime() + tournament.estimatedDurationMinutes * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+            : '---'
+    };
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-black overflow-hidden animate-in fade-in duration-500">
-      <div 
-        className="w-full h-full relative"
-        style={{ backgroundColor: config.backgroundColor }}
-      >
-        {config.fields.map(field => (
-           <div
-              key={field.id}
-              style={{
-                  position: 'absolute',
-                  left: `${field.x}%`,
-                  top: `${field.y}%`,
-                  transform: 'translate(-50%, -50%)',
-                  zIndex: config.fields.findIndex(f => f.id === field.id),
-                  color: field.color,
-                  fontSize: `${field.fontSize}px`,
-                  fontWeight: field.fontWeight,
-                  textAlign: field.align,
-                  whiteSpace: 'nowrap'
-              }}
-           >
-              {field.type.startsWith('shape_') ? (
-                  <div style={{
-                      width: field.width, 
-                      height: field.height, 
-                      backgroundColor: field.color,
-                      border: `${field.borderWidth || 0}px solid ${field.borderColor || 'transparent'}`,
-                      borderRadius: field.type.includes('circle') ? '50%' : '0'
-                  }}/>
-              ) : field.type === 'line' ? (
-                  <div style={{
-                      width: field.width,
-                      height: field.height,
-                      backgroundColor: field.color,
-                      borderRadius: '999px'
-                  }} />
-              ) : (
-                  <>
-                    {field.showLabel && field.labelText && (
-                      <div className="text-[0.4em] opacity-70 mb-[0.1em] tracking-widest uppercase">{field.labelText}</div>
-                    )}
-                    {field.type === 'custom_text' ? field.customText : getFieldValue(field.type)}
-                  </>
-              )}
-           </div>
-        ))}
-      </div>
+      <ClockDisplay 
+        config={config} 
+        data={getClockData()} 
+        scale={Math.min(window.innerWidth / 1280, window.innerHeight / 720)} // Simple responsive fit
+        className="w-full h-full flex items-center justify-center"
+      />
       <button 
         onClick={onClose}
         className="absolute top-4 right-4 bg-black/50 hover:bg-red-500/80 text-white p-3 rounded-full backdrop-blur-md transition-all z-[60] group"
@@ -323,9 +259,26 @@ const ClockLayouts = () => {
     const [editingClock, setEditingClock] = useState<ClockConfig | undefined>(undefined);
     const [isEditorOpen, setIsEditorOpen] = useState(false);
 
+    // Refs for grid scaling
+    const gridItemRef = useRef<HTMLDivElement>(null);
+    const [gridScale, setGridScale] = useState(0.3);
+
     useEffect(() => {
         setClocks(DataService.getClockConfigs());
-    }, [isEditorOpen]); // Refresh when editor closes
+    }, [isEditorOpen]);
+
+    useEffect(() => {
+        const updateScale = () => {
+            if (gridItemRef.current) {
+                // Calculate scale based on container width vs base 1280
+                const width = gridItemRef.current.offsetWidth;
+                setGridScale(width / 1280);
+            }
+        };
+        setTimeout(updateScale, 100);
+        window.addEventListener('resize', updateScale);
+        return () => window.removeEventListener('resize', updateScale);
+    }, [clocks]);
 
     const handleCreate = () => {
         setEditingClock(undefined);
@@ -349,6 +302,30 @@ const ClockLayouts = () => {
         setIsEditorOpen(false);
     };
 
+    const mockData = {
+        tournament_name: "Mock Tournament",
+        tournament_desc: "Daily Deepstack",
+        timer: "20:00",
+        blind_countdown: "20:00",
+        blind_level: "100/200",
+        next_blinds: "200/400",
+        ante: "200",
+        next_ante: "400",
+        players_count: "45 / 100",
+        entries_count: "45",
+        total_chips: "900,000",
+        avg_stack: "20,000",
+        payout_total: "$4,500",
+        next_break: "1h 40m",
+        starting_chips: "20,000",
+        rebuy_limit: "1 Rebuy",
+        current_time: "12:00 PM",
+        current_date: "10/24/2023",
+        start_time: "11:00 AM",
+        start_date: "10/24/2023",
+        est_end_time: "06:00 PM"
+    };
+
     if (isEditorOpen) {
         return <ClockEditor 
             initialConfig={editingClock} 
@@ -370,17 +347,20 @@ const ClockLayouts = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-2 mt-4">
-              {clocks.map((clock) => (
+              {clocks.map((clock, index) => (
                   <div key={clock.id} className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden group hover:border-brand-green/30 transition-all shadow-lg`}>
                       <div 
-                          className="aspect-video w-full relative p-4 flex flex-col items-center justify-center text-center select-none"
-                          style={{ backgroundColor: clock.backgroundColor || '#222' }}
+                          ref={index === 0 ? gridItemRef : null} // Measure first item
+                          className="aspect-video w-full relative bg-[#000] overflow-hidden"
                       >
-                          <div className="text-white opacity-80 scale-75 transform-gpu pointer-events-none">
-                              <div className="text-2xl font-bold mb-2">12:34</div>
-                              <div className="text-xs uppercase opacity-70">BLINDS 100/200</div>
-                          </div>
-                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-sm">
+                          {/* Preview Render */}
+                          <ClockDisplay 
+                             config={clock}
+                             data={mockData}
+                             scale={gridScale}
+                          />
+
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-sm z-10">
                               <button 
                                   onClick={() => handleEdit(clock)}
                                   className="p-3 bg-white text-black rounded-full hover:scale-110 transition-transform font-bold"
@@ -390,7 +370,7 @@ const ClockLayouts = () => {
                               </button>
                           </div>
                       </div>
-                      <div className="p-5 flex justify-between items-center">
+                      <div className="p-5 flex justify-between items-center relative z-20 bg-[#171717]">
                           <div>
                               <h3 className="text-lg font-bold text-white">{clock.name}</h3>
                               <p className="text-xs text-gray-500">{clock.fields.length} {t('clocks.card.activeWidgets')}</p>
@@ -422,6 +402,7 @@ const ClockLayouts = () => {
 
 // --- Sub-Component: Live Tournaments List ---
 const LiveClocks = () => {
+    // ... (Same as before, simplified for this snippet context)
     const { t } = useLanguage();
     const [activeTournaments, setActiveTournaments] = useState<Tournament[]>([]);
     const [registrationsMap, setRegistrationsMap] = useState<Record<string, TournamentRegistration[]>>({});
@@ -435,10 +416,8 @@ const LiveClocks = () => {
 
     const refreshData = () => {
         const allTournaments = DataService.getTournaments();
-        // Include both In Progress and Registration for Live Clocks
         const inProgress = allTournaments.filter(t => t.status === 'In Progress' || t.status === 'Registration');
         
-        // Sort by Start Date & Time (Ascending - Sooner first)
         inProgress.sort((a, b) => {
             const dateA = new Date(`${a.startDate}T${a.startTime}`).getTime();
             const dateB = new Date(`${b.startDate}T${b.startTime}`).getTime();

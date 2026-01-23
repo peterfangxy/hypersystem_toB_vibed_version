@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Plus, Users } from 'lucide-react';
 import { Member } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
-import { Modal } from './Modal';
+import { Modal } from './ui/Modal';
 
 interface AddPlayerModalProps {
   isOpen: boolean;

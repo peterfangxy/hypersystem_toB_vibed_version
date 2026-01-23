@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Wallet, 
@@ -19,7 +20,9 @@ import {
 import { Member, MemberFinancials, PaymentMethod } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
-import { Modal } from './Modal';
+import { Modal } from './ui/Modal';
+import NumberInput from './ui/NumberInput';
+import Button from './ui/Button';
 
 interface MemberWalletModalProps {
   isOpen: boolean;
@@ -34,7 +37,7 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
   const [financials, setFinancials] = useState<MemberFinancials | null>(null);
   
   // Withdraw/Deposit Form State
-  const [amount, setAmount] = useState<string>('');
+  const [amount, setAmount] = useState<number | undefined>(0);
   const [method, setMethod] = useState<PaymentMethod>('Cash');
   const [note, setNote] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -55,7 +58,7 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
   };
 
   const resetForm = () => {
-      setAmount('');
+      setAmount(0);
       setMethod('Cash');
       setNote('');
   };
@@ -64,15 +67,11 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
     e.preventDefault();
     if (!financials) return;
 
-    const val = parseFloat(amount);
-    if (isNaN(val) || val <= 0) return;
-    
-    // Check constraints for withdraw
+    const val = amount || 0;
+    if (val <= 0) return;
     if (type === 'withdraw' && val > financials.balance) return;
 
     setIsProcessing(true);
-    
-    // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 800));
 
     if (type === 'withdraw') {
@@ -83,12 +82,9 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
         setSuccessMessage(`Successfully deposited $${val.toLocaleString()}`);
     }
     
-    // Refresh Data
     loadFinancials();
-    
     setIsProcessing(false);
     
-    // Reset and go back to dashboard after brief delay
     setTimeout(() => {
         setSuccessMessage(null);
         setView('dashboard');
@@ -156,7 +152,6 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
         {/* Content Area */}
         <div className="flex-1 bg-[#171717] overflow-hidden flex flex-col relative">
             
-            {/* VIEW: DASHBOARD (HISTORY) */}
             {view === 'dashboard' && financials && (
                 <div className="flex flex-col h-full animate-in slide-in-from-left-4 duration-300">
                     <div className="px-4 py-3 flex justify-between items-center border-b border-[#222] bg-[#1A1A1A]/50">
@@ -164,25 +159,24 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
                             <History size={14} /> Activity Log
                         </h3>
                         <div className="flex gap-2">
-                             <button 
+                             <Button 
+                                size="sm"
+                                variant="secondary"
                                 onClick={() => setView('deposit')}
-                                className="px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all bg-[#222] text-white border border-[#333] hover:bg-[#333]"
+                                icon={PiggyBank}
+                                className="text-blue-400"
                             >
-                                <PiggyBank size={14} className="text-blue-400"/>
                                 Deposit
-                            </button>
-                            <button 
+                            </Button>
+                            <Button 
+                                size="sm"
+                                variant={financials.balance > 0 ? "primary" : "secondary"}
                                 onClick={() => setView('withdraw')}
                                 disabled={financials.balance <= 0}
-                                className={`px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all ${
-                                    financials.balance > 0 
-                                    ? 'bg-brand-green text-black hover:bg-brand-green/90 shadow-lg shadow-green-500/10'
-                                    : 'bg-[#333] text-gray-500 cursor-not-allowed'
-                                }`}
+                                icon={Banknote}
                             >
-                                <Banknote size={14} />
                                 Withdraw
-                            </button>
+                            </Button>
                         </div>
                     </div>
 
@@ -230,7 +224,6 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
                 </div>
             )}
 
-            {/* VIEW: WITHDRAWAL / DEPOSIT FORM */}
             {(view === 'withdraw' || view === 'deposit') && financials && (
                 <div className="flex flex-col h-full p-6 animate-in slide-in-from-right-4 duration-300">
                     <div className="flex items-center justify-between mb-6">
@@ -247,12 +240,14 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
                                 </>
                             )}
                          </h3>
-                         <button 
+                         <Button 
+                            variant="secondary"
+                            size="sm"
                             onClick={() => setView('dashboard')}
-                            className="text-gray-500 hover:text-white flex items-center gap-1.5 text-xs font-bold transition-colors bg-[#222] px-3 py-1.5 rounded-lg"
+                            icon={ArrowLeft}
                         >
-                            <ArrowLeft size={14} /> Back
-                        </button>
+                            Back
+                        </Button>
                     </div>
 
                     <div className="flex-1 flex flex-col justify-start">
@@ -262,24 +257,23 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
                                 <div className="space-y-1">
                                     <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Amount</label>
                                     <div className="relative">
-                                        <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-                                        <input 
-                                            autoFocus
-                                            type="number"
-                                            min="1"
-                                            max={view === 'withdraw' ? financials.balance : undefined}
-                                            step="0.01"
-                                            required
+                                        <NumberInput
                                             value={amount}
-                                            onChange={(e) => setAmount(e.target.value)}
-                                            className={`w-full bg-[#222] border border-[#333] rounded-xl pl-10 pr-16 py-3 text-xl font-bold text-white outline-none focus:border-brand-green transition-all placeholder:text-gray-700`}
-                                            placeholder="0.00"
+                                            onChange={setAmount}
+                                            min={0}
+                                            max={view === 'withdraw' ? financials.balance : undefined}
+                                            step={10}
+                                            size="xl"
+                                            prefix="$"
+                                            className="bg-[#222] border-[#333]"
+                                            allowEmpty={true}
+                                            enableScroll={false}
                                         />
                                         {view === 'withdraw' && (
                                             <button 
                                                 type="button"
-                                                onClick={() => setAmount(financials.balance.toString())}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold bg-[#333] text-brand-green px-2 py-1 rounded hover:bg-[#444] transition-colors"
+                                                onClick={() => setAmount(financials.balance)}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold bg-[#333] text-brand-green px-2 py-1 rounded hover:bg-[#444] transition-colors z-10"
                                             >
                                                 MAX
                                             </button>
@@ -322,17 +316,17 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
                                     </div>
                                 </div>
 
-                                <button 
-                                    type="submit"
-                                    disabled={isProcessing}
-                                    className={`w-full ${view === 'withdraw' ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'} py-3.5 rounded-xl font-bold text-base shadow-lg mt-2 disabled:opacity-50 flex justify-center items-center gap-2 transition-colors`}
-                                >
-                                    {isProcessing ? 'Processing...' : (
-                                        <>
-                                            <span>Confirm {view === 'withdraw' ? 'Withdrawal' : 'Deposit'}</span>
-                                        </>
-                                    )}
-                                </button>
+                                <div className="pt-2">
+                                    <Button 
+                                        type="submit"
+                                        isLoading={isProcessing}
+                                        fullWidth
+                                        size="lg"
+                                        className={view === 'withdraw' ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20' : 'bg-blue-500 hover:bg-blue-600 text-white shadow-blue-500/20'}
+                                    >
+                                        Confirm {view === 'withdraw' ? 'Withdrawal' : 'Deposit'}
+                                    </Button>
+                                </div>
                             </form>
                         ) : (
                             <div className="flex flex-col items-center justify-center h-full py-10 animate-in zoom-in-95 duration-300">

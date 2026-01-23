@@ -11,7 +11,7 @@ import {
 import { PokerTable, TableStatus } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
-import TableForm from './TableForm';
+import TableForm from '../components/TableForm';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const TablesView = () => {

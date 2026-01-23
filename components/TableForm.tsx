@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { PokerTable, TableStatus } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
-import { Modal } from './Modal';
+import { Modal } from './ui/Modal';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface TableFormProps {

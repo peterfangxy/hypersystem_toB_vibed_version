@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Layers, Clock, Coins, PlayCircle, Coffee, Repeat, Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import { TournamentStructure, StructureItem } from '../types';
 import { THEME } from '../theme';
-import { Modal } from './Modal';
+import { Modal } from './ui/Modal';
+import NumberInput from './ui/NumberInput';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface StructureFormProps {
@@ -17,15 +18,10 @@ const StructureForm: React.FC<StructureFormProps> = ({ isOpen, onClose, onSubmit
   const { t } = useLanguage();
   const [name, setName] = useState('');
   const [startingChips, setStartingChips] = useState(10000);
-  
-  // Rebuy Config
   const [rebuyLimit, setRebuyLimit] = useState(1);
   const [lastRebuyLevel, setLastRebuyLevel] = useState(6);
-
-  // Schedule Items
   const [items, setItems] = useState<StructureItem[]>([]);
 
-  // Initialize data
   useEffect(() => {
     if (isOpen) {
       if (initialData) {
@@ -39,7 +35,6 @@ const StructureForm: React.FC<StructureFormProps> = ({ isOpen, onClose, onSubmit
         setStartingChips(10000);
         setRebuyLimit(1);
         setLastRebuyLevel(6);
-        // Default starter items
         setItems([
              { type: 'Level', level: 1, duration: 20, smallBlind: 100, bigBlind: 200, ante: 0 },
              { type: 'Level', level: 2, duration: 20, smallBlind: 200, bigBlind: 400, ante: 0 },
@@ -149,14 +144,12 @@ const StructureForm: React.FC<StructureFormProps> = ({ isOpen, onClose, onSubmit
                             </h4>
                             <div className="space-y-1">
                                   <label className="text-sm font-medium text-gray-300">{t('structures.form.startChips')}</label>
-                                  <input 
-                                      required
-                                      type="number"
-                                      min="0"
-                                      step="100" 
+                                  <NumberInput 
                                       value={startingChips}
-                                      onChange={e => setStartingChips(parseInt(e.target.value) || 0)}
-                                      className={`w-full ${THEME.input} rounded-xl px-4 py-2 outline-none transition-all`}
+                                      onChange={setStartingChips}
+                                      min={0}
+                                      step={100}
+                                      size="md"
                                   />
                             </div>
                       </div>
@@ -168,26 +161,21 @@ const StructureForm: React.FC<StructureFormProps> = ({ isOpen, onClose, onSubmit
                             <div className="space-y-3">
                               <div className="space-y-1">
                                   <label className="text-sm font-medium text-gray-300">{t('structures.form.rebuyLimit')}</label>
-                                  <input 
-                                      required
-                                      type="number"
-                                      min="0"
-                                      placeholder="0 = Freezeout"
+                                  <NumberInput 
                                       value={rebuyLimit}
-                                      onChange={e => setRebuyLimit(parseInt(e.target.value))}
-                                      className={`w-full ${THEME.input} rounded-xl px-4 py-2 outline-none transition-all`}
+                                      onChange={setRebuyLimit}
+                                      min={0}
+                                      size="md"
                                   />
                                    <p className="text-[9px] text-gray-500">{t('structures.form.freezeout')}</p>
                               </div>
                               <div className="space-y-1">
                                   <label className="text-sm font-medium text-gray-300">{t('structures.form.lastRebuyLevel')}</label>
-                                  <input 
-                                      required
-                                      type="number"
-                                      min="0"
+                                  <NumberInput 
                                       value={lastRebuyLevel}
-                                      onChange={e => setLastRebuyLevel(parseInt(e.target.value))}
-                                      className={`w-full ${THEME.input} rounded-xl px-4 py-2 outline-none transition-all`}
+                                      onChange={setLastRebuyLevel}
+                                      min={0}
+                                      size="md"
                                   />
                               </div>
                             </div>
@@ -218,7 +206,6 @@ const StructureForm: React.FC<StructureFormProps> = ({ isOpen, onClose, onSubmit
                       {items.map((item, idx) => (
                           <div key={idx} className={`grid grid-cols-12 gap-4 items-center group p-2 rounded-lg border ${item.type === 'Break' ? 'bg-[#1A1A1A] border-dashed border-[#333]' : 'border-transparent hover:bg-[#1A1A1A] hover:border-[#333]'}`}>
                               
-                              {/* Sequence / Type */}
                               <div className="col-span-1 flex justify-center">
                                   {item.type === 'Break' ? (
                                      <div className="w-6 h-6 rounded bg-[#222] flex items-center justify-center text-gray-500" title="Break">
@@ -231,41 +218,46 @@ const StructureForm: React.FC<StructureFormProps> = ({ isOpen, onClose, onSubmit
                                   )}
                               </div>
 
-                              {/* Duration */}
                               <div className="col-span-2 relative">
-                                  <input 
-                                      type="number"
+                                  <NumberInput
                                       value={item.duration}
-                                      onChange={(e) => handleItemChange(idx, 'duration', parseInt(e.target.value) || 0)}
-                                      className={`w-full ${THEME.input} rounded-lg px-2 py-1.5 text-sm text-center font-mono`}
+                                      onChange={(val) => handleItemChange(idx, 'duration', val)}
+                                      min={1}
+                                      enableScroll={true}
+                                      size="sm"
+                                      align="center"
+                                      variant="transparent"
+                                      className="border border-[#333] rounded-lg bg-[#222]"
                                   />
-                                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-600 pointer-events-none">min</span>
                               </div>
 
                               {item.type === 'Level' ? (
                                   <>
                                     <div className="col-span-2">
-                                        <input 
-                                            type="number"
+                                        <NumberInput 
                                             value={item.smallBlind}
-                                            onChange={(e) => handleItemChange(idx, 'smallBlind', parseInt(e.target.value) || 0)}
-                                            className={`w-full ${THEME.input} rounded-lg px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-brand-green/50 font-mono`}
+                                            onChange={(val) => handleItemChange(idx, 'smallBlind', val)}
+                                            size="sm"
+                                            variant="transparent"
+                                            className="border border-[#333] rounded-lg bg-[#222]"
                                         />
                                     </div>
                                     <div className="col-span-2">
-                                        <input 
-                                            type="number"
+                                        <NumberInput 
                                             value={item.bigBlind}
-                                            onChange={(e) => handleItemChange(idx, 'bigBlind', parseInt(e.target.value) || 0)}
-                                            className={`w-full ${THEME.input} rounded-lg px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-brand-green/50 font-mono`}
+                                            onChange={(val) => handleItemChange(idx, 'bigBlind', val)}
+                                            size="sm"
+                                            variant="transparent"
+                                            className="border border-[#333] rounded-lg bg-[#222]"
                                         />
                                     </div>
                                     <div className="col-span-2">
-                                        <input 
-                                            type="number"
+                                        <NumberInput 
                                             value={item.ante}
-                                            onChange={(e) => handleItemChange(idx, 'ante', parseInt(e.target.value) || 0)}
-                                            className={`w-full ${THEME.input} rounded-lg px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-brand-green/50 font-mono placeholder:text-gray-700`}
+                                            onChange={(val) => handleItemChange(idx, 'ante', val)}
+                                            size="sm"
+                                            variant="transparent"
+                                            className="border border-[#333] rounded-lg bg-[#222]"
                                             placeholder="0"
                                         />
                                     </div>
@@ -308,7 +300,6 @@ const StructureForm: React.FC<StructureFormProps> = ({ isOpen, onClose, onSubmit
               </div>
           </div>
 
-          {/* Footer */}
           <div className="p-6 border-t border-[#222] bg-[#171717] flex justify-end gap-3">
               <button 
                   type="button" 

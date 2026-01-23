@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Trash2, 
@@ -10,7 +11,7 @@ import {
 import { Tournament, TournamentRegistration, Member, PokerTable, TournamentTransaction } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
-import { Modal } from './Modal';
+import { Modal } from './ui/Modal';
 
 export interface EnrichedRegistration extends TournamentRegistration {
     member?: Member;

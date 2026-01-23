@@ -2,8 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { Member, MembershipTier, Gender, MemberStatus } from '../types';
 import { THEME } from '../theme';
-import { Modal } from './Modal';
+import { Modal } from './ui/Modal';
 import { useLanguage } from '../contexts/LanguageContext';
+import NumberInput from './ui/NumberInput';
+import Button from './ui/Button';
 
 interface MemberFormProps {
   isOpen: boolean;
@@ -48,6 +50,8 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isFormValid) return;
+
     const newMember: Member = {
       id: initialData?.id || crypto.randomUUID(),
       joinDate: initialData?.joinDate || new Date().toISOString(),
@@ -57,6 +61,9 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
     onSubmit(newMember);
     onClose();
   };
+
+  const isAgeInvalid = (formData.age || 0) < 18;
+  const isFormValid = !!formData.fullName && !!formData.email && !isAgeInvalid;
 
   return (
     <Modal
@@ -96,14 +103,18 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-300">{t('members.form.age')}</label>
-              <input 
-                required
-                type="number" 
-                min="18"
+              <NumberInput
                 value={formData.age}
-                onChange={e => setFormData({...formData, age: parseInt(e.target.value)})}
-                className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none transition-all`}
+                onChange={(val) => setFormData({...formData, age: val})}
+                min={1}
+                allowEmpty={true}
+                clampValueOnBlur={false}
+                isInvalid={isAgeInvalid}
+                placeholder="21"
               />
+              {isAgeInvalid && (
+                <p className="text-xs text-red-500 mt-1 font-bold">Must be 18 or older to join.</p>
+              )}
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-300">{t('members.form.gender')}</label>
@@ -202,12 +213,15 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
         </div>
 
         <div className="pt-6">
-          <button 
+          <Button 
             type="submit" 
-            className={`w-full ${THEME.buttonPrimary} font-bold text-lg py-4 rounded-xl transition-transform active:scale-[0.98]`}
+            variant="primary"
+            size="xl"
+            fullWidth
+            disabled={!isFormValid}
           >
             {initialData ? t('members.form.submitSave') : t('members.form.submitCreate')}
-          </button>
+          </Button>
         </div>
       </form>
     </Modal>
