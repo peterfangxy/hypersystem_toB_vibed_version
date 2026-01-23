@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Trash2, 
   Plus, 
-  Save,
+  Save, 
   AlertCircle,
   Wallet,
   Check
@@ -123,6 +123,10 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
     // Validation
     const isOverBalance = totalDepositPaid > effectiveAvailableFunds;
 
+    // Grid Layout Definition
+    // Columns: Index, Time, Type, BaseCost, RebuyDisc, MemDisc, Voucher, Campaign, Deposit, Net, Paid, Action
+    const gridClass = "grid grid-cols-[3rem_4.5rem_4.5rem_5rem_1fr_1fr_1fr_1fr_1fr_5rem_3.5rem_3rem] gap-2 items-center";
+
     return (
         <Modal
             isOpen={isOpen}
@@ -133,77 +137,89 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
         >
             <form onSubmit={handleSave} className="flex flex-col flex-1 overflow-hidden h-[80vh]">
                 <div className="flex-1 overflow-x-auto overflow-y-auto bg-[#111]">
-                    <table className="w-full text-left border-collapse min-w-[1000px]">
-                        <thead className="sticky top-0 bg-[#1A1A1A] z-10 shadow-sm text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            <tr>
-                                <th className="px-4 py-3 border-b border-[#333]">#</th>
-                                <th className="px-4 py-3 border-b border-[#333]">Time</th>
-                                <th className="px-4 py-3 border-b border-[#333]">Type</th>
-                                <th className="px-4 py-3 border-b border-[#333] text-right">Base Cost</th>
-                                <th className="px-2 py-3 border-b border-[#333] text-right text-orange-400">Re-buy Disc</th>
-                                <th className="px-2 py-3 border-b border-[#333] text-right text-blue-400">Mem Disc</th>
-                                <th className="px-2 py-3 border-b border-[#333] text-right text-purple-400">Voucher</th>
-                                <th className="px-2 py-3 border-b border-[#333] text-right text-yellow-400">Campaign</th>
-                                <th className="px-2 py-3 border-b border-[#333] text-right text-brand-green">Deposit Pay</th>
-                                <th className="px-4 py-3 border-b border-[#333] text-right text-white">Net Payable</th>
-                                <th className="px-2 py-3 border-b border-[#333] text-center">Paid?</th>
-                                <th className="px-2 py-3 border-b border-[#333]"></th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#262626]">
+                    <div className="min-w-[1000px] p-4">
+                        {/* Sticky Grid Header - Matches StructureForm Style */}
+                        <div className={`sticky top-0 z-10 ${gridClass} p-2 bg-[#111] border-b border-[#222] text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 shadow-sm`}>
+                            <div className="text-center pl-2">#</div>
+                            <div className="text-center">Time</div>
+                            <div className="text-center">Type</div>
+                            <div className="text-center">Base</div>
+                            <div className="text-center">Rebuy</div>
+                            <div className="text-center">Member</div>
+                            <div className="text-center">Voucher</div>
+                            <div className="text-center">Campaign</div>
+                            <div className="text-center">Deposit Pay</div>
+                            <div className="text-center">Net</div>
+                            <div className="text-center">Paid</div>
+                            <div className="text-center"></div>
+                        </div>
+
+                        {/* Transaction Rows */}
+                        <div className="space-y-1">
                             {transactions.length === 0 ? (
-                                <tr><td colSpan={12} className="p-8 text-center text-gray-500">No transactions recorded. Click "Add" below.</td></tr>
+                                <div className="p-10 text-center text-gray-500 border border-dashed border-[#222] rounded-xl bg-[#1A1A1A]/30">
+                                    No transactions recorded. Click "Add" below.
+                                </div>
                             ) : (
                                 transactions.map((tx, idx) => {
                                     const net = calculateRowNet(tx);
                                     return (
-                                        <tr key={tx.id} className="hover:bg-[#1A1A1A] transition-colors group">
-                                            <td className="px-4 py-3 text-gray-500 font-mono text-xs">{idx + 1}</td>
-                                            <td className="px-4 py-3 text-gray-500 font-mono text-xs">
+                                        <div key={tx.id} className={`${gridClass} p-2 rounded-lg hover:bg-[#1A1A1A] border border-transparent hover:border-[#333] transition-colors group`}>
+                                            {/* Index */}
+                                            <div className="text-center pl-2 text-gray-500 font-mono text-xs">{idx + 1}</div>
+                                            
+                                            {/* Time */}
+                                            <div className="text-center text-gray-500 font-mono text-xs truncate">
                                                 {new Date(tx.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <span className={`text-xs font-bold uppercase px-2 py-1 rounded border ${
+                                            </div>
+                                            
+                                            {/* Type */}
+                                            <div className="text-center">
+                                                <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border inline-block ${
                                                     tx.type === 'BuyIn' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 'bg-orange-500/10 text-orange-500 border-orange-500/20'
                                                 }`}>
-                                                    {tx.type}
+                                                    {tx.type === 'BuyIn' ? 'Buy-in' : 'Re-buy'}
                                                 </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-right text-gray-300 font-mono text-sm">
-                                                ${baseCost.toLocaleString()}
-                                            </td>
+                                            </div>
                                             
-                                            {/* Inputs with right alignment */}
+                                            {/* Base Cost */}
+                                            <div className="text-center text-gray-300 font-mono text-sm">
+                                                ${baseCost.toLocaleString()}
+                                            </div>
+                                            
+                                            {/* Inputs */}
                                             {['rebuyDiscount', 'membershipDiscount', 'voucherDiscount', 'campaignDiscount', 'depositPaid'].map((field) => (
-                                                <td key={field} className="px-2 py-3 text-right">
+                                                <div key={field}>
                                                     <NumberInput 
                                                         value={(tx as any)[field]}
                                                         onChange={(val) => handleTransactionChange(idx, field as keyof TournamentTransaction, val ?? 0)}
                                                         min={0}
                                                         allowEmpty={true}
                                                         enableScroll={false}
-                                                        align="right"
+                                                        align="center"
                                                         size="sm"
                                                         variant="transparent"
-                                                        className={`w-24 border rounded ${
+                                                        className={`w-full border rounded-lg ${
                                                             field === 'depositPaid' && isOverBalance 
                                                             ? 'border-red-500/50 bg-red-900/10' 
                                                             : 'border-[#333] bg-[#222]'
                                                         }`}
                                                         placeholder="0"
                                                     />
-                                                </td>
+                                                </div>
                                             ))}
 
-                                            <td className="px-4 py-3 text-right">
-                                                <div className="font-bold text-white font-mono">${net.toLocaleString()}</div>
-                                            </td>
+                                            {/* Net Payable */}
+                                            <div className="text-center">
+                                                <div className="font-bold text-white font-mono text-sm">${net.toLocaleString()}</div>
+                                            </div>
                                             
-                                            <td className="px-2 py-3 text-center">
+                                            {/* Paid Toggle */}
+                                            <div className="flex justify-center">
                                                 <button
                                                     type="button"
                                                     onClick={() => handleTransactionChange(idx, 'isPaid', !tx.isPaid)}
-                                                    className={`w-8 h-8 rounded flex items-center justify-center transition-colors border ${
+                                                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors border ${
                                                         tx.isPaid 
                                                         ? 'bg-green-500/20 border-green-500 text-green-500' 
                                                         : 'bg-[#222] border-[#444] text-gray-600 hover:border-gray-500'
@@ -212,9 +228,10 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                                                 >
                                                     {tx.isPaid && <Check size={16} strokeWidth={3} />}
                                                 </button>
-                                            </td>
+                                            </div>
 
-                                            <td className="px-2 py-3 text-center">
+                                            {/* Delete Action */}
+                                            <div className="flex justify-center opacity-50 group-hover:opacity-100 transition-opacity">
                                                 <button 
                                                     type="button"
                                                     onClick={() => handleRemoveTransaction(idx)}
@@ -222,13 +239,13 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                                                 >
                                                     <Trash2 size={14} />
                                                 </button>
-                                            </td>
-                                        </tr>
+                                            </div>
+                                        </div>
                                     );
                                 })
                             )}
-                        </tbody>
-                    </table>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Add Button Bar */}

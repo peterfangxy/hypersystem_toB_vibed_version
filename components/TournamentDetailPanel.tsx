@@ -12,7 +12,7 @@ import { THEME } from '../theme';
 import { BuyinMgmtModal, EnrichedRegistration } from './BuyinMgmtModal';
 import AddPlayerModal from './AddPlayerModal';
 import { useLanguage } from '../contexts/LanguageContext';
-import TournamentStatsView from './tournament/TournamentStatsView';
+import TournamentStatsFooter from './tournament/TournamentStatsFooter';
 import TournamentPlayerList from './tournament/TournamentPlayerList';
 
 interface TournamentDetailPanelProps {
@@ -308,7 +308,7 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
       />
 
        {/* Footer Component */}
-       <TournamentStatsView 
+       <TournamentStatsFooter 
           totalPrizePool={totalPrizePool}
           totalFees={totalFees}
           totalChipsInPlay={totalChipsInPlay}

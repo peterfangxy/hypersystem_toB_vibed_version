@@ -2,7 +2,7 @@ import React from 'react';
 import { Trophy, AlertTriangle, Loader2 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 
-interface TournamentStatsViewProps {
+interface TournamentStatsFooterProps {
   totalPrizePool: number;
   totalFees: number;
   totalChipsInPlay: number;
@@ -14,7 +14,7 @@ interface TournamentStatsViewProps {
   onComplete: () => void;
 }
 
-const TournamentStatsView: React.FC<TournamentStatsViewProps> = ({
+const TournamentStatsFooter: React.FC<TournamentStatsFooterProps> = ({
   totalPrizePool,
   totalFees,
   totalChipsInPlay,
@@ -87,4 +87,4 @@ const TournamentStatsView: React.FC<TournamentStatsViewProps> = ({
   );
 };
 
-export default TournamentStatsView;
+export default TournamentStatsFooter;
