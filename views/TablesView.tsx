@@ -67,7 +67,7 @@ const TablesView = () => {
   return (
     <div className="h-full flex flex-col w-full">
       {/* Header */}
-      <div className="flex justify-between items-end mb-8">
+      <div className="flex justify-between items-end mb-6">
         <div>
           <h2 className="text-4xl font-bold text-white mb-2">{t('tables.title')}</h2>
           <p className="text-gray-400">{t('tables.subtitle')}</p>

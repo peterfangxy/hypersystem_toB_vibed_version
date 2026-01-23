@@ -439,7 +439,7 @@ const SettingsView = () => {
 
   return (
     <div className="h-full flex flex-col w-full">
-      <div className="flex justify-between items-end mb-8">
+      <div className="flex justify-between items-end mb-6">
         <div>
           <h2 className="text-4xl font-bold text-white mb-2">{t('settings.title')}</h2>
           <p className="text-gray-400">{t('settings.subtitle')}</p>
@@ -453,10 +453,10 @@ const SettingsView = () => {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex gap-8 mb-8 border-b border-[#222]">
+      <div className="flex gap-8 mb-6 border-b border-[#222]">
         <NavLink
           to="general"
-          className={({isActive}) => `pb-4 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
+          className={({isActive}) => `pb-2.5 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
             isActive 
               ? 'text-white' 
               : 'text-gray-500 hover:text-gray-300'
@@ -477,7 +477,7 @@ const SettingsView = () => {
 
         <NavLink
           to="team"
-          className={({isActive}) => `pb-4 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
+          className={({isActive}) => `pb-2.5 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
             isActive 
               ? 'text-white' 
               : 'text-gray-500 hover:text-gray-300'
@@ -498,7 +498,7 @@ const SettingsView = () => {
 
         <NavLink
           to="appearance"
-          className={({isActive}) => `pb-4 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
+          className={({isActive}) => `pb-2.5 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
             isActive 
               ? 'text-white' 
               : 'text-gray-500 hover:text-gray-300'

@@ -153,7 +153,7 @@ const DashboardView = () => {
   return (
     <div className="h-full flex flex-col w-full animate-in fade-in duration-500">
       {/* Header */}
-      <div className="flex justify-between items-end mb-8">
+      <div className="flex justify-between items-end mb-6">
         <div>
           <h2 className="text-4xl font-bold text-white mb-2">Dashboard</h2>
           <p className="text-gray-400 flex items-center gap-2">
@@ -171,7 +171,7 @@ const DashboardView = () => {
       </div>
 
       {/* Metric Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           
           <StatCard 
             title="Monthly Active Members"

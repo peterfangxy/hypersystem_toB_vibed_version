@@ -501,7 +501,7 @@ const TournamentsView = () => {
   return (
      <div className="h-full flex flex-col w-full">
       {/* Header */}
-      <div className="flex justify-between items-end mb-8">
+      <div className="flex justify-between items-end mb-5">
         <div>
           <h2 className="text-4xl font-bold text-white mb-2">{t('tournaments.title')}</h2>
           <p className="text-gray-400">{t('tournaments.subtitle')}</p>
@@ -516,10 +516,10 @@ const TournamentsView = () => {
       </div>
 
        {/* Tabs Navigation */}
-      <div className="flex gap-8 mb-6 border-b border-[#222]">
+      <div className="flex gap-8 mb-4 border-b border-[#222]">
         <NavLink
           to="manage"
-          className={({isActive}) => `pb-4 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
+          className={({isActive}) => `pb-2.5 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
             isActive 
               ? 'text-white' 
               : 'text-gray-500 hover:text-gray-300'
@@ -540,7 +540,7 @@ const TournamentsView = () => {
 
         <NavLink
           to="templates"
-          className={({isActive}) => `pb-4 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
+          className={({isActive}) => `pb-2.5 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
             isActive 
               ? 'text-white' 
               : 'text-gray-500 hover:text-gray-300'
@@ -561,7 +561,7 @@ const TournamentsView = () => {
       </div>
 
       {/* Control Bar */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
+      <div className="flex flex-col md:flex-row gap-4 mb-4">
         {/* Search */}
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
@@ -570,7 +570,7 @@ const TournamentsView = () => {
             placeholder={isTemplatesTab ? t('tournaments.filter.searchTemplates') : t('tournaments.filter.search')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-3 text-white placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none transition-all`}
+            className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-2.5 text-white placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none transition-all`}
           />
         </div>
         
@@ -581,7 +581,7 @@ const TournamentsView = () => {
             <select 
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-3 text-white outline-none appearance-none cursor-pointer focus:ring-1 focus:ring-brand-green`}
+                className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-2.5 text-white outline-none appearance-none cursor-pointer focus:ring-1 focus:ring-brand-green`}
             >
                 <option value="All">{t('tournaments.filter.status')}</option>
                 <option value="Scheduled">Scheduled</option>
