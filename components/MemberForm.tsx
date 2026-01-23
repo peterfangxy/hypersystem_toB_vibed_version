@@ -112,13 +112,15 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">{t('members.form.fullName')}</label>
+                <label className="text-sm font-medium text-gray-300">
+                    {t('members.form.fullName')} <span className="text-red-500">*</span>
+                </label>
                 <input 
                 required
                 type="text" 
                 value={formData.fullName}
                 onChange={e => setFormData({...formData, fullName: e.target.value})}
-                className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none transition-all placeholder:text-gray-600`}
+                className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none transition-all placeholder:text-gray-600 ${!formData.fullName ? 'border-red-500/40 focus:border-red-500' : ''}`}
                 placeholder="e.g. John Doe"
                 />
             </div>
@@ -228,13 +230,15 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
           <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('members.form.contact')}</h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">{t('members.form.email')}</label>
+                <label className="text-sm font-medium text-gray-300">
+                    {t('members.form.email')} <span className="text-red-500">*</span>
+                </label>
                 <input 
                 required
                 type="email" 
                 value={formData.email}
                 onChange={e => setFormData({...formData, email: e.target.value})}
-                className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none transition-all placeholder:text-gray-600`}
+                className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none transition-all placeholder:text-gray-600 ${!formData.email ? 'border-red-500/40 focus:border-red-500' : ''}`}
                 placeholder="john@example.com"
                 />
             </div>
