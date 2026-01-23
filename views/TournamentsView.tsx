@@ -9,14 +9,10 @@ import {
   ArrowUpDown, 
   Filter, 
   Users, 
-  Flag, 
-  Play, 
-  Ticket, 
   Copy, 
   Trash2, 
   ChevronDown, 
-  ChevronUp, 
-  Timer
+  ChevronUp
 } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
 import { Tournament, TournamentStatus, TournamentStructure, PayoutStructure } from '../types';
@@ -25,6 +21,7 @@ import { THEME } from '../theme';
 import TournamentForm from '../components/TournamentForm';
 import TournamentDetailPanel from '../components/TournamentDetailPanel';
 import { useLanguage } from '../contexts/LanguageContext';
+import { PageHeader, TabContainer, ControlBar } from '../components/ui/PageLayout';
 
 const TournamentsView = () => {
   const { t } = useLanguage();
@@ -500,23 +497,22 @@ const TournamentsView = () => {
 
   return (
      <div className="h-full flex flex-col w-full">
-      {/* Header */}
-      <div className="flex justify-between items-end mb-5">
-        <div>
-          <h2 className="text-4xl font-bold text-white mb-2">{t('tournaments.title')}</h2>
-          <p className="text-gray-400">{t('tournaments.subtitle')}</p>
-        </div>
-        <button 
-          onClick={openCreate}
-          className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95`}
-        >
-          <Plus size={20} strokeWidth={2.5} />
-          {isTemplatesTab ? t('tournaments.btn.createTemplate') : t('tournaments.btn.createEvent')}
-        </button>
-      </div>
+      <PageHeader
+        title={t('tournaments.title')}
+        subtitle={t('tournaments.subtitle')}
+        actions={
+            <button 
+                onClick={openCreate}
+                className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95`}
+            >
+                <Plus size={20} strokeWidth={2.5} />
+                {isTemplatesTab ? t('tournaments.btn.createTemplate') : t('tournaments.btn.createEvent')}
+            </button>
+        }
+      />
 
        {/* Tabs Navigation */}
-      <div className="flex gap-8 mb-4 border-b border-[#222]">
+      <TabContainer>
         <NavLink
           to="manage"
           className={({isActive}) => `pb-2.5 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
@@ -558,10 +554,10 @@ const TournamentsView = () => {
                 </>
              )}
         </NavLink>
-      </div>
+      </TabContainer>
 
       {/* Control Bar */}
-      <div className="flex flex-col md:flex-row gap-4 mb-4">
+      <ControlBar>
         {/* Search */}
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
@@ -592,7 +588,7 @@ const TournamentsView = () => {
             </select>
             </div>
         )}
-      </div>
+      </ControlBar>
 
       <Routes>
           <Route path="manage" element={manageView} />

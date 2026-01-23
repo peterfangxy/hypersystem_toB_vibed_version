@@ -22,6 +22,7 @@ import * as DataService from '../services/dataService';
 import { useLanguage } from '../contexts/LanguageContext';
 import RoleConfigModal from '../components/RoleConfigModal';
 import InviteMemberModal from '../components/InviteMemberModal';
+import { PageHeader, TabContainer } from '../components/ui/PageLayout';
 
 const getRoleBadge = (role: AccessRole) => {
     switch(role) {
@@ -439,21 +440,19 @@ const SettingsView = () => {
 
   return (
     <div className="h-full flex flex-col w-full">
-      <div className="flex justify-between items-end mb-6">
-        <div>
-          <h2 className="text-4xl font-bold text-white mb-2">{t('settings.title')}</h2>
-          <p className="text-gray-400">{t('settings.subtitle')}</p>
-        </div>
-        {isSaved && (
+      <PageHeader 
+        title={t('settings.title')}
+        subtitle={t('settings.subtitle')}
+        actions={isSaved ? (
              <div className="flex items-center gap-2 text-brand-green font-bold animate-in fade-in slide-in-from-bottom-2">
                  <Check size={20} />
                  {t('settings.saved')}
              </div>
-        )}
-      </div>
+        ) : null}
+      />
 
       {/* Tabs Navigation */}
-      <div className="flex gap-8 mb-6 border-b border-[#222]">
+      <TabContainer className="mb-6">
         <NavLink
           to="general"
           className={({isActive}) => `pb-2.5 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
@@ -516,7 +515,7 @@ const SettingsView = () => {
                 </>
              )}
         </NavLink>
-      </div>
+      </TabContainer>
 
       {/* Content Area */}
       <div className="flex-1 pb-10">

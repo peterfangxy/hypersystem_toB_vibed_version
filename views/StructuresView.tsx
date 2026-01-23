@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Layers, DollarSign, Plus, Clock, Hash, Coins, Edit2, Trash2, Coffee, Timer, Cpu, Table, ArrowRight, Calculator, Repeat } from 'lucide-react';
+import { Layers, DollarSign, Plus, Clock, Hash, Coins, Edit2, Trash2, Cpu, Table, ArrowRight, Calculator, Repeat } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
 import { THEME } from '../theme';
 import { TournamentStructure, PayoutStructure } from '../types';
@@ -8,6 +8,7 @@ import * as DataService from '../services/dataService';
 import StructureForm from '../components/StructureForm';
 import PayoutModelForm from '../components/PayoutModelForm';
 import { useLanguage } from '../contexts/LanguageContext';
+import { PageHeader, TabContainer } from '../components/ui/PageLayout';
 
 const StructuresView = () => {
   const { t } = useLanguage();
@@ -289,34 +290,32 @@ const StructuresView = () => {
 
   return (
     <div className="h-full flex flex-col w-full">
-      {/* Header */}
-      <div className="flex justify-between items-end mb-6">
-        <div>
-            <h2 className="text-4xl font-bold text-white mb-2">{t('structures.title')}</h2>
-            <p className="text-gray-400">{t('structures.subtitle')}</p>
-        </div>
-        
-        {!isPayoutsTab ? (
-            <button 
-                onClick={openStructCreate}
-                className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 whitespace-nowrap`}
-            >
-                <Plus size={20} strokeWidth={2.5} />
-                {t('structures.btn.createStructure')}
-            </button>
-        ) : (
-            <button 
-                onClick={openPayoutCreate}
-                className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 whitespace-nowrap`}
-            >
-                <Plus size={20} strokeWidth={2.5} />
-                {t('structures.btn.createMatrix')}
-            </button>
-        )}
-      </div>
+      <PageHeader
+        title={t('structures.title')}
+        subtitle={t('structures.subtitle')}
+        actions={
+            !isPayoutsTab ? (
+                <button 
+                    onClick={openStructCreate}
+                    className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 whitespace-nowrap`}
+                >
+                    <Plus size={20} strokeWidth={2.5} />
+                    {t('structures.btn.createStructure')}
+                </button>
+            ) : (
+                <button 
+                    onClick={openPayoutCreate}
+                    className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 whitespace-nowrap`}
+                >
+                    <Plus size={20} strokeWidth={2.5} />
+                    {t('structures.btn.createMatrix')}
+                </button>
+            )
+        }
+      />
 
       {/* Tabs Navigation */}
-      <div className="flex gap-8 mb-4 border-b border-[#222]">
+      <TabContainer>
         <NavLink
           to="blinds"
           className={({isActive}) => `pb-2.5 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
@@ -358,7 +357,7 @@ const StructuresView = () => {
                 </>
              )}
         </NavLink>
-      </div>
+      </TabContainer>
 
       {/* Content Area */}
       <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden shadow-xl flex-1 min-h-0 mb-3`}>

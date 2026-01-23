@@ -17,6 +17,7 @@ import { THEME } from '../theme';
 import MemberForm from '../components/MemberForm';
 import MemberWalletModal from '../components/MemberWalletModal';
 import { useLanguage } from '../contexts/LanguageContext';
+import { PageHeader, ControlBar } from '../components/ui/PageLayout';
 
 const MembersView = () => {
   const { t } = useLanguage();
@@ -130,23 +131,21 @@ const MembersView = () => {
 
   return (
     <div className="h-full flex flex-col w-full">
-      {/* Header */}
-      <div className="flex justify-between items-end mb-6">
-        <div>
-          <h2 className="text-4xl font-bold text-white mb-2">{t('members.title')}</h2>
-          <p className="text-gray-400">{t('members.subtitle')}</p>
-        </div>
-        <button 
-          onClick={openCreate}
-          className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95`}
-        >
-          <Plus size={20} strokeWidth={2.5} />
-          {t('members.createBtn')}
-        </button>
-      </div>
+      <PageHeader 
+        title={t('members.title')}
+        subtitle={t('members.subtitle')}
+        actions={
+            <button 
+                onClick={openCreate}
+                className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95`}
+            >
+                <Plus size={20} strokeWidth={2.5} />
+                {t('members.createBtn')}
+            </button>
+        }
+      />
 
-      {/* Control Bar */}
-      <div className="flex flex-col md:flex-row gap-4 mb-4">
+      <ControlBar>
         {/* Search */}
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
@@ -174,7 +173,7 @@ const MembersView = () => {
             <option value="Deactivated">Deactivated</option>
           </select>
         </div>
-      </div>
+      </ControlBar>
 
       {/* Table View */}
       <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden flex flex-col shadow-xl flex-1 min-h-0 mb-3`}>

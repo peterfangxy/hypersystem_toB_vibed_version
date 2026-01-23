@@ -24,6 +24,7 @@ import { THEME } from '../theme';
 import ClockEditor from '../components/ClockEditor';
 import ClockDisplay from '../components/ClockDisplay';
 import { useLanguage } from '../contexts/LanguageContext';
+import { PageHeader, TabContainer } from '../components/ui/PageLayout';
 
 // --- Sub-Component: Live Clock Runner (Page) ---
 const LiveClockRunner = () => {
@@ -611,15 +612,13 @@ const ClocksView = () => {
 
   return (
     <div className="h-full flex flex-col w-full">
-      <div className="flex justify-between items-end mb-6">
-        <div>
-          <h2 className="text-4xl font-bold text-white mb-2">{t('clocks.title')}</h2>
-          <p className="text-gray-400">{t('clocks.subtitle')}</p>
-        </div>
-      </div>
+      <PageHeader 
+        title={t('clocks.title')} 
+        subtitle={t('clocks.subtitle')} 
+      />
 
       {/* Tabs Navigation */}
-      <div className="flex gap-8 mb-4 border-b border-[#222]">
+      <TabContainer>
         <NavLink
           to="live"
           end={false} // Allow matching sub-routes but check below manually if needed or rely on NavLink smarts
@@ -662,7 +661,7 @@ const ClocksView = () => {
                 </>
              )}
         </NavLink>
-      </div>
+      </TabContainer>
 
       <div className="flex-1 relative">
           <Routes>

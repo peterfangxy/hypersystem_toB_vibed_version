@@ -13,6 +13,7 @@ import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
 import TableForm from '../components/TableForm';
 import { useLanguage } from '../contexts/LanguageContext';
+import { PageHeader } from '../components/ui/PageLayout';
 
 const TablesView = () => {
   const { t } = useLanguage();
@@ -66,20 +67,19 @@ const TablesView = () => {
 
   return (
     <div className="h-full flex flex-col w-full">
-      {/* Header */}
-      <div className="flex justify-between items-end mb-6">
-        <div>
-          <h2 className="text-4xl font-bold text-white mb-2">{t('tables.title')}</h2>
-          <p className="text-gray-400">{t('tables.subtitle')}</p>
-        </div>
-        <button 
-          onClick={openCreate}
-          className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95`}
-        >
-          <Plus size={20} strokeWidth={2.5} />
-          {t('tables.addBtn')}
-        </button>
-      </div>
+      <PageHeader
+        title={t('tables.title')}
+        subtitle={t('tables.subtitle')}
+        actions={
+            <button 
+                onClick={openCreate}
+                className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95`}
+            >
+                <Plus size={20} strokeWidth={2.5} />
+                {t('tables.addBtn')}
+            </button>
+        }
+      />
 
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
