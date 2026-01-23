@@ -29,6 +29,7 @@ import ClockEditor from '../components/ClockEditor';
 import ClockDisplay from '../components/ClockDisplay';
 import { useLanguage } from '../contexts/LanguageContext';
 import { PageHeader, TabContainer } from '../components/ui/PageLayout';
+import { useTournamentTimer } from '../hooks/useTournamentTimer';
 
 // --- Sub-Component: Unified Clock Runner (Page) ---
 const ClockRunner = () => {
@@ -41,16 +42,20 @@ const ClockRunner = () => {
   const [tableInfo, setTableInfo] = useState<PokerTable | null>(null);
   const [status, setStatus] = useState<'loading' | 'active' | 'idle' | 'error'>('loading');
   
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [timerSeconds, setTimerSeconds] = useState(0); 
   const [config, setConfig] = useState<ClockConfig | null>(null);
   const [structure, setStructure] = useState<TournamentStructure | null>(null);
   const [dimensions, setDimensions] = useState({ w: window.innerWidth, h: window.innerHeight });
   const [isFullscreen, setIsFullscreen] = useState(false);
   
-  const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
-  const [isBreak, setIsBreak] = useState(false);
-  const [isFinished, setIsFinished] = useState(false);
+  // Use Custom Hook for Timer Logic
+  const { 
+      currentTime, 
+      timeRemaining, 
+      currentLevelIndex, 
+      isBreak, 
+      isFinished,
+      hasStarted
+  } = useTournamentTimer(activeTournament, structure);
   
   const [stats, setStats] = useState({
     players: 0,
@@ -178,81 +183,6 @@ const ClockRunner = () => {
     });
   }, [activeTournament, status]);
 
-  // 3. Timer Loop
-  useEffect(() => {
-    if (status !== 'active' || !activeTournament) return;
-
-    const updateTimer = () => {
-        const now = new Date();
-        setCurrentTime(now);
-
-        if (!activeTournament.startDate || !activeTournament.startTime) {
-            setTimerSeconds(0);
-            return;
-        }
-
-        const start = new Date(`${activeTournament.startDate}T${activeTournament.startTime}`);
-        const elapsedSeconds = (now.getTime() - start.getTime()) / 1000;
-
-        if (elapsedSeconds < 0) {
-            // Before start, show first level duration
-            if (structure && structure.items.length > 0) {
-                 setTimerSeconds(structure.items[0].duration * 60);
-            } else {
-                 setTimerSeconds(activeTournament.blindLevelMinutes * 60);
-            }
-            setCurrentLevelIndex(0);
-            setIsBreak(false);
-            setIsFinished(false);
-            return;
-        }
-
-        if (structure && structure.items.length > 0) {
-            let tempElapsed = elapsedSeconds;
-            let foundLevel = false;
-
-            for (let i = 0; i < structure.items.length; i++) {
-                const item = structure.items[i];
-                const itemDurationSec = item.duration * 60;
-
-                if (tempElapsed < itemDurationSec) {
-                    setTimerSeconds(Math.max(0, Math.floor(itemDurationSec - tempElapsed)));
-                    setCurrentLevelIndex(i);
-                    setIsBreak(item.type === 'Break');
-                    setIsFinished(false);
-                    foundLevel = true;
-                    break;
-                } else {
-                    tempElapsed -= itemDurationSec;
-                }
-            }
-
-            if (!foundLevel) {
-                setTimerSeconds(0);
-                setCurrentLevelIndex(structure.items.length - 1);
-                setIsFinished(true);
-                setIsBreak(false);
-            }
-        } else {
-            const durationSec = activeTournament.blindLevelMinutes * 60;
-            if (durationSec > 0) {
-                const levelIdx = Math.floor(elapsedSeconds / durationSec);
-                const secondsIntoLevel = elapsedSeconds % durationSec;
-                setTimerSeconds(Math.floor(durationSec - secondsIntoLevel));
-                setCurrentLevelIndex(levelIdx);
-                setIsBreak(false);
-                setIsFinished(false);
-            } else {
-                setTimerSeconds(0);
-            }
-        }
-    };
-
-    updateTimer(); 
-    const timer = setInterval(updateTimer, 1000);
-    return () => clearInterval(timer);
-  }, [activeTournament, structure, status]);
-
   const toggleFullscreen = async () => {
       if (!document.fullscreenElement) {
           try { await document.documentElement.requestFullscreen(); } catch(e) { console.error(e); }
@@ -351,7 +281,7 @@ const ClockRunner = () => {
     
     const getTimeUntilNextBreak = () => {
         if (!structure || !nextBreakItem) return '---';
-        let totalSec = timerSeconds;
+        let totalSec = timeRemaining;
         const breakIndex = structure.items.indexOf(nextBreakItem);
         for (let i = currentLevelIndex + 1; i < breakIndex; i++) {
              totalSec += (structure.items[i].duration * 60);
@@ -376,8 +306,8 @@ const ClockRunner = () => {
     return {
         tournament_name: activeTournament.name,
         tournament_desc: activeTournament.description || '',
-        timer: isFinished ? "ENDED" : formatSeconds(timerSeconds),
-        blind_countdown: isFinished ? "00:00" : formatSeconds(timerSeconds),
+        timer: isFinished ? "ENDED" : formatSeconds(timeRemaining),
+        blind_countdown: isFinished ? "00:00" : formatSeconds(timeRemaining),
         blind_level: isFinished ? "ENDED" : (isBreak ? "BREAK" : getBlindString(currentItem) || activeTournament.startingBlinds),
         ante: isFinished ? "-" : (isBreak ? "-" : getAnteString(currentItem)),
         next_blinds: isFinished ? "-/-" : getBlindString(nextLevelItem),

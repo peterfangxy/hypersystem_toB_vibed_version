@@ -13,6 +13,7 @@ import { ClockConfig, ClockField, ClockFieldType } from '../types';
 import { THEME } from '../theme';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Modal } from './ui/Modal';
+import { useCanvasInteraction } from '../hooks/useCanvasInteraction';
 
 import ClockLayersPanel from './clock/ClockLayersPanel';
 import ClockPropertiesPanel from './clock/ClockPropertiesPanel';
@@ -41,14 +42,6 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
   const [showGrid, setShowGrid] = useState(false);
   const [enableSnap, setEnableSnap] = useState(false);
   
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartRef = useRef<{
-      startX: number; 
-      startY: number; 
-      initialFieldX: number; 
-      initialFieldY: number; 
-  } | null>(null);
-  
   const canvasRef = useRef<HTMLDivElement>(null);
 
   // Import/Export State
@@ -57,6 +50,22 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
   const [ioJson, setIoJson] = useState('');
   const [importError, setImportError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
+
+  // --- Hook: Canvas Interaction ---
+  const handlePositionUpdate = (id: string, pos: { x: number; y: number }) => {
+      setConfig(prev => ({
+          ...prev,
+          fields: prev.fields.map(f => f.id === id ? { ...f, ...pos } : f)
+      }));
+  };
+
+  const { isDragging, startDrag, handleMouseMove, endDrag } = useCanvasInteraction(
+      canvasRef, 
+      handlePositionUpdate, 
+      { enableSnap }
+  );
+
+  // --- Effects ---
 
   useEffect(() => {
       if (initialConfig) {
@@ -110,6 +119,8 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedFieldId, config.fields, clipboard]);
+
+  // --- Actions ---
 
   const addField = (type: ClockFieldType) => {
       const isShape = type.startsWith('shape_');
@@ -207,47 +218,12 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
       setConfig({ ...config, fields: newFields });
   };
 
-  const handleMouseDown = (e: React.MouseEvent, fieldId: string) => {
-      e.stopPropagation();
+  const handleCanvasMouseDown = (e: React.MouseEvent, fieldId: string) => {
       const field = config.fields.find(f => f.id === fieldId);
-      if (!field) return;
-      setSelectedFieldId(fieldId);
-      setIsDragging(true);
-      dragStartRef.current = { 
-          startX: e.clientX, 
-          startY: e.clientY,
-          initialFieldX: field.x,
-          initialFieldY: field.y
-      };
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-      if (!isDragging || !selectedFieldId || !dragStartRef.current || !canvasRef.current) return;
-      
-      const rect = canvasRef.current.getBoundingClientRect();
-      const deltaXPx = e.clientX - dragStartRef.current.startX;
-      const deltaYPx = e.clientY - dragStartRef.current.startY;
-      const deltaXPercent = (deltaXPx / rect.width) * 100;
-      const deltaYPercent = (deltaYPx / rect.height) * 100;
-
-      let newX = dragStartRef.current.initialFieldX + deltaXPercent;
-      let newY = dragStartRef.current.initialFieldY + deltaYPercent;
-
-      if (enableSnap) {
-          const SNAP_INTERVAL = 5;
-          const SNAP_THRESHOLD = 1.5;
-          const nearestGridX = Math.round(newX / SNAP_INTERVAL) * SNAP_INTERVAL;
-          const nearestGridY = Math.round(newY / SNAP_INTERVAL) * SNAP_INTERVAL;
-          if (Math.abs(newX - nearestGridX) < SNAP_THRESHOLD) newX = nearestGridX;
-          if (Math.abs(newY - nearestGridY) < SNAP_THRESHOLD) newY = nearestGridY;
+      if (field) {
+          setSelectedFieldId(fieldId);
+          startDrag(e, fieldId, field.x, field.y);
       }
-
-      updateField(selectedFieldId, { x: newX, y: newY });
-  };
-
-  const handleMouseUp = () => {
-      setIsDragging(false);
-      dragStartRef.current = null;
   };
 
   // Import/Export Handlers
@@ -292,7 +268,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
   const selectedField = config.fields.find(f => f.id === selectedFieldId) || null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#000] flex flex-col text-white" onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}>
+    <div className="fixed inset-0 z-50 bg-[#000] flex flex-col text-white" onMouseMove={handleMouseMove} onMouseUp={endDrag}>
         {/* Header */}
         <div className="h-16 border-b border-[#222] bg-[#111] flex items-center justify-between px-6 shrink-0 z-20 relative">
              <div className="flex items-center gap-4">
@@ -307,6 +283,22 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                     className="bg-transparent text-lg font-bold outline-none placeholder:text-gray-600 w-64"
                     placeholder={t('clocks.editor.headerName')}
                  />
+             </div>
+             
+             {/* Grid/Snap Controls (Centered) */}
+             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
+                 <button 
+                    onClick={() => setShowGrid(!showGrid)}
+                    className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors ${showGrid ? 'bg-brand-green/20 text-brand-green border-brand-green/30' : 'bg-[#1A1A1A] border-[#333] text-gray-500'}`}
+                 >
+                     {t('clocks.editor.grid')}
+                 </button>
+                 <button 
+                    onClick={() => setEnableSnap(!enableSnap)}
+                    className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors ${enableSnap ? 'bg-brand-green/20 text-brand-green border-brand-green/30' : 'bg-[#1A1A1A] border-[#333] text-gray-500'}`}
+                 >
+                     {t('clocks.editor.snap')}
+                 </button>
              </div>
              
              <div className="flex items-center gap-3">
@@ -349,7 +341,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                     config={config}
                     selectedFieldId={selectedFieldId}
                     showGrid={showGrid}
-                    onMouseDown={handleMouseDown}
+                    onMouseDown={handleCanvasMouseDown}
                     onBackgroundClick={() => setSelectedFieldId(null)}
                 />
             </div>

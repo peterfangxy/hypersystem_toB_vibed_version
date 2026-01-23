@@ -57,6 +57,16 @@ A premium, high-fidelity Point-of-Sale (POS) and Club Management System designed
 *   **`types.ts`**: Comprehensive TypeScript definitions for all domain entities.
 *   **`contexts/LanguageContext.tsx`**: Context provider for localization.
 
+### Hooks (`/hooks`)
+*   **`useTournamentLogic.ts`**: Centralized logic for tournament data fetching, seat management, and player status updates.
+*   **`useTournamentTimer.ts`**: Decoupled engine for handling blind levels, breaks, and countdowns.
+*   **`useCanvasInteraction.ts`**: Math logic for the Clock Editor's drag-and-drop and grid snapping features.
+
+### Services (`/services`)
+*   **`dataService.ts`**: LocalStorage ORM layer.
+*   **`tournamentService.ts`**: Pure business logic for calculating tournament results, prizes, and rankings.
+*   **`geminiService.ts`**: AI integration layer.
+
 ### Views (`/views`)
 *   **`DashboardView.tsx`**: Analytics and high-level KPIs.
 *   **`ClocksView.tsx`**: Hub for running Tournament Clocks, Table Clocks, and the Layout Editor.
