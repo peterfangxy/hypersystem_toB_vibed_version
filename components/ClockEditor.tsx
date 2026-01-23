@@ -24,12 +24,17 @@ import {
   GripVertical, 
   Calendar, 
   Timer, 
-  Copy 
+  Copy,
+  Download,
+  Upload,
+  Check,
+  AlertCircle
 } from 'lucide-react';
 import { ClockConfig, ClockField, ClockFieldType } from '../types';
 import { THEME } from '../theme';
 import NumberInput from './ui/NumberInput';
 import { useLanguage } from '../contexts/LanguageContext';
+import { Modal } from './ui/Modal';
 
 interface ClockEditorProps {
   initialConfig?: ClockConfig;
@@ -89,6 +94,13 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
   } | null>(null);
   
   const canvasRef = useRef<HTMLDivElement>(null);
+
+  // Import/Export State
+  const [isIOModalOpen, setIsIOModalOpen] = useState(false);
+  const [ioMode, setIoMode] = useState<'import' | 'export'>('export');
+  const [ioJson, setIoJson] = useState('');
+  const [importError, setImportError] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   const availableFields = [
     { type: 'tournament_name', label: t('clocks.widgets.tournament_name'), icon: Type },
@@ -313,6 +325,50 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
       dragStartRef.current = null;
   };
 
+  // Import/Export Handlers
+  const handleOpenExport = () => {
+      // Clean up for export if needed, here we just stringify
+      setIoJson(JSON.stringify(config, null, 2));
+      setIoMode('export');
+      setCopySuccess(false);
+      setIsIOModalOpen(true);
+  };
+
+  const handleOpenImport = () => {
+      setIoJson('');
+      setImportError(null);
+      setIoMode('import');
+      setIsIOModalOpen(true);
+  };
+
+  const handleCopyJson = () => {
+      navigator.clipboard.writeText(ioJson);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+  };
+
+  const handleConfirmImport = () => {
+      try {
+          const parsed = JSON.parse(ioJson);
+          if (!parsed.fields || !Array.isArray(parsed.fields)) {
+              throw new Error("Invalid format: missing 'fields' array.");
+          }
+          
+          // Preserve current ID to ensure we are updating the current record, 
+          // but take everything else from the imported JSON.
+          const importedConfig: ClockConfig = {
+              ...parsed,
+              id: config.id, 
+              name: parsed.name + ' (Imported)',
+          };
+          
+          setConfig(importedConfig);
+          setIsIOModalOpen(false);
+      } catch (e) {
+          setImportError((e as Error).message);
+      }
+  };
+
   const selectedField = config.fields.find(f => f.id === selectedFieldId);
 
   const isShapeOrLine = (type: ClockFieldType) => type.startsWith('shape_') || type === 'line';
@@ -398,12 +454,25 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                     placeholder={t('clocks.editor.headerName')}
                  />
              </div>
-             <button 
-                onClick={() => onSave(config)}
-                className={`${THEME.buttonPrimary} px-6 py-2 rounded-full font-bold flex items-center gap-2`}
-             >
-                 <Save size={18} /> {t('clocks.editor.save')}
-             </button>
+             
+             <div className="flex items-center gap-3">
+                 <div className="flex items-center gap-1 mr-4 bg-[#1A1A1A] p-1 rounded-lg border border-[#333]">
+                    <button onClick={handleOpenImport} className="p-2 text-gray-400 hover:text-white hover:bg-[#333] rounded-md transition-colors" title="Import JSON">
+                        <Upload size={18} />
+                    </button>
+                    <div className="w-px h-4 bg-[#333]"></div>
+                    <button onClick={handleOpenExport} className="p-2 text-gray-400 hover:text-white hover:bg-[#333] rounded-md transition-colors" title="Export JSON">
+                        <Download size={18} />
+                    </button>
+                 </div>
+
+                 <button 
+                    onClick={() => onSave(config)}
+                    className={`${THEME.buttonPrimary} px-6 py-2 rounded-full font-bold flex items-center gap-2`}
+                 >
+                     <Save size={18} /> {t('clocks.editor.save')}
+                 </button>
+             </div>
         </div>
 
         <div className="flex flex-1 overflow-hidden relative">
@@ -613,6 +682,68 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                 )}
             </div>
         </div>
+
+        {/* Import/Export Modal */}
+        <Modal
+            isOpen={isIOModalOpen}
+            onClose={() => setIsIOModalOpen(false)}
+            title={ioMode === 'export' ? "Export Configuration" : "Import Configuration"}
+            size="xl"
+        >
+            <div className="p-6 flex flex-col h-[500px]">
+                {ioMode === 'export' && (
+                    <div className="mb-4 text-sm text-gray-400">
+                        Copy this JSON to save your layout or share it with others.
+                    </div>
+                )}
+                {ioMode === 'import' && (
+                    <div className="mb-4 text-sm text-gray-400">
+                        Paste a valid JSON configuration below to load it into the editor.
+                    </div>
+                )}
+                
+                <textarea 
+                    value={ioJson}
+                    onChange={(e) => { setIoJson(e.target.value); setImportError(null); }}
+                    readOnly={ioMode === 'export'}
+                    className={`flex-1 bg-[#111] border rounded-xl p-4 font-mono text-xs text-gray-300 outline-none resize-none mb-4 ${importError ? 'border-red-500' : 'border-[#333] focus:border-brand-green'}`}
+                    placeholder={ioMode === 'import' ? 'Paste JSON here...' : ''}
+                />
+
+                {importError && (
+                    <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2 text-red-400 text-xs">
+                        <AlertCircle size={16} />
+                        {importError}
+                    </div>
+                )}
+
+                <div className="flex justify-end gap-3">
+                    <button 
+                        onClick={() => setIsIOModalOpen(false)}
+                        className="px-4 py-2 rounded-xl text-sm font-bold text-gray-400 hover:text-white hover:bg-[#222] transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    
+                    {ioMode === 'export' ? (
+                        <button 
+                            onClick={handleCopyJson}
+                            className={`px-6 py-2 rounded-xl font-bold flex items-center gap-2 transition-all ${copySuccess ? 'bg-green-500 text-white' : THEME.buttonPrimary}`}
+                        >
+                            {copySuccess ? <Check size={18} /> : <Copy size={18} />}
+                            {copySuccess ? "Copied!" : "Copy to Clipboard"}
+                        </button>
+                    ) : (
+                        <button 
+                            onClick={handleConfirmImport}
+                            className={`${THEME.buttonPrimary} px-6 py-2 rounded-xl font-bold flex items-center gap-2`}
+                        >
+                            <Upload size={18} /> Import
+                        </button>
+                    )}
+                </div>
+            </div>
+        </Modal>
     </div>
   );
 };
