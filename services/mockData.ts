@@ -11,6 +11,16 @@ import {
   RoleDefinition
 } from '../types';
 
+// Helper to get local date string (YYYY-MM-DD) to avoid UTC issues
+const getLocalDate = (daysToAdd: number = 0): string => {
+    const d = new Date();
+    d.setDate(d.getDate() + daysToAdd);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
 export const SEED_ROLES: RoleDefinition[] = [
     {
         id: 'role_admin',
@@ -270,7 +280,7 @@ export const SEED_TOURNAMENTS: Tournament[] = [
     {
         id: 'evt-2023-0841',
         name: 'Friday Night Turbo',
-        startDate: new Date().toISOString().split('T')[0],
+        startDate: getLocalDate(0),
         startTime: '19:00',
         estimatedDurationMinutes: 240,
         buyIn: 100,
@@ -293,7 +303,7 @@ export const SEED_TOURNAMENTS: Tournament[] = [
     {
         id: 'evt-2023-0842',
         name: 'Sunday Deepstack',
-        startDate: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0], // 2 days from now
+        startDate: getLocalDate(2), // 2 days from now
         startTime: '14:00',
         estimatedDurationMinutes: 480,
         buyIn: 250,
@@ -316,7 +326,7 @@ export const SEED_TOURNAMENTS: Tournament[] = [
     {
         id: 'evt-2023-0845',
         name: 'Wednesday Rebuy Madness',
-        startDate: new Date(Date.now() + 86400000 * 5).toISOString().split('T')[0], // 5 days from now
+        startDate: getLocalDate(5), // 5 days from now
         startTime: '19:30',
         estimatedDurationMinutes: 180,
         buyIn: 50,
@@ -339,7 +349,7 @@ export const SEED_TOURNAMENTS: Tournament[] = [
     {
         id: 'evt-test-9901',
         name: 'Test: 1-Min Blinds',
-        startDate: new Date().toISOString().split('T')[0],
+        startDate: getLocalDate(0),
         startTime: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false}), // Starts now
         estimatedDurationMinutes: 60,
         buyIn: 0,
@@ -362,7 +372,7 @@ export const SEED_TOURNAMENTS: Tournament[] = [
     {
         id: 'evt-test-9902',
         name: 'Test: Frequent Breaks',
-        startDate: new Date().toISOString().split('T')[0],
+        startDate: getLocalDate(0),
         startTime: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false}), // Starts now
         estimatedDurationMinutes: 60,
         buyIn: 0,
@@ -385,7 +395,7 @@ export const SEED_TOURNAMENTS: Tournament[] = [
     {
         id: 'evt-2023-0900',
         name: 'High Roller Championship',
-        startDate: new Date(Date.now() + 86400000 * 14).toISOString().split('T')[0],
+        startDate: getLocalDate(14),
         startTime: '16:00',
         estimatedDurationMinutes: 600,
         buyIn: 2500,
