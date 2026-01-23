@@ -10,12 +10,6 @@ import {
   Coins, 
   Layers, 
   Trash2, 
-  AlignLeft, 
-  AlignCenter, 
-  AlignRight, 
-  Bold, 
-  Eye, 
-  EyeOff, 
   Plus, 
   X, 
   Square, 
@@ -28,8 +22,6 @@ import {
   ChevronsDown, 
   Palette, 
   GripVertical, 
-  Grid, 
-  Magnet, 
   Calendar, 
   Timer, 
   Copy 
@@ -44,6 +36,30 @@ interface ClockEditorProps {
   onSave: (config: ClockConfig) => void;
   onClose: () => void;
 }
+
+const MOCK_PREVIEW_DATA: Record<string, string> = {
+    tournament_name: "Sunday Special",
+    tournament_desc: "$10k Guaranteed",
+    timer: "18:42",
+    blind_countdown: "18:42",
+    blind_level: "1,000 / 2,000",
+    next_blinds: "1,500 / 3,000",
+    ante: "2,000",
+    next_ante: "3,000",
+    starting_chips: "25,000",
+    rebuy_limit: "1 Rebuy",
+    players_count: "45 / 120",
+    entries_count: "142",
+    total_chips: "3,550,000",
+    avg_stack: "78,888",
+    payout_total: "$12,500",
+    next_break: "1h 15m",
+    current_time: "08:30 PM",
+    current_date: new Date().toLocaleDateString(),
+    start_time: "06:00 PM",
+    start_date: new Date().toLocaleDateString(),
+    est_end_time: "01:30 AM",
+};
 
 const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClose }) => {
   const { t } = useLanguage();
@@ -135,6 +151,20 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                 e.preventDefault();
                 duplicateField(clipboard);
             }
+        }
+        
+        // Arrow keys for fine tuning
+        if (selectedFieldId && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+            e.preventDefault();
+            const field = config.fields.find(f => f.id === selectedFieldId);
+            if (!field) return;
+            const delta = e.shiftKey ? 1 : 0.1; // 1% or 0.1% move
+            let { x, y } = field;
+            if (e.key === 'ArrowLeft') x -= delta;
+            if (e.key === 'ArrowRight') x += delta;
+            if (e.key === 'ArrowUp') y -= delta;
+            if (e.key === 'ArrowDown') y += delta;
+            updateField(selectedFieldId, { x, y });
         }
     };
 
@@ -285,7 +315,6 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
 
   const selectedField = config.fields.find(f => f.id === selectedFieldId);
 
-  // ... (getMockValue, renderWidgetContent, isShapeOrLine helpers same as original) ...
   const isShapeOrLine = (type: ClockFieldType) => type.startsWith('shape_') || type === 'line';
   
   const renderWidgetContent = (field: ClockField) => {
@@ -332,7 +361,12 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
               }} />
           );
       }
-      // Text
+      
+      // Text - Use Mock Preview Data
+      const textValue = field.type === 'custom_text' 
+        ? (field.customText || 'Custom Text') 
+        : (MOCK_PREVIEW_DATA[field.type] || field.type);
+
       return (
         <div style={{
             fontSize: `${field.fontSize}px`,
@@ -342,14 +376,14 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
             whiteSpace: 'nowrap'
         }}>
             {field.showLabel && field.labelText && <div className="text-[0.4em] opacity-70 tracking-widest mb-[0.1em]">{field.labelText}</div>}
-            {field.type === 'custom_text' ? (field.customText || 'Text') : 'Mock Value'} 
+            {textValue}
         </div>
       );
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-[#000] flex flex-col text-white" onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}>
-        {/* Header ... */}
+        {/* Header */}
         <div className="h-16 border-b border-[#222] bg-[#111] flex items-center justify-between px-6 shrink-0 z-20 relative">
              <div className="flex items-center gap-4">
                  <button onClick={onClose} className="p-2 hover:bg-[#222] rounded-full text-gray-400 hover:text-white transition-colors">
@@ -373,9 +407,8 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
         </div>
 
         <div className="flex flex-1 overflow-hidden relative">
-            {/* Left: Global Settings */}
+            {/* Left: Layers & Widget Library */}
             <div className="w-72 bg-[#111] border-r border-[#222] flex flex-col shrink-0 relative z-10">
-                {/* ... Global settings form same as before ... */}
                 <div className="p-5 border-b border-[#222] space-y-5">
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">{t('clocks.editor.description')}</label>
@@ -386,43 +419,76 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                             placeholder="Notes about this layout..."
                         />
                     </div>
-                    {/* ... other settings ... */}
                 </div>
 
-                <div className="flex-1 flex flex-col min-h-0">
-                    <div className="p-4 border-b border-[#222]">
-                        <button 
-                            onClick={() => setIsAddWidgetOpen(true)}
-                            className="w-full py-2 bg-[#222] hover:bg-brand-green hover:text-black border border-[#333] hover:border-brand-green/50 text-gray-300 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all"
-                        >
-                            <Plus size={16} /> {t('clocks.editor.addWidget')}
-                        </button>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                        {[...config.fields].reverse().map((field) => {
-                            const def = availableFields.find(f => f.type === field.type);
-                            return (
-                                <div 
-                                    key={field.id}
-                                    draggable
-                                    onDragStart={(e) => { setDraggedFieldId(field.id); e.dataTransfer.effectAllowed = 'move'; }}
-                                    onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
-                                    onDrop={(e) => { e.preventDefault(); if (!draggedFieldId || draggedFieldId === field.id) return; handleReorder(draggedFieldId, field.id); }}
-                                    onClick={() => setSelectedFieldId(field.id)}
-                                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all group relative ${
-                                        selectedFieldId === field.id ? 'bg-brand-green/10 border-brand-green/30 text-white' : 'bg-[#1A1A1A] border-transparent hover:border-[#333] text-gray-400 hover:text-white'
-                                    }`}
-                                >
-                                    <div className="cursor-grab text-gray-600 hover:text-gray-300"><GripVertical size={14} /></div>
-                                    <div className="flex items-center gap-3 overflow-hidden flex-1">
-                                        {def?.icon ? <def.icon size={16} className="shrink-0"/> : <Clock size={16} className="shrink-0"/>}
-                                        <span className="text-sm font-medium truncate">{def?.label || 'Unknown'}</span>
+                <div className="flex-1 flex flex-col min-h-0 relative">
+                    {/* Add Widget Button Panel */}
+                    {!isAddWidgetOpen && (
+                        <div className="p-4 border-b border-[#222]">
+                            <button 
+                                onClick={() => setIsAddWidgetOpen(true)}
+                                className="w-full py-2 bg-[#222] hover:bg-brand-green hover:text-black border border-[#333] hover:border-brand-green/50 text-gray-300 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all"
+                            >
+                                <Plus size={16} /> {t('clocks.editor.addWidget')}
+                            </button>
+                        </div>
+                    )}
+
+                    {isAddWidgetOpen ? (
+                        /* Widget Library View */
+                        <div className="absolute inset-0 bg-[#111] z-20 flex flex-col animate-in slide-in-from-left-4">
+                            <div className="p-4 border-b border-[#222] flex items-center justify-between bg-[#151515]">
+                                <span className="font-bold text-sm text-gray-300">Widget Library</span>
+                                <button onClick={() => setIsAddWidgetOpen(false)} className="text-gray-500 hover:text-white p-1 rounded hover:bg-[#222]"><X size={16}/></button>
+                            </div>
+                            <div className="overflow-y-auto p-2 space-y-1 flex-1">
+                                {availableFields.map(field => (
+                                    <button 
+                                        key={field.type} 
+                                        onClick={() => addField(field.type)} 
+                                        className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#222] text-left transition-all border border-transparent hover:border-[#333] group"
+                                    >
+                                        <div className="p-2 bg-[#1A1A1A] rounded-lg text-gray-400 group-hover:text-brand-green group-hover:bg-[#111]">
+                                            <field.icon size={16} />
+                                        </div>
+                                        <span className="text-sm font-medium text-gray-300 group-hover:text-white">{field.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    ) : (
+                        /* Active Layers List */
+                        <div className="flex-1 overflow-y-auto p-2 space-y-1">
+                            {[...config.fields].reverse().map((field) => {
+                                const def = availableFields.find(f => f.type === field.type);
+                                return (
+                                    <div 
+                                        key={field.id}
+                                        draggable
+                                        onDragStart={(e) => { setDraggedFieldId(field.id); e.dataTransfer.effectAllowed = 'move'; }}
+                                        onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
+                                        onDrop={(e) => { e.preventDefault(); if (!draggedFieldId || draggedFieldId === field.id) return; handleReorder(draggedFieldId, field.id); }}
+                                        onClick={() => setSelectedFieldId(field.id)}
+                                        className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all group relative ${
+                                            selectedFieldId === field.id ? 'bg-brand-green/10 border-brand-green/30 text-white' : 'bg-[#1A1A1A] border-transparent hover:border-[#333] text-gray-400 hover:text-white'
+                                        }`}
+                                    >
+                                        <div className="cursor-grab text-gray-600 hover:text-gray-300"><GripVertical size={14} /></div>
+                                        <div className="flex items-center gap-3 overflow-hidden flex-1">
+                                            {def?.icon ? <def.icon size={16} className="shrink-0"/> : <Clock size={16} className="shrink-0"/>}
+                                            <span className="text-sm font-medium truncate">{def?.label || 'Unknown'}</span>
+                                        </div>
+                                        <button onClick={(e) => { e.stopPropagation(); removeField(field.id); }} className="p-1.5 text-gray-600 hover:text-red-500 hover:bg-[#333] rounded opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={14} /></button>
                                     </div>
-                                    <button onClick={(e) => { e.stopPropagation(); removeField(field.id); }} className="p-1.5 text-gray-600 hover:text-red-500 hover:bg-[#333] rounded opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={14} /></button>
+                                );
+                            })}
+                            {config.fields.length === 0 && (
+                                <div className="text-center py-10 text-gray-600 text-xs">
+                                    No widgets added yet.
                                 </div>
-                            );
-                        })}
-                    </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -520,6 +586,17 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                                     <NumberInput value={Math.round(selectedField.y)} onChange={(val) => updateField(selectedField.id, { y: val })} size="sm" enableScroll step={1} />
                                 </div>
                             </div>
+                         </div>
+
+                         {/* Layer Ordering Controls */}
+                         <div className="pt-4 border-t border-[#222]">
+                             <label className="text-xs text-gray-400 font-bold flex items-center gap-2 mb-2">{t('clocks.editor.displayOrder')}</label>
+                             <div className="grid grid-cols-4 gap-2">
+                                <button onClick={() => moveLayer(selectedField.id, 'back')} className="p-2 bg-[#1A1A1A] hover:bg-[#222] rounded border border-[#333] hover:border-gray-500 text-gray-400 hover:text-white" title="Send to Back"><ChevronsDown size={16} className="mx-auto" /></button>
+                                <button onClick={() => moveLayer(selectedField.id, 'down')} className="p-2 bg-[#1A1A1A] hover:bg-[#222] rounded border border-[#333] hover:border-gray-500 text-gray-400 hover:text-white" title="Send Backward"><ArrowDown size={16} className="mx-auto" /></button>
+                                <button onClick={() => moveLayer(selectedField.id, 'up')} className="p-2 bg-[#1A1A1A] hover:bg-[#222] rounded border border-[#333] hover:border-gray-500 text-gray-400 hover:text-white" title="Bring Forward"><ArrowUp size={16} className="mx-auto" /></button>
+                                <button onClick={() => moveLayer(selectedField.id, 'front')} className="p-2 bg-[#1A1A1A] hover:bg-[#222] rounded border border-[#333] hover:border-gray-500 text-gray-400 hover:text-white" title="Bring to Front"><ChevronsUp size={16} className="mx-auto" /></button>
+                             </div>
                          </div>
 
                          {/* ... Layering buttons ... */}
