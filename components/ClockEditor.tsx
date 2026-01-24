@@ -129,7 +129,8 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
   const addField = (type: ClockFieldType) => {
       const isShape = type.startsWith('shape_');
       const isLine = type === 'line';
-      const isText = !isShape && !isLine;
+      const isImage = type === 'image';
+      const isText = !isShape && !isLine && !isImage;
 
       const newField: ClockField = {
           id: crypto.randomUUID(),
@@ -151,10 +152,11 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                      type === 'starting_chips' ? 'STARTING CHIPS' :
                      type === 'rebuy_limit' ? 'REBUYS' :
                      undefined,
-          width: isLine ? 300 : isShape ? 100 : undefined,
-          height: isLine ? 4 : isShape ? 100 : undefined,
+          width: isLine ? 300 : isShape ? 100 : isImage ? 200 : undefined,
+          height: isLine ? 4 : isShape ? 100 : isImage ? 200 : undefined,
           borderColor: '#ffffff',
-          borderWidth: 0
+          borderWidth: 0,
+          imageUrl: isImage ? '' : undefined
       };
       
       setConfig(prev => ({ ...prev, fields: [...prev.fields, newField] }));

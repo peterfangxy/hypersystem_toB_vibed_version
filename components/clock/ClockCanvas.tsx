@@ -1,5 +1,6 @@
 
 import React, { forwardRef } from 'react';
+import { Image as ImageIcon } from 'lucide-react';
 import { ClockConfig, ClockField } from '../../types';
 
 interface ClockCanvasProps {
@@ -83,6 +84,34 @@ const ClockCanvas = forwardRef<HTMLDivElement, ClockCanvasProps>(({
                   backgroundColor: field.color,
                   borderRadius: '999px'
               }} />
+          );
+      }
+      if (field.type === 'image') {
+          return (
+              <div style={{
+                  width: `${field.width}px`,
+                  height: `${field.height}px`,
+                  border: field.borderWidth ? `${field.borderWidth}px solid ${field.borderColor || 'transparent'}` : 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: field.imageUrl ? 'transparent' : 'rgba(255,255,255,0.1)',
+                  outline: !field.imageUrl ? '1px dashed rgba(255,255,255,0.3)' : 'none'
+              }}>
+                  {field.imageUrl ? (
+                      <img 
+                        src={field.imageUrl} 
+                        alt="" 
+                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                        draggable={false}
+                      />
+                  ) : (
+                      <div className="flex flex-col items-center text-gray-500">
+                          <ImageIcon size={32} strokeWidth={1} />
+                          <span className="text-[10px] uppercase font-bold mt-1">No Image</span>
+                      </div>
+                  )}
+              </div>
           );
       }
       

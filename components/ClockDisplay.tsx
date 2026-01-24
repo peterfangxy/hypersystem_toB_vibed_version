@@ -23,7 +23,7 @@ const ClockDisplay: React.FC<ClockDisplayProps> = ({
   const fields = config.fields || [];
 
   const renderField = (field: ClockField) => {
-    // 1. Handle Shapes & Lines (No text data needed)
+    // 1. Handle Shapes, Lines & Images (No text data needed)
     if (field.type === 'shape_rect') {
         return (
             <div style={{
@@ -66,6 +66,21 @@ const ClockDisplay: React.FC<ClockDisplayProps> = ({
                 backgroundColor: field.color,
                 borderRadius: '999px'
             }} />
+        );
+    }
+    if (field.type === 'image') {
+        if (!field.imageUrl) return null;
+        return (
+            <img 
+                src={field.imageUrl} 
+                alt="Widget" 
+                style={{
+                    width: field.width,
+                    height: field.height,
+                    objectFit: 'contain',
+                    border: field.borderWidth ? `${field.borderWidth}px solid ${field.borderColor || 'transparent'}` : 'none',
+                }}
+            />
         );
     }
 

@@ -96,6 +96,8 @@ const ClockPropertiesPanel: React.FC<ClockPropertiesPanelProps> = ({
   }
 
   const isShapeOrLine = (type: ClockFieldType) => type.startsWith('shape_') || type === 'line';
+  const isImage = (type: ClockFieldType) => type === 'image';
+  const hasDimensions = isShapeOrLine(selectedField.type) || isImage(selectedField.type);
 
   return (
     <div className="w-80 bg-[#111] border-l border-[#222] flex flex-col shrink-0 z-20 h-full">
@@ -105,7 +107,15 @@ const ClockPropertiesPanel: React.FC<ClockPropertiesPanelProps> = ({
         
         <div className="p-6 space-y-6 overflow-y-auto flex-1">
             
-            {(selectedField.type === 'custom_text' || (selectedField.showLabel && !isShapeOrLine(selectedField.type))) && (
+            {/* Component Name Indicator */}
+            <div className="mb-2">
+                <span className="text-[10px] text-gray-500 font-bold uppercase block mb-1">Selected Component</span>
+                <div className="text-sm font-bold text-brand-green bg-[#1A1A1A] p-2 rounded border border-[#333]">
+                    {t(`clocks.widgets.${selectedField.type}`) || selectedField.type}
+                </div>
+            </div>
+
+            {(selectedField.type === 'custom_text' || (selectedField.showLabel && !isShapeOrLine(selectedField.type) && !isImage(selectedField.type))) && (
                 <div className="space-y-2">
                     <label className="text-xs text-gray-400 font-bold">{selectedField.type === 'custom_text' ? t('clocks.editor.content') : t('clocks.editor.labelText')}</label>
                     <input 
@@ -117,14 +127,27 @@ const ClockPropertiesPanel: React.FC<ClockPropertiesPanelProps> = ({
                 </div>
             )}
 
+            {isImage(selectedField.type) && (
+                <div className="space-y-2">
+                    <label className="text-xs text-gray-400 font-bold">Image URL</label>
+                    <input 
+                        type="text" 
+                        value={selectedField.imageUrl || ''} 
+                        onChange={(e) => onUpdate(selectedField.id, { imageUrl: e.target.value })} 
+                        className={`w-full ${THEME.input} rounded-lg px-3 py-2`}
+                        placeholder="https://example.com/logo.png" 
+                    />
+                </div>
+            )}
+
             <div className="space-y-4">
                 <label className="text-xs text-gray-400 font-bold flex items-center gap-2">
                     {isShapeOrLine(selectedField.type) ? <Palette size={14}/> : <Type size={14}/>} 
-                    {isShapeOrLine(selectedField.type) ? t('clocks.editor.appearance') : t('clocks.editor.typography')}
+                    {isShapeOrLine(selectedField.type) || isImage(selectedField.type) ? t('clocks.editor.appearance') : t('clocks.editor.typography')}
                 </label>
                 
                 {/* Font Styles (Bold, Italic, Underline) - Text Only */}
-                {!isShapeOrLine(selectedField.type) && (
+                {!isShapeOrLine(selectedField.type) && !isImage(selectedField.type) && (
                     <div className="flex gap-2">
                         <button 
                             onClick={() => onUpdate(selectedField.id, { fontWeight: selectedField.fontWeight === 'bold' ? 'normal' : 'bold' })}
@@ -151,7 +174,7 @@ const ClockPropertiesPanel: React.FC<ClockPropertiesPanelProps> = ({
                 )}
 
                 <div className="grid grid-cols-2 gap-4">
-                    {!isShapeOrLine(selectedField.type) && (
+                    {!isShapeOrLine(selectedField.type) && !isImage(selectedField.type) && (
                         <div>
                             <label className="text-[10px] text-gray-500 block mb-1">{t('clocks.editor.size')}</label>
                             <NumberInput
@@ -163,21 +186,23 @@ const ClockPropertiesPanel: React.FC<ClockPropertiesPanelProps> = ({
                             />
                         </div>
                     )}
-                    <div className={isShapeOrLine(selectedField.type) ? 'col-span-2' : 'col-span-1'}>
-                        <label className="text-[10px] text-gray-500 block mb-1">{isShapeOrLine(selectedField.type) ? t('clocks.editor.fillColor') : t('clocks.editor.fontColor')}</label>
-                        <div className="flex gap-2">
-                            <input 
-                                type="color" 
-                                value={selectedField.color} 
-                                onChange={(e) => onUpdate(selectedField.id, { color: e.target.value })} 
-                                className="h-9 w-full rounded cursor-pointer border border-[#333] bg-[#1A1A1A] p-0.5" 
-                            />
+                    {!isImage(selectedField.type) && (
+                        <div className={isShapeOrLine(selectedField.type) ? 'col-span-2' : 'col-span-1'}>
+                            <label className="text-[10px] text-gray-500 block mb-1">{isShapeOrLine(selectedField.type) ? t('clocks.editor.fillColor') : t('clocks.editor.fontColor')}</label>
+                            <div className="flex gap-2">
+                                <input 
+                                    type="color" 
+                                    value={selectedField.color} 
+                                    onChange={(e) => onUpdate(selectedField.id, { color: e.target.value })} 
+                                    className="h-9 w-full rounded cursor-pointer border border-[#333] bg-[#1A1A1A] p-0.5" 
+                                />
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
-                {/* Dimensions for Shapes */}
-                {isShapeOrLine(selectedField.type) && (
+                {/* Dimensions for Shapes & Images */}
+                {hasDimensions && (
                     <div className="grid grid-cols-2 gap-4 pt-2">
                             <div>
                             <label className="text-[10px] text-gray-500 block mb-1">{t('clocks.editor.width')}</label>

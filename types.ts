@@ -26,19 +26,21 @@ export type ClockFieldType =
   | 'line'
   | 'shape_rect'
   | 'shape_circle'
-  | 'shape_triangle';
+  | 'shape_triangle'
+  | 'image';
 
 export interface ClockField {
     id: string;
     type: ClockFieldType;
     label: string; // For the editor list
     customText?: string; // If type is custom_text
+    imageUrl?: string; // If type is image
     
     // Position & Style
     x: number; // Percent 0-100
     y: number; // Percent 0-100
-    width?: number; // px for shapes/lines
-    height?: number; // px for shapes/lines
+    width?: number; // px for shapes/lines/images
+    height?: number; // px for shapes/lines/images
     
     fontSize: number; // px (or simplified scale)
     fontWeight: 'normal' | 'bold';

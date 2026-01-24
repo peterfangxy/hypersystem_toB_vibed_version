@@ -16,7 +16,8 @@ import {
   GripVertical, 
   Calendar, 
   Timer, 
-  MonitorPlay
+  MonitorPlay,
+  Image as ImageIcon
 } from 'lucide-react';
 import { ClockConfig, ClockFieldType } from '../../types';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -72,6 +73,7 @@ const ClockLayersPanel: React.FC<ClockLayersPanelProps> = ({
     { type: 'shape_rect', label: t('clocks.widgets.shape_rect'), icon: Square },
     { type: 'shape_circle', label: t('clocks.widgets.shape_circle'), icon: Circle },
     { type: 'shape_triangle', label: t('clocks.widgets.shape_triangle'), icon: Triangle },
+    { type: 'image', label: t('clocks.widgets.image'), icon: ImageIcon },
   ] as const;
 
   const handleAdd = (type: ClockFieldType) => {
