@@ -18,7 +18,7 @@ export const translations = {
       tournaments: "Tournaments",
       structures: "Structures",
       tables: "Tables",
-      clocks: "Live Clocks",
+      clocks: "Clocks",
       settings: "Settings",
       floorManager: "Floor Manager",
       admin: "Admin"
@@ -252,7 +252,7 @@ export const translations = {
       }
     },
     clocks: {
-      title: "Live Clocks",
+      title: "Clocks",
       subtitle: "Launch tournament clocks and monitor active tables.",
       tabs: {
         tournaments: "Tournaments",

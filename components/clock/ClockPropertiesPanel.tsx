@@ -102,13 +102,19 @@ const ClockPropertiesPanel: React.FC<ClockPropertiesPanelProps> = ({
   // Allow dimensions for Shapes, Images, OR Custom Text (if ticker is enabled or user wants fixed width)
   const hasDimensions = isShapeOrLine(selectedField.type) || isImage(selectedField.type) || isCustomText;
 
+  // Helper to format float to 1 decimal place for display
+  const toPrecise = (num: number) => Number(num.toFixed(1));
+
   return (
     <div className="w-80 bg-[#111] border-l border-[#222] flex flex-col shrink-0 z-20 h-full">
         <div className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-[#222]">
             {t('clocks.editor.properties')}
         </div>
         
-        <div className="p-6 space-y-6 overflow-y-auto flex-1">
+        <div 
+            key={selectedField.id} 
+            className="p-6 space-y-6 overflow-y-auto flex-1 animate-in fade-in duration-200"
+        >
             
             {/* Component Name Indicator */}
             <div className="mb-2">
@@ -242,11 +248,23 @@ const ClockPropertiesPanel: React.FC<ClockPropertiesPanelProps> = ({
                 <div className="grid grid-cols-2 gap-4">
                     <div>
                         <label className="text-[10px] text-gray-500 block mb-1">X (%)</label>
-                        <NumberInput value={Math.round(selectedField.x)} onChange={(val) => onUpdate(selectedField.id, { x: val })} size="sm" enableScroll step={1} />
+                        <NumberInput 
+                            value={toPrecise(selectedField.x)} 
+                            onChange={(val) => onUpdate(selectedField.id, { x: val })} 
+                            size="sm" 
+                            enableScroll 
+                            step={0.1} 
+                        />
                     </div>
                     <div>
                         <label className="text-[10px] text-gray-500 block mb-1">Y (%)</label>
-                        <NumberInput value={Math.round(selectedField.y)} onChange={(val) => onUpdate(selectedField.id, { y: val })} size="sm" enableScroll step={1} />
+                        <NumberInput 
+                            value={toPrecise(selectedField.y)} 
+                            onChange={(val) => onUpdate(selectedField.id, { y: val })} 
+                            size="sm" 
+                            enableScroll 
+                            step={0.1} 
+                        />
                     </div>
                 </div>
                 </div>

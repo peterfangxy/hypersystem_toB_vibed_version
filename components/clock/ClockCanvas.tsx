@@ -1,5 +1,5 @@
 
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useEffect, useState } from 'react';
 import { Image as ImageIcon, ArrowLeftRight } from 'lucide-react';
 import { ClockConfig, ClockField } from '../../types';
 
@@ -42,6 +42,27 @@ const ClockCanvas = forwardRef<HTMLDivElement, ClockCanvasProps>(({
   onMouseDown,
   onBackgroundClick
 }, ref) => {
+  
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    // We expect ref to be a MutableRefObject from the parent (useRef)
+    const el = (ref as React.RefObject<HTMLDivElement>)?.current;
+    if (!el) return;
+
+    const updateScale = () => {
+        if(el) {
+            // Base width is 1280. Calculate scale factor to fit current width.
+            setScale(el.offsetWidth / 1280);
+        }
+    };
+
+    updateScale();
+    const observer = new ResizeObserver(updateScale);
+    observer.observe(el);
+
+    return () => observer.disconnect();
+  }, [ref]);
 
   const renderWidgetContent = (field: ClockField) => {
       if (field.type === 'shape_rect') {
@@ -168,21 +189,39 @@ const ClockCanvas = forwardRef<HTMLDivElement, ClockCanvasProps>(({
   return (
     <div 
         ref={ref}
-        className="aspect-video w-full max-w-6xl shadow-2xl relative border border-[#333] overflow-hidden"
-        style={{ backgroundColor: config.backgroundColor, backgroundImage: showGrid ? 'linear-gradient(to right, #333 1px, transparent 1px), linear-gradient(to bottom, #333 1px, transparent 1px)' : 'none', backgroundSize: '5% 5%' }}
+        className="aspect-video w-full max-w-6xl shadow-2xl relative border border-[#333] overflow-hidden bg-[#000]"
         onClick={onBackgroundClick}
     >
-        {config.fields.map(field => (
-            <div
-                key={field.id}
-                onMouseDown={(e) => onMouseDown(e, field.id)}
-                onClick={(e) => e.stopPropagation()}
-                className={`absolute cursor-move hover:outline hover:outline-1 hover:outline-brand-green/50 ${selectedFieldId === field.id ? 'outline outline-2 outline-brand-green z-10' : ''}`}
-                style={{ left: `${field.x}%`, top: `${field.y}%`, transform: 'translate(-50%, -50%)', zIndex: config.fields.findIndex(f => f.id === field.id) }}
-            >
-                {renderWidgetContent(field)}
-            </div>
-        ))}
+        {/* Scaled Inner Container */}
+        <div style={{
+            width: 1280, // Base Reference Width
+            height: 720, // Base Reference Height
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            backgroundColor: config.backgroundColor, 
+            backgroundImage: showGrid ? 'linear-gradient(to right, #333 1px, transparent 1px), linear-gradient(to bottom, #333 1px, transparent 1px)' : 'none', 
+            backgroundSize: '5% 5%'
+        }}>
+            {config.fields.map(field => (
+                <div
+                    key={field.id}
+                    onMouseDown={(e) => onMouseDown(e, field.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    className={`absolute cursor-move hover:outline hover:outline-1 hover:outline-brand-green/50 ${selectedFieldId === field.id ? 'outline outline-2 outline-brand-green z-10' : ''}`}
+                    style={{ 
+                        left: `${field.x}%`, 
+                        top: `${field.y}%`, 
+                        transform: 'translate(-50%, -50%)', 
+                        zIndex: config.fields.findIndex(f => f.id === field.id) 
+                    }}
+                >
+                    {renderWidgetContent(field)}
+                </div>
+            ))}
+        </div>
     </div>
   );
 });

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Plus, 
@@ -96,8 +95,13 @@ const ClockRunner = () => {
             lock.addEventListener('release', () => {
               console.debug('Screen Wake Lock released');
             });
-          } catch (err) {
-            console.error(`Wake Lock failed: ${(err as Error).message}`);
+          } catch (err: any) {
+            // Suppress NotAllowedError (common in iframes/dev envs without 'allow="screen-wake-lock"')
+            if (err.name === 'NotAllowedError') {
+                console.warn('Wake Lock request rejected. This is expected in some development environments or iframes.');
+            } else {
+                console.error(`Wake Lock failed: ${err.message}`);
+            }
           }
         }
       };
