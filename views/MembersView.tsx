@@ -34,8 +34,8 @@ const MembersView = () => {
   // Sorting & Filtering
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [sortConfig, setSortConfig] = useState<{ key: keyof Member; direction: 'asc' | 'desc' }>({ 
-    key: 'fullName', 
-    direction: 'asc' 
+    key: 'joinDate', 
+    direction: 'desc' 
   });
 
   useEffect(() => {

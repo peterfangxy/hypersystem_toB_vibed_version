@@ -220,6 +220,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
     e.preventDefault();
     const newTournament: Tournament = {
       id: initialData?.id || crypto.randomUUID(),
+      createdAt: initialData?.createdAt || new Date().toISOString(),
       endTime: undefined, 
       ...formData as Tournament
     };

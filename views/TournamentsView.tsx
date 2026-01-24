@@ -41,12 +41,12 @@ const TournamentsView = () => {
   // Accordion State
   const [expandedTournamentId, setExpandedTournamentId] = useState<string | null>(null);
 
-  // Filtering & Sorting State (Shared or lifted)
+  // Filtering & Sorting State
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [sortConfig, setSortConfig] = useState<{ key: keyof Tournament; direction: 'asc' | 'desc' }>({ 
     key: 'startDate', 
-    direction: 'asc' 
+    direction: 'desc' 
   });
 
   useEffect(() => {
@@ -221,6 +221,16 @@ const TournamentsView = () => {
         .sort((a, b) => {
             const aValue = a[sortConfig.key];
             const bValue = b[sortConfig.key];
+
+            // Specific handling for Date sorting to include Time
+            if (sortConfig.key === 'startDate' && a.startDate && b.startDate && a.startTime && b.startTime) {
+                const dateA = new Date(`${a.startDate}T${a.startTime}`);
+                const dateB = new Date(`${b.startDate}T${b.startTime}`);
+                if (dateA < dateB) return sortConfig.direction === 'asc' ? -1 : 1;
+                if (dateA > dateB) return sortConfig.direction === 'asc' ? 1 : -1;
+                return 0;
+            }
+
             if (aValue === undefined || bValue === undefined) return 0;
             if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
             if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;

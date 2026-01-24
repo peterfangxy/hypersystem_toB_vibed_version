@@ -52,13 +52,62 @@ export const SEED_ROLES: RoleDefinition[] = [
     }
 ];
 
-export const SEED_MEMBERS: Member[] = [
-  { id: 'm1', fullName: 'Daniel Negreanu', nickname: 'Kid Poker', club_id: 'RFC-1001', email: 'dnegs@gg.com', phone: '555-0101', age: 48, birthDate: '1975-07-26', gender: 'Male', joinDate: '2023-01-15', tier: MembershipTier.DIAMOND, status: 'Activated', avatarUrl: 'https://ui-avatars.com/api/?name=Daniel+Negreanu&background=random', idPhotoFrontUrl: MOCK_ID_FRONT, idPhotoBackUrl: MOCK_ID_BACK },
-  { id: 'm2', fullName: 'Phil Ivey', nickname: 'The Tiger Woods of Poker', club_id: 'RFC-1002', email: 'ivey@poker.com', phone: '555-0102', age: 46, birthDate: '1977-02-01', gender: 'Male', joinDate: '2023-01-20', tier: MembershipTier.PLATINUM, status: 'Activated', avatarUrl: 'https://ui-avatars.com/api/?name=Phil+Ivey&background=random', idPhotoFrontUrl: MOCK_ID_FRONT, idPhotoBackUrl: MOCK_ID_BACK },
-  { id: 'm3', fullName: 'Vanessa Selbst', nickname: 'V. Selbst', club_id: 'RFC-1003', email: 'v.selbst@law.com', phone: '555-0103', age: 38, birthDate: '1984-07-09', gender: 'Female', joinDate: '2023-02-10', tier: MembershipTier.GOLD, status: 'Activated', avatarUrl: 'https://ui-avatars.com/api/?name=Vanessa+Selbst&background=random', idPhotoFrontUrl: MOCK_ID_FRONT, idPhotoBackUrl: MOCK_ID_BACK },
-  { id: 'm4', fullName: 'Tom Dwan', nickname: 'durrrr', club_id: 'RFC-1004', email: 'durrrr@online.com', phone: '555-0104', age: 36, birthDate: '1986-07-30', gender: 'Male', joinDate: '2023-03-05', tier: MembershipTier.SILVER, status: 'Activated', avatarUrl: 'https://ui-avatars.com/api/?name=Tom+Dwan&background=random', idPhotoFrontUrl: MOCK_ID_FRONT, idPhotoBackUrl: MOCK_ID_BACK },
-  { id: 'm5', fullName: 'Jennifer Tilly', nickname: 'The Unabombshell', club_id: 'RFC-1005', email: 'jtilly@hollywood.com', phone: '555-0105', age: 64, birthDate: '1958-09-16', gender: 'Female', joinDate: '2023-04-12', tier: MembershipTier.GOLD, status: 'Activated', avatarUrl: 'https://ui-avatars.com/api/?name=Jennifer+Tilly&background=random', idPhotoFrontUrl: MOCK_ID_FRONT, idPhotoBackUrl: MOCK_ID_BACK },
-  { id: 'm6', fullName: 'Doyle Brunson', nickname: 'Texas Dolly', club_id: 'RFC-0001', email: 'doyle@legend.com', phone: '555-0106', age: 89, birthDate: '1933-08-10', gender: 'Male', joinDate: '2022-12-01', tier: MembershipTier.DIAMOND, status: 'Activated', avatarUrl: 'https://ui-avatars.com/api/?name=Doyle+Brunson&background=random', idPhotoFrontUrl: MOCK_ID_FRONT, idPhotoBackUrl: MOCK_ID_BACK },
-  { id: 'm7', fullName: 'Liv Boeree', nickname: 'Iron Maiden', club_id: 'RFC-1007', email: 'liv@science.com', phone: '555-0107', age: 38, birthDate: '1984-07-18', gender: 'Female', joinDate: '2023-05-20', tier: MembershipTier.SILVER, status: 'Activated', avatarUrl: 'https://ui-avatars.com/api/?name=Liv+Boeree&background=random', idPhotoFrontUrl: MOCK_ID_FRONT, idPhotoBackUrl: MOCK_ID_BACK },
-  { id: 'm8', fullName: 'Erik Seidel', nickname: 'Seiborg', club_id: 'RFC-1008', email: 'seiborg@quiet.com', phone: '555-0108', age: 63, birthDate: '1959-11-06', gender: 'Male', joinDate: '2023-01-05', tier: MembershipTier.PLATINUM, status: 'Activated', avatarUrl: 'https://ui-avatars.com/api/?name=Erik+Seidel&background=random', idPhotoFrontUrl: MOCK_ID_FRONT, idPhotoBackUrl: MOCK_ID_BACK },
+const MEMBER_NAMES = [
+    "Daniel Negreanu", "Phil Ivey", "Vanessa Selbst", "Tom Dwan", "Jennifer Tilly", 
+    "Doyle Brunson", "Liv Boeree", "Erik Seidel", "Justin Bonomo", "Bryn Kenney",
+    "Stephen Chidwick", "David Peters", "Dan Smith", "Jason Koon", "Fedor Holz",
+    "Steve O'Dwyer", "Adrian Mateos", "Sam Greenwood", "Cary Katz", "Isaac Haxton",
+    "Mikita Badziakouski", "Dan Colman", "Phil Hellmuth", "Antonio Esfandiari", "Joe Hachem",
+    "Chris Moneymaker", "Scotty Nguyen", "Patrik Antonius", "Gus Hansen", "Mike Matusow",
+    "Doug Polk", "Felipe Ramos", "Maria Ho", "Kristen Foxen", "Alex Foxen",
+    "Shaun Deeb", "Chris Ferguson", "John Juanda", "Barry Greenstein", "Huck Seed",
+    "Dan Harrington", "T.J. Cloutier", "Men Nguyen", "Tony G", "Viktor Blom",
+    "Tom Marchese", "Brian Rast", "Nick Schulman", "Jeremy Ausmus", "Chance Kornuth"
 ];
+
+const getRandomDate = (start: Date, end: Date) => {
+    return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime())).toISOString().split('T')[0];
+};
+
+const generateMembers = (): Member[] => {
+    return MEMBER_NAMES.map((name, index) => {
+        const id = `m${index + 1}`;
+        const firstName = name.split(' ')[0];
+        const tier = index < 3 ? MembershipTier.DIAMOND : 
+                     index < 10 ? MembershipTier.PLATINUM : 
+                     index < 25 ? MembershipTier.GOLD :
+                     index < 40 ? MembershipTier.SILVER : MembershipTier.BRONZE;
+        
+        // Random ID Generation
+        const randomIdNumber = `A${100000000 + Math.floor(Math.random() * 900000000)}`;
+        // 40% chance to have a passport number
+        const randomPassport = Math.random() > 0.6 
+            ? `P${10000000 + Math.floor(Math.random() * 90000000)}` 
+            : undefined;
+
+        // Random join date between Jan 1, 2022 and Today
+        const joinDate = getRandomDate(new Date(2022, 0, 1), new Date());
+
+        return {
+            id,
+            fullName: name,
+            nickname: index % 3 === 0 ? firstName : undefined,
+            club_id: `RFC-${1000 + index + 1}`,
+            email: `${firstName.toLowerCase()}.${index}@poker.com`,
+            phone: `555-01${String(index).padStart(2, '0')}`,
+            age: 21 + Math.floor(Math.random() * 50),
+            birthDate: '1980-01-01',
+            gender: Math.random() > 0.8 ? 'Female' : 'Male',
+            joinDate: joinDate,
+            tier,
+            status: index > 45 ? 'Pending Approval' : 'Activated',
+            avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
+            idNumber: randomIdNumber,
+            passportNumber: randomPassport,
+            idPhotoFrontUrl: MOCK_ID_FRONT,
+            idPhotoBackUrl: MOCK_ID_BACK
+        };
+    });
+};
+
+export const SEED_MEMBERS: Member[] = generateMembers();

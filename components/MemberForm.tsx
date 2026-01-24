@@ -6,7 +6,7 @@ import { Modal } from './ui/Modal';
 import { useLanguage } from '../contexts/LanguageContext';
 import NumberInput from './ui/NumberInput';
 import Button from './ui/Button';
-import { Calendar, UserSquare2, Camera, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar, UserSquare2, Camera, ChevronDown, ChevronUp, Fingerprint, Globe } from 'lucide-react';
 
 interface MemberFormProps {
   isOpen: boolean;
@@ -20,7 +20,7 @@ const MOCK_ID_BACK = 'https://www.ris.gov.tw/documents/data/apply-idCard/images/
 
 const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, initialData }) => {
   const { t } = useLanguage();
-  const [isIdExpanded, setIsIdExpanded] = useState(false);
+  const [isPhotosExpanded, setIsPhotosExpanded] = useState(false);
   const [formData, setFormData] = useState<Partial<Member>>({
     fullName: '',
     nickname: '',
@@ -33,6 +33,8 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
     tier: MembershipTier.BRONZE,
     status: 'Submitted',
     notes: '',
+    idNumber: '',
+    passportNumber: '',
     idPhotoFrontUrl: MOCK_ID_FRONT,
     idPhotoBackUrl: MOCK_ID_BACK
   });
@@ -53,12 +55,14 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
         tier: MembershipTier.BRONZE,
         status: 'Submitted',
         notes: '',
+        idNumber: '',
+        passportNumber: '',
         idPhotoFrontUrl: MOCK_ID_FRONT,
         idPhotoBackUrl: MOCK_ID_BACK
       });
     }
     // Reset accordion state on open
-    setIsIdExpanded(false);
+    setIsPhotosExpanded(false);
   }, [initialData, isOpen]);
 
   const calculateAge = (dateString: string): number => {
@@ -180,49 +184,85 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
           </div>
         </div>
 
-        {/* Identity Verification Section (Collapsible) */}
-        <div className="pt-4 border-t border-[#222]">
-            <button 
-                type="button"
-                onClick={() => setIsIdExpanded(!isIdExpanded)}
-                className="flex items-center justify-between w-full text-left group outline-none"
-            >
-                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2 group-hover:text-gray-300 transition-colors">
-                    <UserSquare2 size={14} /> Identity Verification
-                </h3>
-                <div className="text-gray-600 group-hover:text-white transition-colors">
-                    {isIdExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                </div>
-            </button>
+        {/* Identity Verification Section - Always Visible */}
+        <div className="pt-4 border-t border-[#222] space-y-4">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                <UserSquare2 size={14} /> Identity Verification
+            </h3>
             
-            {isIdExpanded && (
-                <div className="grid grid-cols-2 gap-4 mt-4 animate-in slide-in-from-top-1 fade-in duration-200">
-                    <div className="border border-dashed border-[#333] bg-[#1A1A1A] rounded-xl h-32 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-brand-green/50 hover:bg-[#222] transition-all group relative overflow-hidden">
-                        {formData.idPhotoFrontUrl ? (
-                            <img src={formData.idPhotoFrontUrl} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt="Front ID"/>
-                        ) : (
-                            <div className="flex flex-col items-center text-gray-500 group-hover:text-gray-300">
-                                <div className="p-3 bg-[#111] rounded-full mb-1">
-                                    <Camera size={20} />
-                                </div>
-                                <span className="text-xs font-bold">Front ID</span>
-                            </div>
-                        )}
-                    </div>
-                    <div className="border border-dashed border-[#333] bg-[#1A1A1A] rounded-xl h-32 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-brand-green/50 hover:bg-[#222] transition-all group relative overflow-hidden">
-                        {formData.idPhotoBackUrl ? (
-                            <img src={formData.idPhotoBackUrl} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt="Back ID"/>
-                        ) : (
-                            <div className="flex flex-col items-center text-gray-500 group-hover:text-gray-300">
-                                <div className="p-3 bg-[#111] rounded-full mb-1">
-                                    <Camera size={20} />
-                                </div>
-                                <span className="text-xs font-bold">Back ID</span>
-                            </div>
-                        )}
-                    </div>
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                        <Fingerprint size={14} className="text-brand-green/70"/> ID Number
+                    </label>
+                    <input 
+                        type="text" 
+                        value={formData.idNumber || ''}
+                        disabled
+                        className={`w-full bg-[#1A1A1A] border border-[#333] text-gray-400 rounded-xl px-4 py-3 outline-none cursor-not-allowed font-mono`}
+                        placeholder="Not verified"
+                    />
                 </div>
-            )}
+                <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                        <Globe size={14} className="text-blue-400/70"/> Passport Number
+                    </label>
+                    <input 
+                        type="text" 
+                        value={formData.passportNumber || ''}
+                        disabled
+                        className={`w-full bg-[#1A1A1A] border border-[#333] text-gray-400 rounded-xl px-4 py-3 outline-none cursor-not-allowed font-mono`}
+                        placeholder="Not verified"
+                    />
+                </div>
+            </div>
+
+            {/* Collapsible ID Photos */}
+            <div className="border border-[#333] rounded-xl overflow-hidden">
+                <button 
+                    type="button"
+                    onClick={() => setIsPhotosExpanded(!isPhotosExpanded)}
+                    className="flex items-center justify-between w-full p-3 bg-[#1A1A1A] hover:bg-[#222] transition-colors outline-none"
+                >
+                    <span className="text-sm font-bold text-gray-400 flex items-center gap-2">
+                        <Camera size={16} /> ID Photos
+                    </span>
+                    <div className="text-gray-500">
+                        {isPhotosExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    </div>
+                </button>
+                
+                {isPhotosExpanded && (
+                    <div className="p-4 bg-[#151515] border-t border-[#333] animate-in slide-in-from-top-1 fade-in duration-200">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="border border-dashed border-[#333] bg-[#111] rounded-xl h-32 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-brand-green/50 hover:bg-[#1A1A1A] transition-all group relative overflow-hidden">
+                                {formData.idPhotoFrontUrl ? (
+                                    <img src={formData.idPhotoFrontUrl} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt="Front ID"/>
+                                ) : (
+                                    <div className="flex flex-col items-center text-gray-500 group-hover:text-gray-300">
+                                        <div className="p-3 bg-[#1A1A1A] rounded-full mb-1">
+                                            <Camera size={20} />
+                                        </div>
+                                        <span className="text-xs font-bold">Front ID</span>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="border border-dashed border-[#333] bg-[#111] rounded-xl h-32 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-brand-green/50 hover:bg-[#1A1A1A] transition-all group relative overflow-hidden">
+                                {formData.idPhotoBackUrl ? (
+                                    <img src={formData.idPhotoBackUrl} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt="Back ID"/>
+                                ) : (
+                                    <div className="flex flex-col items-center text-gray-500 group-hover:text-gray-300">
+                                        <div className="p-3 bg-[#1A1A1A] rounded-full mb-1">
+                                            <Camera size={20} />
+                                        </div>
+                                        <span className="text-xs font-bold">Back ID</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
 
         {/* Contact Info */}

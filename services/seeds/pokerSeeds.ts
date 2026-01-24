@@ -203,7 +203,7 @@ export const SEED_PAYOUTS: PayoutStructure[] = [
     }
 ];
 
-export const SEED_TOURNAMENTS: Tournament[] = [
+const EXISTING_TOURNAMENTS: Tournament[] = [
     {
         id: 'evt-2023-0841',
         name: 'Friday Night Turbo',
@@ -342,6 +342,59 @@ export const SEED_TOURNAMENTS: Tournament[] = [
         description: 'The big one. 100k starting stack, 60min levels.',
         tableIds: ['t1', 't2', 't3', 't4', 't5']
     }
+];
+
+const generatePastTournaments = (): Tournament[] => {
+    const templates = [
+        { name: 'Daily Turbo', buyIn: 50, fee: 10, struct: 'struct_turbo' },
+        { name: 'Deepstack', buyIn: 120, fee: 20, struct: 'struct_deep' },
+        { name: 'Bounty Hunter', buyIn: 80, fee: 20, struct: 'struct_turbo' },
+        { name: 'PLO Night', buyIn: 100, fee: 15, struct: 'struct_deep' },
+    ];
+
+    const pastTournaments: Tournament[] = [];
+    
+    // Generate for the last 14 days
+    for (let i = 1; i <= 14; i++) {
+        const dateStr = getLocalDate(-i);
+        // Create 2 tournaments per day on average
+        const numEvents = i % 7 === 0 ? 3 : 2; 
+
+        for (let j = 0; j < numEvents; j++) {
+            const template = templates[(i + j) % templates.length];
+            // 5 Cancelled tournaments total approx
+            const isCancelled = (i * j) % 7 === 6 && pastTournaments.length < 5; 
+            
+            pastTournaments.push({
+                id: `past-evt-${i}-${j}`,
+                name: `${template.name} - ${new Date(dateStr).toLocaleDateString(undefined, {month:'short', day:'numeric'})}`,
+                startDate: dateStr,
+                startTime: j === 0 ? '14:00' : '19:00',
+                estimatedDurationMinutes: 240,
+                buyIn: template.buyIn,
+                fee: template.fee,
+                maxPlayers: 50,
+                startingChips: 15000,
+                startingBlinds: '100/200',
+                blindLevelMinutes: 20,
+                blindIncreasePercent: 20,
+                rebuyLimit: 1,
+                lastRebuyLevel: 6,
+                payoutModel: PayoutModel.FIXED,
+                structureId: template.struct,
+                payoutStructureId: 'algo_1',
+                clockConfigId: 'default_clock',
+                status: isCancelled ? 'Cancelled' : 'Completed',
+                tableIds: ['t1', 't2', 't3']
+            });
+        }
+    }
+    return pastTournaments;
+};
+
+export const SEED_TOURNAMENTS: Tournament[] = [
+    ...EXISTING_TOURNAMENTS,
+    ...generatePastTournaments()
 ];
 
 export const SEED_TEMPLATES: Tournament[] = [

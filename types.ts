@@ -99,6 +99,8 @@ export interface Member {
   gender: Gender;
   
   // Identity
+  idNumber?: string;
+  passportNumber?: string;
   idPhotoFrontUrl?: string;
   idPhotoBackUrl?: string;
 
@@ -184,6 +186,7 @@ export interface Tournament {
   
   // Template Flag
   isTemplate?: boolean;
+  createdAt?: string;
 }
 
 export type RegistrationStatus = 'Reserved' | 'Joined' | 'Cancelled';

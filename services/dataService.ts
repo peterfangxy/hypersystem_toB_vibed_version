@@ -25,7 +25,8 @@ import {
   SEED_TOURNAMENTS,
   SEED_CLOCKS,
   SEED_TEMPLATES,
-  SEED_ROLES
+  SEED_ROLES,
+  SEED_REGISTRATIONS
 } from './mockData';
 
 // Storage Keys
@@ -212,7 +213,17 @@ export const deleteTournamentTemplate = (id: string): void => {
 
 // --- Registrations ---
 export const getAllRegistrations = (): TournamentRegistration[] => {
-    return getLocalData<TournamentRegistration[]>(REGISTRATIONS_KEY) || [];
+    const data = getLocalData<TournamentRegistration[]>(REGISTRATIONS_KEY);
+    if (!data || data.length === 0) {
+        // Only seed if empty (and if we have seed data, which we do now)
+        // Check if we already have tournaments to avoid orphan registrations if tournaments were cleared but regs weren't (unlikely with this logic but good practice)
+        if (getTournaments().length > 0) {
+             setLocalData(REGISTRATIONS_KEY, SEED_REGISTRATIONS);
+             return SEED_REGISTRATIONS;
+        }
+        return [];
+    }
+    return data;
 };
 
 export const getTournamentRegistrations = (tournamentId: string): TournamentRegistration[] => {
