@@ -1,6 +1,6 @@
 
 import React, { forwardRef } from 'react';
-import { Image as ImageIcon } from 'lucide-react';
+import { Image as ImageIcon, ArrowLeftRight } from 'lucide-react';
 import { ClockConfig, ClockField } from '../../types';
 
 interface ClockCanvasProps {
@@ -118,6 +118,36 @@ const ClockCanvas = forwardRef<HTMLDivElement, ClockCanvasProps>(({
       const textValue = field.type === 'custom_text' 
         ? (field.customText || 'Custom Text') 
         : (MOCK_PREVIEW_DATA[field.type] || field.type);
+
+      if (field.isTicker && field.type === 'custom_text') {
+          return (
+              <div style={{
+                  width: field.width || 300,
+                  height: field.height || 50,
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: '1px dashed rgba(255,255,255,0.2)', // Visual hint for editor
+                  backgroundColor: 'rgba(0,0,0,0.2)'
+              }}>
+                  <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        color: field.color,
+                        fontSize: `${field.fontSize}px`,
+                        fontWeight: field.fontWeight,
+                        fontStyle: field.fontStyle || 'normal',
+                        textDecoration: field.textDecoration || 'none',
+                        paddingLeft: '10px'
+                  }}>
+                      <ArrowLeftRight size={16} className="text-brand-green shrink-0 animate-pulse" />
+                      {textValue}
+                  </div>
+              </div>
+          );
+      }
 
       return (
         <div style={{

@@ -13,7 +13,8 @@ import {
   Layout,
   Bold,
   Italic,
-  Underline
+  Underline,
+  ArrowLeftRight
 } from 'lucide-react';
 import { ClockField, ClockFieldType, ClockConfig } from '../../types';
 import { THEME } from '../../theme';
@@ -97,7 +98,9 @@ const ClockPropertiesPanel: React.FC<ClockPropertiesPanelProps> = ({
 
   const isShapeOrLine = (type: ClockFieldType) => type.startsWith('shape_') || type === 'line';
   const isImage = (type: ClockFieldType) => type === 'image';
-  const hasDimensions = isShapeOrLine(selectedField.type) || isImage(selectedField.type);
+  const isCustomText = selectedField.type === 'custom_text';
+  // Allow dimensions for Shapes, Images, OR Custom Text (if ticker is enabled or user wants fixed width)
+  const hasDimensions = isShapeOrLine(selectedField.type) || isImage(selectedField.type) || isCustomText;
 
   return (
     <div className="w-80 bg-[#111] border-l border-[#222] flex flex-col shrink-0 z-20 h-full">
@@ -115,15 +118,32 @@ const ClockPropertiesPanel: React.FC<ClockPropertiesPanelProps> = ({
                 </div>
             </div>
 
-            {(selectedField.type === 'custom_text' || (selectedField.showLabel && !isShapeOrLine(selectedField.type) && !isImage(selectedField.type))) && (
+            {/* Custom Text Content */}
+            {(isCustomText || (selectedField.showLabel && !isShapeOrLine(selectedField.type) && !isImage(selectedField.type))) && (
                 <div className="space-y-2">
-                    <label className="text-xs text-gray-400 font-bold">{selectedField.type === 'custom_text' ? t('clocks.editor.content') : t('clocks.editor.labelText')}</label>
+                    <label className="text-xs text-gray-400 font-bold">{isCustomText ? t('clocks.editor.content') : t('clocks.editor.labelText')}</label>
                     <input 
                         type="text" 
-                        value={selectedField.type === 'custom_text' ? (selectedField.customText || '') : (selectedField.labelText || '')} 
-                        onChange={(e) => onUpdate(selectedField.id, selectedField.type === 'custom_text' ? { customText: e.target.value } : { labelText: e.target.value })} 
+                        value={isCustomText ? (selectedField.customText || '') : (selectedField.labelText || '')} 
+                        onChange={(e) => onUpdate(selectedField.id, isCustomText ? { customText: e.target.value } : { labelText: e.target.value })} 
                         className={`w-full ${THEME.input} rounded-lg px-3 py-2`} 
                     />
+                </div>
+            )}
+
+            {/* Ticker Toggle for Custom Text */}
+            {isCustomText && (
+                <div className="flex items-center justify-between p-3 bg-[#1A1A1A] rounded-xl border border-[#333]">
+                    <div className="flex items-center gap-2">
+                        <ArrowLeftRight size={16} className={selectedField.isTicker ? "text-brand-green" : "text-gray-500"} />
+                        <span className="text-xs font-bold text-gray-300">News Ticker Mode</span>
+                    </div>
+                    <div 
+                        onClick={() => onUpdate(selectedField.id, { isTicker: !selectedField.isTicker, width: selectedField.isTicker ? undefined : (selectedField.width || 300) })}
+                        className={`w-10 h-5 rounded-full relative cursor-pointer transition-colors ${selectedField.isTicker ? 'bg-brand-green' : 'bg-[#333]'}`}
+                    >
+                        <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${selectedField.isTicker ? 'left-6' : 'left-1'}`} />
+                    </div>
                 </div>
             )}
 
@@ -201,7 +221,7 @@ const ClockPropertiesPanel: React.FC<ClockPropertiesPanelProps> = ({
                     )}
                 </div>
 
-                {/* Dimensions for Shapes & Images */}
+                {/* Dimensions for Shapes & Images & Ticker Text */}
                 {hasDimensions && (
                     <div className="grid grid-cols-2 gap-4 pt-2">
                             <div>

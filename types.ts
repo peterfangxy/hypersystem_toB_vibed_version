@@ -35,6 +35,7 @@ export interface ClockField {
     label: string; // For the editor list
     customText?: string; // If type is custom_text
     imageUrl?: string; // If type is image
+    isTicker?: boolean; // If true, animate text scroll
     
     // Position & Style
     x: number; // Percent 0-100
@@ -71,7 +72,7 @@ export interface ClockConfig {
 
 export type ViewState = 'dashboard' | 'members' | 'tables' | 'tournaments' | 'structures' | 'settings' | 'clocks';
 // ... existing code ...
-// ... (Previous exports like MembershipTier, Member, etc. are assumed to be above in the file, keeping the rest intact) ...
+// ... (Keeping the rest of the file exactly as is) ...
 export enum MembershipTier {
   BRONZE = 'Bronze',
   SILVER = 'Silver',

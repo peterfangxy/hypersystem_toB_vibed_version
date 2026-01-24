@@ -87,6 +87,36 @@ const ClockDisplay: React.FC<ClockDisplayProps> = ({
     // 2. Handle Text Fields
     const textValue = field.type === 'custom_text' ? (field.customText || '') : (data[field.type] || '---');
 
+    // Ticker Logic
+    if (field.isTicker && field.type === 'custom_text') {
+        return (
+            <div style={{
+                width: field.width || 300, // Default width if not set
+                height: field.height || 50,
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: field.borderColor ? field.borderColor : 'transparent', // Optional background if border color set abused as BG
+            }}>
+                <div 
+                    style={{
+                        display: 'inline-block',
+                        paddingLeft: '100%',
+                        animation: 'ticker-scroll 15s linear infinite',
+                        color: field.color,
+                        fontSize: `${field.fontSize}px`,
+                        fontWeight: field.fontWeight,
+                        fontStyle: field.fontStyle || 'normal',
+                        textDecoration: field.textDecoration || 'none',
+                    }}
+                >
+                    {textValue}
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div style={{
             color: field.color,
@@ -119,6 +149,12 @@ const ClockDisplay: React.FC<ClockDisplayProps> = ({
             backgroundSize: 'cover'
         }}
     >
+        <style>{`
+            @keyframes ticker-scroll {
+                0% { transform: translate3d(0, 0, 0); }
+                100% { transform: translate3d(-100%, 0, 0); }
+            }
+        `}</style>
         {/* Scaled Inner Container */}
         <div style={{
             width: `${baseWidth}px`,

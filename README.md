@@ -6,7 +6,8 @@ A premium, high-fidelity Point-of-Sale (POS) and Club Management System designed
 ## 🌟 Key Features
 
 ### 1. 📺 Advanced Digital Signage (Clocks)
-*   **WYSIWYG Editor**: A drag-and-drop canvas editor to design custom tournament screens. Support for dynamic widgets (Timer, Blinds, Antes, Players, Avg Stack), shapes, and custom text.
+*   **WYSIWYG Editor**: A drag-and-drop canvas editor to design custom tournament screens. Support for dynamic widgets (Timer, Blinds, Antes, Players, Avg Stack), shapes, and images.
+*   **News Ticker Mode**: Create scrolling text marquees for announcements, payouts, or sponsor messages. Supports custom speeds and content.
 *   **Intelligent Table Clocks**: 
     *   Automatically detects which tournament is running on specific tables.
     *   **Smart Priority Logic**: Prioritizes "In Progress" games over "Registration" or "Idle" states to prevent conflicts.
@@ -65,6 +66,8 @@ A premium, high-fidelity Point-of-Sale (POS) and Club Management System designed
 ### Services (`/services`)
 *   **`dataService.ts`**: LocalStorage ORM layer.
 *   **`tournamentService.ts`**: Pure business logic for calculating tournament results, prizes, and rankings.
+*   **`mockData.ts`**: Barrel file exporting seed data.
+*   **`seeds/`**: Split seed files for better maintainability (`clockSeeds.ts`, `memberSeeds.ts`, `pokerSeeds.ts`).
 *   **`geminiService.ts`**: AI integration layer.
 
 ### Views (`/views`)
