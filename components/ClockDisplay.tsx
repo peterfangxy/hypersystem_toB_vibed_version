@@ -97,7 +97,8 @@ const ClockDisplay: React.FC<ClockDisplayProps> = ({
                 whiteSpace: 'nowrap',
                 display: 'flex',
                 alignItems: 'center',
-                backgroundColor: field.borderColor ? field.borderColor : 'transparent', // Optional background if border color set abused as BG
+                backgroundColor: 'transparent',
+                border: field.borderWidth ? `${field.borderWidth}px solid ${field.borderColor || 'transparent'}` : 'none',
             }}>
                 <div 
                     style={{

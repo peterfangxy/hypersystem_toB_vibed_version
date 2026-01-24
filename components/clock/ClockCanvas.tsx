@@ -128,8 +128,8 @@ const ClockCanvas = forwardRef<HTMLDivElement, ClockCanvasProps>(({
                   whiteSpace: 'nowrap',
                   display: 'flex',
                   alignItems: 'center',
-                  border: '1px dashed rgba(255,255,255,0.2)', // Visual hint for editor
-                  backgroundColor: 'rgba(0,0,0,0.2)'
+                  border: '1px dashed rgba(255,255,255,0.2)', // Keep editor hint
+                  backgroundColor: 'transparent' // Match live display transparency
               }}>
                   <div style={{
                         display: 'flex',
