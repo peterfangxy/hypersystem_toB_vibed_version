@@ -1,4 +1,75 @@
 
+export type ClockFieldType = 
+  | 'tournament_name' 
+  | 'tournament_desc'
+  | 'timer' 
+  | 'blind_countdown'
+  | 'blind_level' 
+  | 'next_blinds'
+  | 'ante' 
+  | 'next_ante'
+  | 'players_count' 
+  | 'entries_count'
+  | 'total_chips' 
+  | 'avg_stack' 
+  | 'starting_chips'
+  | 'rebuy_limit'
+  | 'next_break'
+  | 'payout_total'
+  | 'custom_text'
+  | 'current_time'
+  | 'current_date'
+  | 'start_time'
+  | 'start_date'
+  | 'est_end_time'
+  // Shapes & Lines
+  | 'line'
+  | 'shape_rect'
+  | 'shape_circle'
+  | 'shape_triangle';
+
+export interface ClockField {
+    id: string;
+    type: ClockFieldType;
+    label: string; // For the editor list
+    customText?: string; // If type is custom_text
+    
+    // Position & Style
+    x: number; // Percent 0-100
+    y: number; // Percent 0-100
+    width?: number; // px for shapes/lines
+    height?: number; // px for shapes/lines
+    
+    fontSize: number; // px (or simplified scale)
+    fontWeight: 'normal' | 'bold';
+    fontStyle?: 'normal' | 'italic';
+    textDecoration?: 'none' | 'underline';
+    color: string; // Fill Color for shapes, Font color for text
+    
+    // Border / Stroke for Shapes
+    borderColor?: string;
+    borderWidth?: number;
+
+    align: 'left' | 'center' | 'right';
+    
+    showLabel: boolean; // Show "BLINDS:" prefix?
+    labelText?: string; // "BLINDS"
+}
+
+export interface ClockConfig {
+    id: string;
+    name: string;
+    description?: string; // New field for notes
+    backgroundColor: string;
+    fontColor?: string; // Global default font color
+    backgroundImageUrl?: string;
+    fields: ClockField[];
+    isDefault?: boolean;
+}
+
+export type ViewState = 'dashboard' | 'members' | 'tables' | 'tournaments' | 'structures' | 'settings' | 'clocks';
+// ... existing code ...
+// ... (Previous exports like MembershipTier, Member, etc. are assumed to be above in the file, keeping the rest intact) ...
 export enum MembershipTier {
   BRONZE = 'Bronze',
   SILVER = 'Silver',
@@ -259,73 +330,3 @@ export interface ClubSettings {
     logoUrl: string;
     theme: ClubTheme;
 }
-
-// --- Clock Configs ---
-
-export type ClockFieldType = 
-  | 'tournament_name' 
-  | 'tournament_desc'
-  | 'timer' 
-  | 'blind_countdown'
-  | 'blind_level' 
-  | 'next_blinds'
-  | 'ante' 
-  | 'next_ante'
-  | 'players_count' 
-  | 'entries_count'
-  | 'total_chips' 
-  | 'avg_stack' 
-  | 'starting_chips'
-  | 'rebuy_limit'
-  | 'next_break'
-  | 'payout_total'
-  | 'custom_text'
-  | 'current_time'
-  | 'current_date'
-  | 'start_time'
-  | 'start_date'
-  | 'est_end_time'
-  // Shapes & Lines
-  | 'line'
-  | 'shape_rect'
-  | 'shape_circle'
-  | 'shape_triangle';
-
-export interface ClockField {
-    id: string;
-    type: ClockFieldType;
-    label: string; // For the editor list
-    customText?: string; // If type is custom_text
-    
-    // Position & Style
-    x: number; // Percent 0-100
-    y: number; // Percent 0-100
-    width?: number; // px for shapes/lines
-    height?: number; // px for shapes/lines
-    
-    fontSize: number; // px (or simplified scale)
-    fontWeight: 'normal' | 'bold';
-    color: string; // Fill Color for shapes, Font color for text
-    
-    // Border / Stroke for Shapes
-    borderColor?: string;
-    borderWidth?: number;
-
-    align: 'left' | 'center' | 'right';
-    
-    showLabel: boolean; // Show "BLINDS:" prefix?
-    labelText?: string; // "BLINDS"
-}
-
-export interface ClockConfig {
-    id: string;
-    name: string;
-    description?: string; // New field for notes
-    backgroundColor: string;
-    fontColor?: string; // Global default font color
-    backgroundImageUrl?: string;
-    fields: ClockField[];
-    isDefault?: boolean;
-}
-
-export type ViewState = 'dashboard' | 'members' | 'tables' | 'tournaments' | 'structures' | 'settings' | 'clocks';

@@ -94,11 +94,13 @@ const ClockCanvas = forwardRef<HTMLDivElement, ClockCanvasProps>(({
         <div style={{
             fontSize: `${field.fontSize}px`,
             fontWeight: field.fontWeight,
+            fontStyle: field.fontStyle || 'normal',
+            textDecoration: field.textDecoration || 'none',
             color: field.color,
             textAlign: field.align,
             whiteSpace: 'nowrap'
         }}>
-            {field.showLabel && field.labelText && <div className="text-[0.4em] opacity-70 tracking-widest mb-[0.1em]">{field.labelText}</div>}
+            {field.showLabel && field.labelText && <div className="text-[0.4em] opacity-70 tracking-widest mb-[0.1em]" style={{ fontStyle: 'normal', textDecoration: 'none' }}>{field.labelText}</div>}
             {textValue}
         </div>
       );

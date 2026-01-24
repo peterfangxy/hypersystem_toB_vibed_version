@@ -77,12 +77,14 @@ const ClockDisplay: React.FC<ClockDisplayProps> = ({
             color: field.color,
             fontSize: `${field.fontSize}px`,
             fontWeight: field.fontWeight,
+            fontStyle: field.fontStyle || 'normal',
+            textDecoration: field.textDecoration || 'none',
             textAlign: field.align,
             whiteSpace: 'nowrap',
             lineHeight: 1.2
         }}>
             {field.showLabel && field.labelText && (
-                <div className="text-[0.4em] opacity-70 mb-[0.1em] tracking-widest uppercase font-bold">
+                <div className="text-[0.4em] opacity-70 mb-[0.1em] tracking-widest uppercase font-bold" style={{ fontStyle: 'normal', textDecoration: 'none' }}>
                     {field.labelText}
                 </div>
             )}

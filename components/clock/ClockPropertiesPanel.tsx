@@ -10,7 +10,10 @@ import {
   ChevronsDown, 
   Palette, 
   Copy,
-  Layout
+  Layout,
+  Bold,
+  Italic,
+  Underline
 } from 'lucide-react';
 import { ClockField, ClockFieldType, ClockConfig } from '../../types';
 import { THEME } from '../../theme';
@@ -120,6 +123,33 @@ const ClockPropertiesPanel: React.FC<ClockPropertiesPanelProps> = ({
                     {isShapeOrLine(selectedField.type) ? t('clocks.editor.appearance') : t('clocks.editor.typography')}
                 </label>
                 
+                {/* Font Styles (Bold, Italic, Underline) - Text Only */}
+                {!isShapeOrLine(selectedField.type) && (
+                    <div className="flex gap-2">
+                        <button 
+                            onClick={() => onUpdate(selectedField.id, { fontWeight: selectedField.fontWeight === 'bold' ? 'normal' : 'bold' })}
+                            className={`flex-1 p-2 rounded-lg border transition-colors flex justify-center ${selectedField.fontWeight === 'bold' ? 'bg-brand-green text-black border-brand-green' : 'bg-[#1A1A1A] text-gray-400 border-[#333] hover:text-white'}`}
+                            title="Bold"
+                        >
+                            <Bold size={16} strokeWidth={3} />
+                        </button>
+                        <button 
+                            onClick={() => onUpdate(selectedField.id, { fontStyle: selectedField.fontStyle === 'italic' ? 'normal' : 'italic' })}
+                            className={`flex-1 p-2 rounded-lg border transition-colors flex justify-center ${selectedField.fontStyle === 'italic' ? 'bg-brand-green text-black border-brand-green' : 'bg-[#1A1A1A] text-gray-400 border-[#333] hover:text-white'}`}
+                            title="Italic"
+                        >
+                            <Italic size={16} />
+                        </button>
+                        <button 
+                            onClick={() => onUpdate(selectedField.id, { textDecoration: selectedField.textDecoration === 'underline' ? 'none' : 'underline' })}
+                            className={`flex-1 p-2 rounded-lg border transition-colors flex justify-center ${selectedField.textDecoration === 'underline' ? 'bg-brand-green text-black border-brand-green' : 'bg-[#1A1A1A] text-gray-400 border-[#333] hover:text-white'}`}
+                            title="Underline"
+                        >
+                            <Underline size={16} />
+                        </button>
+                    </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-4">
                     {!isShapeOrLine(selectedField.type) && (
                         <div>
