@@ -47,6 +47,9 @@ const ClockRunner = () => {
   const [dimensions, setDimensions] = useState({ w: window.innerWidth, h: window.innerHeight });
   const [isFullscreen, setIsFullscreen] = useState(false);
   
+  // Wake Lock Reference
+  const wakeLockRef = useRef<any>(null);
+
   // Use Custom Hook for Timer Logic
   const { 
       currentTime, 
@@ -65,7 +68,7 @@ const ClockRunner = () => {
     prizePool: 0
   });
 
-  // 0. Fullscreen & Resize Lifecycle
+  // 0. Fullscreen & Resize Lifecycle & Wake Lock
   useEffect(() => {
       const handleResize = () => {
           setDimensions({ w: window.innerWidth, h: window.innerHeight });
@@ -81,16 +84,50 @@ const ClockRunner = () => {
           }
       };
 
+      // --- Wake Lock Logic ---
+      const requestWakeLock = async () => {
+        const nav: any = navigator;
+        if ('wakeLock' in nav) {
+          try {
+            const lock = await nav.wakeLock.request('screen');
+            wakeLockRef.current = lock;
+            console.debug('Screen Wake Lock active');
+            
+            lock.addEventListener('release', () => {
+              console.debug('Screen Wake Lock released');
+            });
+          } catch (err) {
+            console.error(`Wake Lock failed: ${(err as Error).message}`);
+          }
+        }
+      };
+
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          requestWakeLock();
+        }
+      };
+
+      // Initialize Listeners
       window.addEventListener('resize', handleResize);
       document.addEventListener('fullscreenchange', handleFullscreenChange);
+      document.addEventListener('visibilitychange', handleVisibilityChange);
       
+      // Initial checks
       setIsFullscreen(!!document.fullscreenElement);
+      requestWakeLock();
 
       return () => {
           window.removeEventListener('resize', handleResize);
           document.removeEventListener('fullscreenchange', handleFullscreenChange);
+          document.removeEventListener('visibilitychange', handleVisibilityChange);
           if (document.fullscreenElement) {
               document.exitFullscreen().catch(() => {});
+          }
+          // Release Wake Lock
+          if (wakeLockRef.current) {
+            wakeLockRef.current.release().catch((e: Error) => console.error(e));
+            wakeLockRef.current = null;
           }
       };
   }, [navigate, tableId]);
