@@ -41,7 +41,7 @@ const App: React.FC = () => {
             <div className="h-full overflow-auto p-8 scroll-smooth">
               <Routes>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<DashboardView />} />
+                <Route path="/dashboard/*" element={<DashboardView />} />
                 <Route path="/members" element={<MembersView />} />
                 <Route path="/tables" element={<TablesView />} />
                 <Route path="/tournaments/*" element={<TournamentsView />} />

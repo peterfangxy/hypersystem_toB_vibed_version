@@ -122,6 +122,10 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
 
   // --- Actions ---
 
+  const handleConfigUpdate = (updates: Partial<ClockConfig>) => {
+      setConfig(prev => ({ ...prev, ...updates }));
+  };
+
   const addField = (type: ClockFieldType) => {
       const isShape = type.startsWith('shape_');
       const isLine = type === 'line';
@@ -331,7 +335,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
                 onRemove={removeField}
                 onAdd={addField}
                 onReorder={handleReorder}
-                onUpdateConfig={(updates) => setConfig({ ...config, ...updates })}
+                onUpdateConfig={handleConfigUpdate}
             />
 
             {/* Canvas */}
@@ -348,6 +352,8 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
 
             {/* Right: Properties */}
             <ClockPropertiesPanel 
+                config={config}
+                onUpdateConfig={handleConfigUpdate}
                 selectedField={selectedField}
                 onUpdate={updateField}
                 onDuplicate={duplicateField}

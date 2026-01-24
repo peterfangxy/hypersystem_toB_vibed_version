@@ -20,7 +20,7 @@ export const translations = {
       noData: "No data found"
     },
     sidebar: {
-      dashboard: "Dashboard",
+      dashboard: "Performance",
       members: "Members",
       tables: "Tables",
       tournaments: "Tournaments",
@@ -30,6 +30,20 @@ export const translations = {
       floorManager: "Floor Manager",
       admin: "Admin",
       liveClock: "Live Clock"
+    },
+    performance: {
+      title: "Performance",
+      subtitle: "Track revenue, participation, and club growth",
+      tabs: {
+        overview: "Dashboard",
+        export: "Export Data"
+      },
+      export: {
+        title: "Data Export",
+        subtitle: "Download CSV reports for external analysis",
+        comingSoon: "Coming Soon",
+        comingSoonDesc: "We are building a comprehensive reporting engine to let you export financial and player data."
+      }
     },
     members: {
       title: "Members",
@@ -447,7 +461,7 @@ export const translations = {
       noData: "暂无数据"
     },
     sidebar: {
-      dashboard: "仪表盘",
+      dashboard: "表现",
       members: "会员管理",
       tables: "牌桌管理",
       tournaments: "锦标赛",
@@ -458,6 +472,21 @@ export const translations = {
       admin: "管理员",
       liveClock: "实时时钟"
     },
+    performance: {
+      title: "表现概览",
+      subtitle: "追踪收入、参与度及俱乐部增长",
+      tabs: {
+        overview: "仪表盘",
+        export: "导出数据"
+      },
+      export: {
+        title: "数据导出",
+        subtitle: "下载CSV报表以进行外部分析",
+        comingSoon: "即将推出",
+        comingSoonDesc: "我们正在构建一个全面的报告引擎，让您可以导出财务和玩家数据。"
+      }
+    },
+    // ... rest of zh translations
     members: {
       title: "会员列表",
       subtitle: "管理俱乐部会员及档案",

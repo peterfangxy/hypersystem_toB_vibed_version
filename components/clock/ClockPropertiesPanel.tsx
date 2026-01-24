@@ -9,14 +9,17 @@ import {
   ChevronsUp, 
   ChevronsDown, 
   Palette, 
-  Copy
+  Copy,
+  Layout
 } from 'lucide-react';
-import { ClockField, ClockFieldType } from '../../types';
+import { ClockField, ClockFieldType, ClockConfig } from '../../types';
 import { THEME } from '../../theme';
 import NumberInput from '../ui/NumberInput';
 import { useLanguage } from '../../contexts/LanguageContext';
 
 interface ClockPropertiesPanelProps {
+  config: ClockConfig;
+  onUpdateConfig: (updates: Partial<ClockConfig>) => void;
   selectedField: ClockField | null;
   onUpdate: (id: string, updates: Partial<ClockField>) => void;
   onDuplicate: (field: ClockField) => void;
@@ -25,6 +28,8 @@ interface ClockPropertiesPanelProps {
 }
 
 const ClockPropertiesPanel: React.FC<ClockPropertiesPanelProps> = ({
+  config,
+  onUpdateConfig,
   selectedField,
   onUpdate,
   onDuplicate,
@@ -39,9 +44,49 @@ const ClockPropertiesPanel: React.FC<ClockPropertiesPanelProps> = ({
             <div className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-[#222]">
                 {t('clocks.editor.properties')}
             </div>
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-gray-600">
-                <div className="w-12 h-12 bg-[#1A1A1A] rounded-full flex items-center justify-center mb-3"><Move size={24} className="opacity-50" /></div>
-                <p className="text-xs">{t('clocks.editor.selectToEdit')}</p>
+            <div className="p-6 space-y-6 overflow-y-auto flex-1">
+                {/* Global Settings */}
+                <div className="space-y-4">
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                        <Layout size={16} /> Canvas Settings
+                    </h3>
+                    
+                    <div>
+                        <label className="text-[10px] text-gray-500 block mb-1">{t('clocks.editor.background')}</label>
+                        <div className="flex gap-2">
+                            <input 
+                                type="color" 
+                                value={config.backgroundColor} 
+                                onChange={(e) => onUpdateConfig({ backgroundColor: e.target.value })} 
+                                className="h-9 w-9 rounded cursor-pointer border border-[#333] bg-[#1A1A1A] p-0.5 shrink-0" 
+                            />
+                            <input 
+                                type="text"
+                                value={config.backgroundColor}
+                                onChange={(e) => onUpdateConfig({ backgroundColor: e.target.value })}
+                                className={`${THEME.input} w-full rounded-lg px-3 py-2 text-xs font-mono`}
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="text-[10px] text-gray-500 block mb-1">{t('clocks.editor.textColor')}</label>
+                        <div className="flex gap-2">
+                            <input 
+                                type="color" 
+                                value={config.fontColor || '#FFFFFF'} 
+                                onChange={(e) => onUpdateConfig({ fontColor: e.target.value })} 
+                                className="h-9 w-9 rounded cursor-pointer border border-[#333] bg-[#1A1A1A] p-0.5 shrink-0" 
+                            />
+                            <input 
+                                type="text"
+                                value={config.fontColor || '#FFFFFF'}
+                                onChange={(e) => onUpdateConfig({ fontColor: e.target.value })}
+                                className={`${THEME.input} w-full rounded-lg px-3 py-2 text-xs font-mono`}
+                            />
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
       );
