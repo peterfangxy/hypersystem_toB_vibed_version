@@ -30,6 +30,12 @@ interface TableProps<T> {
   onRowClick?: (item: T) => void;
   emptyState?: React.ReactNode;
   className?: string;
+
+  // New Props for Expandable/Complex Rows
+  renderExpandedRow?: (item: T) => React.ReactNode;
+  isRowExpanded?: (item: T) => boolean;
+  rowClassName?: (item: T) => string;
+  rowId?: (item: T) => string;
 }
 
 export function Table<T>({ 
@@ -42,21 +48,25 @@ export function Table<T>({
   onFilter,
   onRowClick,
   emptyState,
-  className = ''
+  className = '',
+  renderExpandedRow,
+  isRowExpanded,
+  rowClassName,
+  rowId
 }: TableProps<T>) {
   
   return (
     <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden flex flex-col shadow-xl flex-1 min-h-0 mb-3 ${className}`}>
-        <div className="overflow-y-auto h-full">
+        <div className="overflow-y-auto h-full relative">
             <table className="w-full text-left border-collapse">
-                <thead className="sticky top-0 z-20 shadow-sm">
+                <thead className="sticky top-0 z-30 shadow-sm">
                     <tr>
                         {columns.map((col) => {
                             if (!col.sortable && !col.filterable) {
                                 return (
                                     <th 
                                         key={col.key} 
-                                        className={`px-2 py-3 bg-[#1A1A1A] border-b border-[#262626] font-bold text-gray-500 text-xs uppercase tracking-wider ${col.headerClassName || col.className || ''}`}
+                                        className={`px-2 py-3 h-10 bg-[#1A1A1A] border-b border-[#262626] font-bold text-gray-500 text-xs uppercase tracking-wider ${col.headerClassName || col.className || ''}`}
                                     >
                                         {col.label}
                                     </th>
@@ -67,7 +77,7 @@ export function Table<T>({
                                     key={col.key}
                                     label={col.label}
                                     columnKey={col.key}
-                                    className={col.headerClassName || col.className}
+                                    className={`h-10 ${col.headerClassName || col.className}`}
                                     sortable={col.sortable}
                                     currentSort={sortConfig}
                                     onSort={onSort}
@@ -89,22 +99,37 @@ export function Table<T>({
                             </td>
                         </tr>
                     ) : (
-                        data.map((item) => (
-                            <tr 
-                                key={keyExtractor(item)} 
-                                onClick={onRowClick ? () => onRowClick(item) : undefined}
-                                className={`transition-colors group ${onRowClick ? 'cursor-pointer hover:bg-[#222]' : 'hover:bg-[#222]'}`}
-                            >
-                                {columns.map((col) => (
-                                    <td 
-                                        key={`${keyExtractor(item)}-${col.key}`} 
-                                        className={`px-2 py-3 ${col.cellClassName || col.className || ''}`}
+                        data.map((item) => {
+                            const expanded = isRowExpanded ? isRowExpanded(item) : false;
+                            const customRowClass = rowClassName ? rowClassName(item) : '';
+                            const id = rowId ? rowId(item) : undefined;
+
+                            return (
+                                <React.Fragment key={keyExtractor(item)}>
+                                    <tr 
+                                        id={id}
+                                        onClick={onRowClick ? () => onRowClick(item) : undefined}
+                                        className={`transition-colors group scroll-mt-10 ${onRowClick ? 'cursor-pointer' : ''} ${customRowClass || 'hover:bg-[#222]'}`}
                                     >
-                                        {col.render ? col.render(item) : (item as any)[col.key]}
-                                    </td>
-                                ))}
-                            </tr>
-                        ))
+                                        {columns.map((col) => (
+                                            <td 
+                                                key={`${keyExtractor(item)}-${col.key}`} 
+                                                className={`px-2 py-3 ${col.cellClassName || col.className || ''}`}
+                                            >
+                                                {col.render ? col.render(item) : (item as any)[col.key]}
+                                            </td>
+                                        ))}
+                                    </tr>
+                                    {expanded && renderExpandedRow && (
+                                        <tr>
+                                            <td colSpan={columns.length} className="p-0 border-b border-[#262626]">
+                                                {renderExpandedRow(item)}
+                                            </td>
+                                        </tr>
+                                    )}
+                                </React.Fragment>
+                            );
+                        })
                     )}
                 </tbody>
             </table>

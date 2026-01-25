@@ -79,6 +79,7 @@ A premium, high-fidelity Point-of-Sale (POS) and Club Management System designed
 *   **`SettingsView.tsx`**: Global club settings, team management, and theme customization.
 
 ### Components (`/components`)
+*   **`ui/Table.tsx`**: A powerful, reusable data table component supporting sorting, column filtering (multi-select, date), and expandable detail rows.
 *   **`ClockEditor.tsx`**: Canvas-based editor for designing clock layouts.
 *   **`ClockDisplay.tsx`**: Rendering engine for clock configs (used in Editor, Previews, and Live Mode).
 *   **`TournamentDetailPanel.tsx`**: The "Run of Show" interface for active tournaments.

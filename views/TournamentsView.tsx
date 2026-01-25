@@ -1,17 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, 
   Edit2, 
   Clock, 
   Trophy, 
   Search, 
-  ArrowUpDown, 
-  Filter, 
   Users, 
   Copy, 
   Trash2, 
   ChevronDown, 
-  ChevronUp,
+  ChevronUp, 
   DoorOpen,
   Play,
   CheckCircle
@@ -25,6 +23,8 @@ import TournamentDetailPanel from '../components/TournamentDetailPanel';
 import { useLanguage } from '../contexts/LanguageContext';
 import { PageHeader, TabContainer, ControlBar } from '../components/ui/PageLayout';
 import StatusBadge, { StatusVariant } from '../components/ui/StatusBadge';
+import { Table, Column } from '../components/ui/Table';
+import { SortDirection } from '../components/ui/ColumnHeader';
 
 const TournamentsView = () => {
   const { t } = useLanguage();
@@ -46,8 +46,8 @@ const TournamentsView = () => {
 
   // Filtering & Sorting State
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('All');
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Tournament; direction: 'asc' | 'desc' }>({ 
+  const [filters, setFilters] = useState<Record<string, any>>({});
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: SortDirection }>({ 
     key: 'startDate', 
     direction: 'desc' 
   });
@@ -59,39 +59,29 @@ const TournamentsView = () => {
   // Reset search when switching tabs for cleaner UX
   useEffect(() => {
     setSearchQuery('');
-    setStatusFilter('All');
+    setFilters({});
     setExpandedTournamentId(null);
   }, [isTemplatesTab]);
 
-  // Handle Auto-Scroll on Expand
+  // Handle Auto-Scroll on Expand - Logic moved to rely on table row IDs
   useEffect(() => {
     if (expandedTournamentId) {
         // Use a timeout to ensure DOM layout has settled after expand/collapse animations or state updates
         const timer = setTimeout(() => {
-            const container = scrollContainerRef.current;
-            const row = document.getElementById(`tournament-row-${expandedTournamentId}`);
+            // NOTE: We need to find the scroll container within the Table component.
+            // Since Table wraps in a div with class 'overflow-y-auto', we can try to find it via ID or traversal.
+            // Alternatively, since Table doesn't expose ref, we rely on document.getElementById scrollIntoView logic
+            // or we assume the main window scroll or the table's container scroll.
             
-            if (container && row) {
-                const containerRect = container.getBoundingClientRect();
-                const rowRect = row.getBoundingClientRect();
-                const currentScroll = container.scrollTop;
-                
-                // Calculate position relative to container
-                const relativeTop = rowRect.top - containerRect.top;
-                
-                // Target offset: 34px from top (matching sticky position)
-                const targetOffset = 34;
-                const diff = relativeTop - targetOffset;
-
-                // Only scroll if not already in position (with small tolerance)
-                if (Math.abs(diff) > 2) {
-                    container.scrollTo({
-                        top: currentScroll + diff,
-                        behavior: 'smooth'
-                    });
-                }
+            // The previous logic used a ref on the manual table container. 
+            // Now the Table component owns the scroll container.
+            // We can scroll the row into view.
+            const row = document.getElementById(`tournament-row-${expandedTournamentId}`);
+            if (row) {
+                // Use 'start' to snap the sticky row to the top (under the header)
+                row.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
-        }, 150); // 150ms delay for layout stability
+        }, 150); 
         return () => clearTimeout(timer);
     }
   }, [expandedTournamentId]);
@@ -152,12 +142,24 @@ const TournamentsView = () => {
       setExpandedTournamentId(prev => prev === id ? null : id);
   };
 
-  const handleSort = (key: keyof Tournament) => {
-    let direction: 'asc' | 'desc' = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
+  const handleSort = (key: string, direction?: SortDirection) => {
+    setSortConfig(current => {
+        if (direction) return { key, direction };
+        if (current.key === key && current.direction === 'asc') return { key, direction: 'desc' };
+        return { key, direction: 'asc' };
+    });
+  };
+
+  const handleFilter = (key: string, value: any) => {
+      setFilters(prev => {
+          const next = { ...prev };
+          if (value === undefined || (Array.isArray(value) && value.length === 0) || value === '') {
+              delete next[key];
+          } else {
+              next[key] = value;
+          }
+          return next;
+      });
   };
 
   // --- Helpers for Render ---
@@ -183,337 +185,283 @@ const TournamentsView = () => {
       }
   };
 
-  const SortHeader = ({ label, sortKey, className = "" }: { label: string, sortKey: keyof Tournament, className?: string }) => (
-    <th 
-      className={`px-2 py-3 cursor-pointer hover:text-white transition-colors group select-none sticky top-0 bg-[#1A1A1A] z-30 border-b border-[#262626] whitespace-nowrap ${className}`}
-      onClick={() => handleSort(sortKey)}
-    >
-      <div className={`flex items-center gap-2 ${className.includes('text-right') ? 'justify-end' : ''}`}>
-        {label}
-        <ArrowUpDown size={14} className={`text-gray-600 group-hover:text-gray-400 ${sortConfig.key === sortKey ? 'text-brand-green' : ''}`} />
-      </div>
-    </th>
-  );
-
-  const StaticHeader = ({ label, className = "" }: { label: string, className?: string }) => (
-    <th className={`px-2 py-3 sticky top-0 bg-[#1A1A1A] z-30 text-gray-500 font-bold border-b border-[#262626] whitespace-nowrap ${className}`}>
-        {label}
-    </th>
-  );
-
-  // --- Render Views as Variables ---
-
-  const filteredTournaments = tournaments
+  // --- Filtering & Sorting Data ---
+  const filteredTournaments = useMemo(() => {
+      return tournaments
         .filter(t => {
             const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesStatus = statusFilter === 'All' || t.status === statusFilter;
+            
+            let matchesStatus = true;
+            if (filters.status && filters.status.length > 0) {
+                matchesStatus = filters.status.includes(t.status);
+            }
+
             return matchesSearch && matchesStatus;
         })
         .sort((a, b) => {
-            const aValue = a[sortConfig.key];
-            const bValue = b[sortConfig.key];
+            const dir = sortConfig.direction === 'asc' ? 1 : -1;
+            const aValue = a[sortConfig.key as keyof Tournament];
+            const bValue = b[sortConfig.key as keyof Tournament];
 
             // Specific handling for Date sorting to include Time
             if (sortConfig.key === 'startDate' && a.startDate && b.startDate && a.startTime && b.startTime) {
                 const dateA = new Date(`${a.startDate}T${a.startTime}`);
                 const dateB = new Date(`${b.startDate}T${b.startTime}`);
-                if (dateA < dateB) return sortConfig.direction === 'asc' ? -1 : 1;
-                if (dateA > dateB) return sortConfig.direction === 'asc' ? 1 : -1;
-                return 0;
+                return dateA < dateB ? -1 * dir : 1 * dir;
             }
 
             if (aValue === undefined || bValue === undefined) return 0;
-            if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-            if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+            if (aValue < bValue) return -1 * dir;
+            if (aValue > bValue) return 1 * dir;
             return 0;
         });
+  }, [tournaments, searchQuery, filters, sortConfig]);
 
-  const manageView = (
-        <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden flex flex-col shadow-xl animate-in fade-in slide-in-from-bottom-2 flex-1 min-h-0 mb-3`}>
-            <div ref={scrollContainerRef} className="overflow-y-auto h-full relative">
-                <table className="w-full text-left border-collapse">
-                <thead>
-                    <tr className="text-xs uppercase text-gray-500 font-bold tracking-wider">
-                    <SortHeader label={t('tournaments.table.status')} sortKey="status" className="pl-4 w-[130px]" />
-                    <SortHeader label={t('tournaments.table.date')} sortKey="startDate" />
-                    <SortHeader label={t('tournaments.table.time')} sortKey="startTime" />
-                    <StaticHeader label={t('tournaments.table.duration')} />
-                    <SortHeader label={t('tournaments.table.tournament')} sortKey="name" className="w-[22%]" />
-                    <SortHeader label={t('tournaments.table.buyIn')} sortKey="buyIn" />
-                    <StaticHeader label={t('tournaments.table.structure')} className="w-[15%]" />
-                    <StaticHeader label={t('tournaments.table.rebuys')} className="text-center" />
-                    <StaticHeader label={t('tournaments.table.players')} className="w-[12%]" />
-                    <th className="px-2 py-3 pr-4 text-right sticky top-0 bg-[#1A1A1A] z-30 border-b border-[#262626] whitespace-nowrap">{t('common.actions')}</th>
-                    </tr>
-                </thead>
-                {filteredTournaments.length === 0 ? (
-                    <tbody>
-                        <tr>
-                            <td colSpan={10}>
-                                <div className="flex flex-col items-center justify-center py-20 text-gray-500 h-full">
-                                    <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mb-4">
-                                        <Trophy size={32} className="opacity-50" />
-                                    </div>
-                                    <p className="text-lg font-medium mb-4">{t('tournaments.table.empty')}</p>
-                                    {tournaments.length === 0 && (
-                                        <button 
-                                            onClick={openCreate}
-                                            className="text-brand-green hover:underline"
-                                        >
-                                            {t('tournaments.table.createFirst')}
-                                        </button>
-                                    )}
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                ) : (
-                    filteredTournaments.map((tournament) => {
-                        const isExpanded = expandedTournamentId === tournament.id;
-                        return (
-                            <tbody key={tournament.id} className="border-b border-[#262626]">
-                                <tr 
-                                    id={`tournament-row-${tournament.id}`}
-                                    onClick={() => toggleExpand(tournament.id)}
-                                    className={`cursor-pointer transition-colors group ${
-                                        isExpanded 
-                                        ? 'bg-[#222] sticky top-[34px] z-20' 
-                                        : 'hover:bg-[#222]'
-                                    }`}
-                                >
-                                    <td className="px-2 py-3 pl-4" onClick={(e) => e.stopPropagation()}>
-                                        <StatusBadge variant={getStatusVariant(tournament.status)} className="min-w-[100px] text-center">
-                                            {tournament.status}
-                                        </StatusBadge>
-                                    </td>
-                                    <td className="px-2 py-3 text-sm font-medium text-gray-300 whitespace-nowrap">
-                                    {tournament.startDate && new Date(tournament.startDate).toLocaleDateString(undefined, {
-                                        month: 'short', 
-                                        day: 'numeric',
-                                        year: 'numeric'
-                                    })}
-                                    </td>
-                                    <td className="px-2 py-3 text-sm font-medium text-white whitespace-nowrap">
-                                        {tournament.startTime}
-                                    </td>
-                                    <td className="px-2 py-3">
-                                        <div className="text-xs text-gray-400 flex items-center gap-1.5 whitespace-nowrap">
-                                            <Clock size={14} />
-                                            {Math.floor(tournament.estimatedDurationMinutes / 60)}h {tournament.estimatedDurationMinutes % 60 > 0 ? `${tournament.estimatedDurationMinutes % 60}m` : ''}
-                                        </div>
-                                    </td>
-                                    <td className="px-2 py-3 max-w-[200px]">
-                                        <div className="text-sm font-bold text-white whitespace-nowrap overflow-hidden text-ellipsis" title={tournament.name}>
-                                            {tournament.name}
-                                        </div>
-                                    </td>
-                                    <td className="px-2 py-3">
-                                    <div className="text-sm font-bold text-brand-green whitespace-nowrap">
-                                        ${tournament.buyIn} <span className="text-gray-500 text-xs font-normal">+ ${tournament.fee}</span>
-                                    </div>
-                                    </td>
-                                    <td className="px-2 py-3 max-w-[140px]">
-                                        {getStructureName(tournament.structureId) ? (
-                                            <div className="text-sm font-medium text-white truncate" title={getStructureName(tournament.structureId) || ''}>
-                                                {getStructureName(tournament.structureId)}
-                                            </div>
-                                        ) : (
-                                            <span className="text-sm font-medium text-gray-500 italic">Custom</span>
-                                        )}
-                                    </td>
-                                    <td className="px-2 py-3 text-center">
-                                        <span className="text-sm font-medium text-gray-300">
-                                            {tournament.rebuyLimit}
-                                        </span>
-                                    </td>
-                                    <td className="px-2 py-3 whitespace-nowrap">
-                                        <div className="flex items-center gap-2">
-                                            <Users size={16} className="text-gray-500" />
-                                            <span className="font-bold text-white">
-                                                {registrationCounts[tournament.id] || 0}
-                                                <span className="text-gray-500 font-normal"> / {tournament.maxPlayers}</span>
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td className="px-2 py-3 pr-4 text-right" onClick={(e) => e.stopPropagation()}>
-                                    <div className="flex justify-end gap-2 items-center">
-                                        
-                                        {/* Quick State Transitions */}
-                                        {tournament.status === 'Scheduled' && (
-                                            <button
-                                                onClick={(e) => handleStatusChange(e, tournament, 'Registration')}
-                                                className="p-1.5 text-blue-400 hover:text-white hover:bg-blue-500/20 rounded-lg transition-colors border border-transparent hover:border-blue-500/30 group/btn"
-                                                title="Open Registration"
-                                            >
-                                                <div className="flex items-center gap-2 px-1">
-                                                    <span className="text-xs font-bold uppercase hidden 2xl:inline">Open Reg</span>
-                                                    <DoorOpen size={16} />
-                                                </div>
-                                            </button>
-                                        )}
-                                        
-                                        {tournament.status === 'Registration' && (
-                                            <button
-                                                onClick={(e) => handleStatusChange(e, tournament, 'In Progress')}
-                                                className="p-1.5 text-brand-green hover:text-white hover:bg-green-500/20 rounded-lg transition-colors border border-transparent hover:border-green-500/30 group/btn"
-                                                title="Start Tournament"
-                                            >
-                                                <div className="flex items-center gap-2 px-1">
-                                                    <span className="text-xs font-bold uppercase hidden 2xl:inline">Start</span>
-                                                    <Play size={16} fill="currentColor" />
-                                                </div>
-                                            </button>
-                                        )}
+  const filteredTemplates = useMemo(() => {
+      return templates.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [templates, searchQuery]);
 
-                                        {tournament.status === 'In Progress' && (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setExpandedTournamentId(tournament.id);
-                                                }}
-                                                className="p-1.5 text-orange-400 hover:text-white hover:bg-orange-500/20 rounded-lg transition-colors border border-transparent hover:border-orange-500/30 group/btn"
-                                                title="Tally & Finish"
-                                            >
-                                                <div className="flex items-center gap-2 px-1">
-                                                    <span className="text-xs font-bold uppercase hidden 2xl:inline">Finish</span>
-                                                    <CheckCircle size={16} />
-                                                </div>
-                                            </button>
-                                        )}
+  // --- Column Definitions ---
+  const statusOptions = [
+      { label: 'Scheduled', value: 'Scheduled', color: '#3b82f6' },
+      { label: 'Registration', value: 'Registration', color: '#22c55e' },
+      { label: 'In Progress', value: 'In Progress', color: '#eab308' },
+      { label: 'Completed', value: 'Completed', color: '#9ca3af' },
+      { label: 'Cancelled', value: 'Cancelled', color: '#ef4444' }
+  ];
 
-                                        {/* Action Buttons */}
-                                        <div className="w-px h-4 bg-[#333] mx-1"></div>
+  const tournamentColumns: Column<Tournament>[] = useMemo(() => [
+      {
+          key: 'status',
+          label: t('tournaments.table.status'),
+          sortable: true,
+          filterable: true,
+          filterType: 'multi-select',
+          filterOptions: statusOptions,
+          className: 'pl-4 w-[130px]',
+          render: (t) => (
+              <StatusBadge variant={getStatusVariant(t.status)} className="min-w-[100px] text-center">
+                  {t.status}
+              </StatusBadge>
+          )
+      },
+      {
+          key: 'startDate',
+          label: t('tournaments.table.date'),
+          sortable: true,
+          className: 'text-sm font-medium text-gray-300 whitespace-nowrap',
+          render: (t) => t.startDate && new Date(t.startDate).toLocaleDateString(undefined, {
+              month: 'short', day: 'numeric', year: 'numeric'
+          })
+      },
+      {
+          key: 'startTime',
+          label: t('tournaments.table.time'),
+          sortable: true,
+          className: 'text-sm font-medium text-white whitespace-nowrap',
+      },
+      {
+          key: 'duration',
+          label: t('tournaments.table.duration'),
+          className: 'text-xs text-gray-400',
+          render: (t) => (
+              <div className="flex items-center gap-1.5 whitespace-nowrap">
+                  <Clock size={14} />
+                  {Math.floor(t.estimatedDurationMinutes / 60)}h {t.estimatedDurationMinutes % 60 > 0 ? `${t.estimatedDurationMinutes % 60}m` : ''}
+              </div>
+          )
+      },
+      {
+          key: 'name',
+          label: t('tournaments.table.tournament'),
+          sortable: true,
+          className: 'max-w-[200px]',
+          render: (t) => (
+              <div className="text-sm font-bold text-white whitespace-nowrap overflow-hidden text-ellipsis" title={t.name}>
+                  {t.name}
+              </div>
+          )
+      },
+      {
+          key: 'buyIn',
+          label: t('tournaments.table.buyIn'),
+          sortable: true,
+          render: (t) => (
+              <div className="text-sm font-bold text-brand-green whitespace-nowrap">
+                  ${t.buyIn} <span className="text-gray-500 text-xs font-normal">+ ${t.fee}</span>
+              </div>
+          )
+      },
+      {
+          key: 'structureId',
+          label: t('tournaments.table.structure'),
+          className: 'max-w-[140px]',
+          render: (t) => getStructureName(t.structureId) ? (
+              <div className="text-sm font-medium text-white truncate" title={getStructureName(t.structureId) || ''}>
+                  {getStructureName(t.structureId)}
+              </div>
+          ) : (
+              <span className="text-sm font-medium text-gray-500 italic">Custom</span>
+          )
+      },
+      {
+          key: 'rebuyLimit',
+          label: t('tournaments.table.rebuys'),
+          className: 'text-center text-sm font-medium text-gray-300'
+      },
+      {
+          key: 'players',
+          label: t('tournaments.table.players'),
+          render: (t) => (
+              <div className="flex items-center gap-2 whitespace-nowrap">
+                  <Users size={16} className="text-gray-500" />
+                  <span className="font-bold text-white">
+                      {registrationCounts[t.id] || 0}
+                      <span className="text-gray-500 font-normal"> / {t.maxPlayers}</span>
+                  </span>
+              </div>
+          )
+      },
+      {
+          key: 'actions',
+          label: t('common.actions'),
+          className: 'pr-4 text-right',
+          render: (tournament) => {
+              const isExpanded = expandedTournamentId === tournament.id;
+              return (
+                <div className="flex justify-end gap-2 items-center" onClick={(e) => e.stopPropagation()}>
+                    {/* Quick State Transitions */}
+                    {tournament.status === 'Scheduled' && (
+                        <button
+                            onClick={(e) => handleStatusChange(e, tournament, 'Registration')}
+                            className="p-1.5 text-blue-400 hover:text-white hover:bg-blue-500/20 rounded-lg transition-colors border border-transparent hover:border-blue-500/30 group/btn"
+                            title="Open Registration"
+                        >
+                            <div className="flex items-center gap-2 px-1">
+                                <span className="text-xs font-bold uppercase hidden 2xl:inline">Open Reg</span>
+                                <DoorOpen size={16} />
+                            </div>
+                        </button>
+                    )}
+                    
+                    {tournament.status === 'Registration' && (
+                        <button
+                            onClick={(e) => handleStatusChange(e, tournament, 'In Progress')}
+                            className="p-1.5 text-brand-green hover:text-white hover:bg-green-500/20 rounded-lg transition-colors border border-transparent hover:border-green-500/30 group/btn"
+                            title="Start Tournament"
+                        >
+                            <div className="flex items-center gap-2 px-1">
+                                <span className="text-xs font-bold uppercase hidden 2xl:inline">Start</span>
+                                <Play size={16} fill="currentColor" />
+                            </div>
+                        </button>
+                    )}
 
-                                        <button 
-                                            onClick={() => toggleExpand(tournament.id)}
-                                            className={`p-1.5 rounded-lg transition-colors ${
-                                                isExpanded 
-                                                ? 'bg-[#333] text-white' 
-                                                : 'text-gray-500 hover:text-white hover:bg-[#222]'
-                                            }`}
-                                            title={isExpanded ? t('common.close') : t('common.manage')}
-                                        >
-                                            {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                                        </button>
+                    {tournament.status === 'In Progress' && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setExpandedTournamentId(tournament.id);
+                            }}
+                            className="p-1.5 text-orange-400 hover:text-white hover:bg-orange-500/20 rounded-lg transition-colors border border-transparent hover:border-orange-500/30 group/btn"
+                            title="Tally & Finish"
+                        >
+                            <div className="flex items-center gap-2 px-1">
+                                <span className="text-xs font-bold uppercase hidden 2xl:inline">Finish</span>
+                                <CheckCircle size={16} />
+                            </div>
+                        </button>
+                    )}
 
-                                        <button 
-                                            onClick={() => openEdit(tournament)}
-                                            className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-lg transition-colors"
-                                            title={t('common.edit')}
-                                        >
-                                            <Edit2 size={16} />
-                                        </button>
-                                    </div>
-                                    </td>
-                                </tr>
-                                
-                                {/* Expandable Detail Panel */}
-                                {isExpanded && (
-                                    <tr>
-                                        <td colSpan={10} className="p-0 border-b border-[#262626]">
-                                            <TournamentDetailPanel 
-                                                tournament={tournament} 
-                                                onUpdate={refreshData}
-                                                onClose={() => setExpandedTournamentId(null)}
-                                            />
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        );
-                    })
-                )}
-                </table>
-            </div>
-        </div>
-  );
+                    <div className="w-px h-4 bg-[#333] mx-1"></div>
 
-  const filteredTemplates = templates.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()));
-
-  const templatesView = (
-        <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden flex flex-col shadow-xl animate-in fade-in slide-in-from-bottom-2 flex-1 min-h-0 mb-3`}>
-             {filteredTemplates.length === 0 ? (
-                 <div className="flex flex-col items-center justify-center py-20 text-gray-500 h-full">
-                    <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mb-4">
-                        <Copy size={32} className="opacity-50" />
-                    </div>
-                    <p className="text-lg font-medium mb-4">{t('tournaments.table.emptyTemplates')}</p>
                     <button 
-                        onClick={openCreate}
-                        className="text-brand-green hover:underline"
+                        onClick={() => toggleExpand(tournament.id)}
+                        className={`p-1.5 rounded-lg transition-colors ${
+                            isExpanded 
+                            ? 'bg-[#333] text-white' 
+                            : 'text-gray-500 hover:text-white hover:bg-[#222]'
+                        }`}
+                        title={isExpanded ? t('common.close') : t('common.manage')}
                     >
-                        {t('tournaments.table.createFirstTemplate')}
+                        {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                     </button>
-                 </div>
-             ) : (
-                 <div className="overflow-y-auto h-full">
-                     <table className="w-full text-left border-collapse">
-                         <thead>
-                             <tr className="bg-[#1A1A1A] border-b border-[#262626] text-xs uppercase text-gray-500 font-bold tracking-wider">
-                                 <th className="px-2 py-3 pl-4 whitespace-nowrap">{t('tournaments.table.templateName')}</th>
-                                 <th className="px-2 py-3 whitespace-nowrap">{t('tournaments.table.estDuration')}</th>
-                                 <th className="px-2 py-3 whitespace-nowrap">{t('tournaments.table.buyIn')}</th>
-                                 <th className="px-2 py-3 whitespace-nowrap">{t('tournaments.table.structure')}</th>
-                                 <th className="px-2 py-3 whitespace-nowrap">{t('tournaments.table.payoutModel')}</th>
-                                 <th className="px-2 py-3 pr-4 text-right whitespace-nowrap">{t('common.actions')}</th>
-                             </tr>
-                         </thead>
-                         <tbody className="divide-y divide-[#262626]">
-                             {filteredTemplates.map(template => (
-                                 <tr key={template.id} className="hover:bg-[#222] transition-colors group">
-                                     <td className="px-2 py-3 pl-4">
-                                         <span className="text-base font-bold text-white">{template.name}</span>
-                                     </td>
-                                     <td className="px-2 py-3">
-                                         <div className="text-sm font-medium text-gray-300">
-                                            {Math.floor(template.estimatedDurationMinutes / 60)}h {template.estimatedDurationMinutes % 60 > 0 ? `${template.estimatedDurationMinutes % 60}m` : ''}
-                                         </div>
-                                     </td>
-                                     <td className="px-2 py-3">
-                                        <div className="text-sm font-bold text-brand-green">
-                                            ${template.buyIn} <span className="text-gray-500 text-xs font-normal">+ ${template.fee}</span>
-                                        </div>
-                                     </td>
-                                     <td className="px-2 py-3">
-                                         {getStructureName(template.structureId) ? (
-                                            <span className="text-sm font-medium text-white">{getStructureName(template.structureId)}</span>
-                                        ) : (
-                                            <span className="text-sm font-medium text-gray-500 italic">Custom</span>
-                                        )}
-                                     </td>
-                                     <td className="px-2 py-3">
-                                        {getPayoutName(template.payoutStructureId) ? (
-                                            <span className="text-sm text-white">{getPayoutName(template.payoutStructureId)}</span>
-                                        ) : (
-                                            <span className="text-sm text-gray-500">{template.payoutModel}</span>
-                                        )}
-                                     </td>
-                                     <td className="px-2 py-3 pr-4 text-right">
-                                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                             <button 
-                                                onClick={() => openEdit(template)}
-                                                className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
-                                                title={t('common.edit')}
-                                             >
-                                                 <Edit2 size={16} />
-                                             </button>
-                                             <button 
-                                                onClick={() => handleDeleteTemplate(template.id)}
-                                                className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-[#333] rounded-full transition-colors"
-                                                title={t('common.delete')}
-                                             >
-                                                 <Trash2 size={16} />
-                                             </button>
-                                         </div>
-                                     </td>
-                                 </tr>
-                             ))}
-                         </tbody>
-                     </table>
-                 </div>
-             )}
-          </div>
-  );
+
+                    <button 
+                        onClick={() => openEdit(tournament)}
+                        className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-lg transition-colors"
+                        title={t('common.edit')}
+                    >
+                        <Edit2 size={16} />
+                    </button>
+                </div>
+              );
+          }
+      }
+  ], [expandedTournamentId, registrationCounts, t, structures]);
+
+  const templateColumns: Column<Tournament>[] = useMemo(() => [
+      {
+          key: 'name',
+          label: t('tournaments.table.templateName'),
+          sortable: true,
+          className: 'pl-4',
+          render: (t) => <span className="text-base font-bold text-white">{t.name}</span>
+      },
+      {
+          key: 'estimatedDurationMinutes',
+          label: t('tournaments.table.estDuration'),
+          className: 'text-sm font-medium text-gray-300',
+          render: (t) => `${Math.floor(t.estimatedDurationMinutes / 60)}h ${t.estimatedDurationMinutes % 60 > 0 ? `${t.estimatedDurationMinutes % 60}m` : ''}`
+      },
+      {
+          key: 'buyIn',
+          label: t('tournaments.table.buyIn'),
+          className: 'text-sm font-bold text-brand-green',
+          render: (t) => <span>${t.buyIn} <span className="text-gray-500 text-xs font-normal">+ ${t.fee}</span></span>
+      },
+      {
+          key: 'structureId',
+          label: t('tournaments.table.structure'),
+          render: (t) => getStructureName(t.structureId) ? (
+              <span className="text-sm font-medium text-white">{getStructureName(t.structureId)}</span>
+          ) : (
+              <span className="text-sm font-medium text-gray-500 italic">Custom</span>
+          )
+      },
+      {
+          key: 'payoutStructureId',
+          label: t('tournaments.table.payoutModel'),
+          render: (t) => getPayoutName(t.payoutStructureId) ? (
+              <span className="text-sm text-white">{getPayoutName(t.payoutStructureId)}</span>
+          ) : (
+              <span className="text-sm text-gray-500">{t.payoutModel}</span>
+          )
+      },
+      {
+          key: 'actions',
+          label: t('common.actions'),
+          className: 'pr-4 text-right',
+          render: (template) => (
+              <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    onClick={() => openEdit(template)}
+                    className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
+                    title={t('common.edit')}
+                  >
+                      <Edit2 size={16} />
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteTemplate(template.id)}
+                    className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-[#333] rounded-full transition-colors"
+                    title={t('common.delete')}
+                  >
+                      <Trash2 size={16} />
+                  </button>
+              </div>
+          )
+      }
+  ], [t, structures, payouts]);
 
   return (
      <div className="h-full flex flex-col w-full">
@@ -589,32 +537,72 @@ const TournamentsView = () => {
             className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-2.5 text-white placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none transition-all`}
           />
         </div>
-        
-        {/* Status Filter - Only for Manage Tab */}
-        {!isTemplatesTab && (
-            <div className="relative min-w-[200px]">
-            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-            <select 
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-2.5 text-white outline-none appearance-none cursor-pointer focus:ring-1 focus:ring-brand-green`}
-            >
-                <option value="All">{t('tournaments.filter.status')}</option>
-                <option value="Scheduled">Scheduled</option>
-                <option value="Registration">Registration</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Completed">Completed</option>
-                <option value="Cancelled">Cancelled</option>
-            </select>
-            </div>
-        )}
       </ControlBar>
 
-      <Routes>
-          <Route path="manage" element={manageView} />
-          <Route path="templates" element={templatesView} />
-          <Route index element={<Navigate to="manage" replace />} />
-      </Routes>
+      <div className="flex-1 min-h-0 flex flex-col">
+        <Routes>
+            <Route path="manage" element={
+                <Table 
+                    data={filteredTournaments}
+                    columns={tournamentColumns}
+                    keyExtractor={(t) => t.id}
+                    sortConfig={sortConfig}
+                    onSort={handleSort}
+                    filters={filters}
+                    onFilter={handleFilter}
+                    onRowClick={(t) => toggleExpand(t.id)}
+                    rowId={(t) => `tournament-row-${t.id}`}
+                    isRowExpanded={(t) => expandedTournamentId === t.id}
+                    // Adjusted top position to 34px to tuck slightly under 40px header, creating a seamless seal
+                    // Removed bottom border to merge visually with the detail panel
+                    rowClassName={(t) => expandedTournamentId === t.id ? 'bg-[#222] sticky top-[34px] z-20 shadow-xl border-b-0' : ''}
+                    renderExpandedRow={(t) => (
+                        <TournamentDetailPanel 
+                            tournament={t} 
+                            onUpdate={refreshData}
+                            onClose={() => setExpandedTournamentId(null)}
+                        />
+                    )}
+                    emptyState={
+                        <div className="flex flex-col items-center justify-center py-8">
+                            <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mx-auto mb-4 border border-[#333]">
+                                <Trophy size={32} className="opacity-50" />
+                            </div>
+                            <h3 className="text-lg font-medium mb-2">{t('tournaments.table.empty')}</h3>
+                            {tournaments.length === 0 && (
+                                <button onClick={openCreate} className="text-brand-green hover:underline">
+                                    {t('tournaments.table.createFirst')}
+                                </button>
+                            )}
+                        </div>
+                    }
+                />
+            } />
+            
+            <Route path="templates" element={
+                <Table 
+                    data={filteredTemplates}
+                    columns={templateColumns}
+                    keyExtractor={(t) => t.id}
+                    sortConfig={sortConfig}
+                    onSort={handleSort}
+                    emptyState={
+                        <div className="flex flex-col items-center justify-center py-8">
+                            <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mx-auto mb-4 border border-[#333]">
+                                <Copy size={32} className="opacity-50" />
+                            </div>
+                            <h3 className="text-lg font-medium mb-2">{t('tournaments.table.emptyTemplates')}</h3>
+                            <button onClick={openCreate} className="text-brand-green hover:underline">
+                                {t('tournaments.table.createFirstTemplate')}
+                            </button>
+                        </div>
+                    }
+                />
+            } />
+            
+            <Route index element={<Navigate to="manage" replace />} />
+        </Routes>
+      </div>
 
       <TournamentForm 
         isOpen={isFormOpen}
