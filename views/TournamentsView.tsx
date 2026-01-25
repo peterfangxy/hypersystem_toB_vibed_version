@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Plus, 
@@ -80,8 +79,8 @@ const TournamentsView = () => {
                 // Calculate position relative to container
                 const relativeTop = rowRect.top - containerRect.top;
                 
-                // Target offset: 30px from top (matching sticky position)
-                const targetOffset = 30;
+                // Target offset: 34px from top (matching sticky position)
+                const targetOffset = 34;
                 const diff = relativeTop - targetOffset;
 
                 // Only scroll if not already in position (with small tolerance)
@@ -231,22 +230,6 @@ const TournamentsView = () => {
 
   const manageView = (
         <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden flex flex-col shadow-xl animate-in fade-in slide-in-from-bottom-2 flex-1 min-h-0 mb-3`}>
-            {filteredTournaments.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-gray-500 h-full">
-                <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mb-4">
-                <Trophy size={32} className="opacity-50" />
-                </div>
-                <p className="text-lg font-medium mb-4">{t('tournaments.table.empty')}</p>
-                {tournaments.length === 0 && (
-                <button 
-                    onClick={openCreate}
-                    className="text-brand-green hover:underline"
-                >
-                    {t('tournaments.table.createFirst')}
-                </button>
-                )}
-            </div>
-            ) : (
             <div ref={scrollContainerRef} className="overflow-y-auto h-full relative">
                 <table className="w-full text-left border-collapse">
                 <thead>
@@ -263,168 +246,185 @@ const TournamentsView = () => {
                     <th className="px-2 py-3 pr-4 text-right sticky top-0 bg-[#1A1A1A] z-30 border-b border-[#262626] whitespace-nowrap">{t('common.actions')}</th>
                     </tr>
                 </thead>
-                {/* 
-                    Using separate tbodies to enable sticky grouping.
-                    Sticky only works within the containing block (tbody in this case).
-                    So the row will stick to top of scroll container until the tbody is scrolled out.
-                */}
-                {filteredTournaments.map((tournament) => {
-                    const isExpanded = expandedTournamentId === tournament.id;
-                    return (
-                        <tbody key={tournament.id} className="border-b border-[#262626]">
-                            <tr 
-                                id={`tournament-row-${tournament.id}`}
-                                onClick={() => toggleExpand(tournament.id)}
-                                className={`cursor-pointer transition-colors group ${
-                                    isExpanded 
-                                    ? 'bg-[#222] sticky top-[30px] z-20' 
-                                    : 'hover:bg-[#222]'
-                                }`}
-                            >
-                                <td className="px-2 py-3 pl-4" onClick={(e) => e.stopPropagation()}>
-                                    <StatusBadge variant={getStatusVariant(tournament.status)} className="min-w-[100px] text-center">
-                                        {tournament.status}
-                                    </StatusBadge>
-                                </td>
-                                <td className="px-2 py-3 text-sm font-medium text-gray-300 whitespace-nowrap">
-                                {tournament.startDate && new Date(tournament.startDate).toLocaleDateString(undefined, {
-                                    month: 'short', 
-                                    day: 'numeric',
-                                    year: 'numeric'
-                                })}
-                                </td>
-                                <td className="px-2 py-3 text-sm font-medium text-white whitespace-nowrap">
-                                    {tournament.startTime}
-                                </td>
-                                <td className="px-2 py-3">
-                                    <div className="text-xs text-gray-400 flex items-center gap-1.5 whitespace-nowrap">
-                                        <Clock size={14} />
-                                        {Math.floor(tournament.estimatedDurationMinutes / 60)}h {tournament.estimatedDurationMinutes % 60 > 0 ? `${tournament.estimatedDurationMinutes % 60}m` : ''}
+                {filteredTournaments.length === 0 ? (
+                    <tbody>
+                        <tr>
+                            <td colSpan={10}>
+                                <div className="flex flex-col items-center justify-center py-20 text-gray-500 h-full">
+                                    <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mb-4">
+                                        <Trophy size={32} className="opacity-50" />
                                     </div>
-                                </td>
-                                <td className="px-2 py-3 max-w-[200px]">
-                                    <div className="text-sm font-bold text-white whitespace-nowrap overflow-hidden text-ellipsis" title={tournament.name}>
-                                        {tournament.name}
-                                    </div>
-                                </td>
-                                <td className="px-2 py-3">
-                                <div className="text-sm font-bold text-brand-green whitespace-nowrap">
-                                    ${tournament.buyIn} <span className="text-gray-500 text-xs font-normal">+ ${tournament.fee}</span>
+                                    <p className="text-lg font-medium mb-4">{t('tournaments.table.empty')}</p>
+                                    {tournaments.length === 0 && (
+                                        <button 
+                                            onClick={openCreate}
+                                            className="text-brand-green hover:underline"
+                                        >
+                                            {t('tournaments.table.createFirst')}
+                                        </button>
+                                    )}
                                 </div>
-                                </td>
-                                <td className="px-2 py-3 max-w-[140px]">
-                                    {getStructureName(tournament.structureId) ? (
-                                        <div className="text-sm font-medium text-white truncate" title={getStructureName(tournament.structureId) || ''}>
-                                            {getStructureName(tournament.structureId)}
+                            </td>
+                        </tr>
+                    </tbody>
+                ) : (
+                    filteredTournaments.map((tournament) => {
+                        const isExpanded = expandedTournamentId === tournament.id;
+                        return (
+                            <tbody key={tournament.id} className="border-b border-[#262626]">
+                                <tr 
+                                    id={`tournament-row-${tournament.id}`}
+                                    onClick={() => toggleExpand(tournament.id)}
+                                    className={`cursor-pointer transition-colors group ${
+                                        isExpanded 
+                                        ? 'bg-[#222] sticky top-[34px] z-20' 
+                                        : 'hover:bg-[#222]'
+                                    }`}
+                                >
+                                    <td className="px-2 py-3 pl-4" onClick={(e) => e.stopPropagation()}>
+                                        <StatusBadge variant={getStatusVariant(tournament.status)} className="min-w-[100px] text-center">
+                                            {tournament.status}
+                                        </StatusBadge>
+                                    </td>
+                                    <td className="px-2 py-3 text-sm font-medium text-gray-300 whitespace-nowrap">
+                                    {tournament.startDate && new Date(tournament.startDate).toLocaleDateString(undefined, {
+                                        month: 'short', 
+                                        day: 'numeric',
+                                        year: 'numeric'
+                                    })}
+                                    </td>
+                                    <td className="px-2 py-3 text-sm font-medium text-white whitespace-nowrap">
+                                        {tournament.startTime}
+                                    </td>
+                                    <td className="px-2 py-3">
+                                        <div className="text-xs text-gray-400 flex items-center gap-1.5 whitespace-nowrap">
+                                            <Clock size={14} />
+                                            {Math.floor(tournament.estimatedDurationMinutes / 60)}h {tournament.estimatedDurationMinutes % 60 > 0 ? `${tournament.estimatedDurationMinutes % 60}m` : ''}
                                         </div>
-                                    ) : (
-                                        <span className="text-sm font-medium text-gray-500 italic">Custom</span>
-                                    )}
-                                </td>
-                                <td className="px-2 py-3 text-center">
-                                    <span className="text-sm font-medium text-gray-300">
-                                        {tournament.rebuyLimit}
-                                    </span>
-                                </td>
-                                <td className="px-2 py-3 whitespace-nowrap">
-                                    <div className="flex items-center gap-2">
-                                        <Users size={16} className="text-gray-500" />
-                                        <span className="font-bold text-white">
-                                            {registrationCounts[tournament.id] || 0}
-                                            <span className="text-gray-500 font-normal"> / {tournament.maxPlayers}</span>
-                                        </span>
+                                    </td>
+                                    <td className="px-2 py-3 max-w-[200px]">
+                                        <div className="text-sm font-bold text-white whitespace-nowrap overflow-hidden text-ellipsis" title={tournament.name}>
+                                            {tournament.name}
+                                        </div>
+                                    </td>
+                                    <td className="px-2 py-3">
+                                    <div className="text-sm font-bold text-brand-green whitespace-nowrap">
+                                        ${tournament.buyIn} <span className="text-gray-500 text-xs font-normal">+ ${tournament.fee}</span>
                                     </div>
-                                </td>
-                                <td className="px-2 py-3 pr-4 text-right" onClick={(e) => e.stopPropagation()}>
-                                <div className="flex justify-end gap-2 items-center">
-                                    
-                                    {/* Quick State Transitions */}
-                                    {tournament.status === 'Scheduled' && (
-                                        <button
-                                            onClick={(e) => handleStatusChange(e, tournament, 'Registration')}
-                                            className="p-1.5 text-blue-400 hover:text-white hover:bg-blue-500/20 rounded-lg transition-colors border border-transparent hover:border-blue-500/30 group/btn"
-                                            title="Open Registration"
-                                        >
-                                            <div className="flex items-center gap-2 px-1">
-                                                <span className="text-xs font-bold uppercase hidden 2xl:inline">Open Reg</span>
-                                                <DoorOpen size={16} />
+                                    </td>
+                                    <td className="px-2 py-3 max-w-[140px]">
+                                        {getStructureName(tournament.structureId) ? (
+                                            <div className="text-sm font-medium text-white truncate" title={getStructureName(tournament.structureId) || ''}>
+                                                {getStructureName(tournament.structureId)}
                                             </div>
-                                        </button>
-                                    )}
-                                    
-                                    {tournament.status === 'Registration' && (
-                                        <button
-                                            onClick={(e) => handleStatusChange(e, tournament, 'In Progress')}
-                                            className="p-1.5 text-brand-green hover:text-white hover:bg-green-500/20 rounded-lg transition-colors border border-transparent hover:border-green-500/30 group/btn"
-                                            title="Start Tournament"
+                                        ) : (
+                                            <span className="text-sm font-medium text-gray-500 italic">Custom</span>
+                                        )}
+                                    </td>
+                                    <td className="px-2 py-3 text-center">
+                                        <span className="text-sm font-medium text-gray-300">
+                                            {tournament.rebuyLimit}
+                                        </span>
+                                    </td>
+                                    <td className="px-2 py-3 whitespace-nowrap">
+                                        <div className="flex items-center gap-2">
+                                            <Users size={16} className="text-gray-500" />
+                                            <span className="font-bold text-white">
+                                                {registrationCounts[tournament.id] || 0}
+                                                <span className="text-gray-500 font-normal"> / {tournament.maxPlayers}</span>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td className="px-2 py-3 pr-4 text-right" onClick={(e) => e.stopPropagation()}>
+                                    <div className="flex justify-end gap-2 items-center">
+                                        
+                                        {/* Quick State Transitions */}
+                                        {tournament.status === 'Scheduled' && (
+                                            <button
+                                                onClick={(e) => handleStatusChange(e, tournament, 'Registration')}
+                                                className="p-1.5 text-blue-400 hover:text-white hover:bg-blue-500/20 rounded-lg transition-colors border border-transparent hover:border-blue-500/30 group/btn"
+                                                title="Open Registration"
+                                            >
+                                                <div className="flex items-center gap-2 px-1">
+                                                    <span className="text-xs font-bold uppercase hidden 2xl:inline">Open Reg</span>
+                                                    <DoorOpen size={16} />
+                                                </div>
+                                            </button>
+                                        )}
+                                        
+                                        {tournament.status === 'Registration' && (
+                                            <button
+                                                onClick={(e) => handleStatusChange(e, tournament, 'In Progress')}
+                                                className="p-1.5 text-brand-green hover:text-white hover:bg-green-500/20 rounded-lg transition-colors border border-transparent hover:border-green-500/30 group/btn"
+                                                title="Start Tournament"
+                                            >
+                                                <div className="flex items-center gap-2 px-1">
+                                                    <span className="text-xs font-bold uppercase hidden 2xl:inline">Start</span>
+                                                    <Play size={16} fill="currentColor" />
+                                                </div>
+                                            </button>
+                                        )}
+
+                                        {tournament.status === 'In Progress' && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setExpandedTournamentId(tournament.id);
+                                                }}
+                                                className="p-1.5 text-orange-400 hover:text-white hover:bg-orange-500/20 rounded-lg transition-colors border border-transparent hover:border-orange-500/30 group/btn"
+                                                title="Tally & Finish"
+                                            >
+                                                <div className="flex items-center gap-2 px-1">
+                                                    <span className="text-xs font-bold uppercase hidden 2xl:inline">Finish</span>
+                                                    <CheckCircle size={16} />
+                                                </div>
+                                            </button>
+                                        )}
+
+                                        {/* Action Buttons */}
+                                        <div className="w-px h-4 bg-[#333] mx-1"></div>
+
+                                        <button 
+                                            onClick={() => toggleExpand(tournament.id)}
+                                            className={`p-1.5 rounded-lg transition-colors ${
+                                                isExpanded 
+                                                ? 'bg-[#333] text-white' 
+                                                : 'text-gray-500 hover:text-white hover:bg-[#222]'
+                                            }`}
+                                            title={isExpanded ? t('common.close') : t('common.manage')}
                                         >
-                                            <div className="flex items-center gap-2 px-1">
-                                                <span className="text-xs font-bold uppercase hidden 2xl:inline">Start</span>
-                                                <Play size={16} fill="currentColor" />
-                                            </div>
+                                            {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                                         </button>
-                                    )}
 
-                                    {tournament.status === 'In Progress' && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setExpandedTournamentId(tournament.id);
-                                            }}
-                                            className="p-1.5 text-orange-400 hover:text-white hover:bg-orange-500/20 rounded-lg transition-colors border border-transparent hover:border-orange-500/30 group/btn"
-                                            title="Tally & Finish"
+                                        <button 
+                                            onClick={() => openEdit(tournament)}
+                                            className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-lg transition-colors"
+                                            title={t('common.edit')}
                                         >
-                                            <div className="flex items-center gap-2 px-1">
-                                                <span className="text-xs font-bold uppercase hidden 2xl:inline">Finish</span>
-                                                <CheckCircle size={16} />
-                                            </div>
+                                            <Edit2 size={16} />
                                         </button>
-                                    )}
-
-                                    {/* Action Buttons */}
-                                    <div className="w-px h-4 bg-[#333] mx-1"></div>
-
-                                    <button 
-                                        onClick={() => toggleExpand(tournament.id)}
-                                        className={`p-1.5 rounded-lg transition-colors ${
-                                            isExpanded 
-                                            ? 'bg-[#333] text-white' 
-                                            : 'text-gray-500 hover:text-white hover:bg-[#222]'
-                                        }`}
-                                        title={isExpanded ? t('common.close') : t('common.manage')}
-                                    >
-                                        {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                                    </button>
-
-                                    <button 
-                                        onClick={() => openEdit(tournament)}
-                                        className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-lg transition-colors"
-                                        title={t('common.edit')}
-                                    >
-                                        <Edit2 size={16} />
-                                    </button>
-                                </div>
-                                </td>
-                            </tr>
-                            
-                            {/* Expandable Detail Panel */}
-                            {isExpanded && (
-                                <tr>
-                                    <td colSpan={10} className="p-0 border-b border-[#262626]">
-                                        <TournamentDetailPanel 
-                                            tournament={tournament} 
-                                            onUpdate={refreshData}
-                                            onClose={() => setExpandedTournamentId(null)}
-                                        />
+                                    </div>
                                     </td>
                                 </tr>
-                            )}
-                        </tbody>
-                    );
-                })}
+                                
+                                {/* Expandable Detail Panel */}
+                                {isExpanded && (
+                                    <tr>
+                                        <td colSpan={10} className="p-0 border-b border-[#262626]">
+                                            <TournamentDetailPanel 
+                                                tournament={tournament} 
+                                                onUpdate={refreshData}
+                                                onClose={() => setExpandedTournamentId(null)}
+                                            />
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        );
+                    })
+                )}
                 </table>
             </div>
-            )}
         </div>
   );
 

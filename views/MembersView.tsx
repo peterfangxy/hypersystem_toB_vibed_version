@@ -1,12 +1,9 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Plus, 
   Search, 
   Edit2, 
   Wallet, 
-  Filter, 
-  ArrowUpDown, 
   CheckCircle2, 
   AlertCircle,
   UserCheck,
@@ -24,6 +21,8 @@ import { THEME } from '../theme';
 import MemberForm from '../components/MemberForm';
 import MemberWalletModal from '../components/MemberWalletModal';
 import TierForm from '../components/TierForm';
+import { SortDirection } from '../components/ui/ColumnHeader';
+import { Table, Column } from '../components/ui/Table';
 import { useLanguage } from '../contexts/LanguageContext';
 import { PageHeader, ControlBar, TabContainer } from '../components/ui/PageLayout';
 import StatusBadge, { StatusVariant } from '../components/ui/StatusBadge';
@@ -227,10 +226,10 @@ const MembersView = () => {
   const [editingMember, setEditingMember] = useState<Member | undefined>(undefined);
   const [walletMember, setWalletMember] = useState<Member | null>(null);
 
-  // Filters & Sorting
+  // Filters & Sorting State
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('All');
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Member; direction: 'asc' | 'desc' }>({ 
+  const [filters, setFilters] = useState<Record<string, any>>({});
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Member; direction: SortDirection }>({ 
     key: 'fullName', 
     direction: 'asc' 
   });
@@ -261,25 +260,31 @@ const MembersView = () => {
     setIsFormOpen(true);
   };
 
-  const handleSort = (key: keyof Member) => {
-    let direction: 'asc' | 'desc' = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
+  // --- Header Handlers ---
+  const handleSort = (key: string, direction?: SortDirection) => {
+    setSortConfig(current => {
+        if (direction) {
+             return { key: key as keyof Member, direction };
+        }
+        let newDir: SortDirection = 'asc';
+        if (current.key === key && current.direction === 'asc') {
+            newDir = 'desc';
+        }
+        return { key: key as keyof Member, direction: newDir };
+    });
   };
 
-  const SortHeader = ({ label, sortKey, className = "" }: { label: string, sortKey: keyof Member, className?: string }) => (
-    <th 
-      className={`px-2 py-3 cursor-pointer hover:text-white transition-colors group select-none sticky top-0 bg-[#1A1A1A] z-10 border-b border-[#262626] whitespace-nowrap ${className}`}
-      onClick={() => handleSort(sortKey)}
-    >
-      <div className={`flex items-center gap-2 ${className.includes('text-right') ? 'justify-end' : className.includes('text-center') ? 'justify-center' : ''}`}>
-        {label}
-        <ArrowUpDown size={14} className={`text-gray-600 group-hover:text-gray-400 ${sortConfig.key === sortKey ? 'text-brand-green' : ''}`} />
-      </div>
-    </th>
-  );
+  const handleFilter = (key: string, value: any) => {
+      setFilters(prev => {
+          const next = { ...prev };
+          if (value === undefined || (Array.isArray(value) && value.length === 0) || value === '') {
+              delete next[key];
+          } else {
+              next[key] = value;
+          }
+          return next;
+      });
+  };
 
   const getTierDisplay = (tierId?: string) => {
       if (!tierId) return { name: 'No Tier', color: '#666666' };
@@ -296,22 +301,199 @@ const MembersView = () => {
       }
   };
 
-  const filteredMembers = members
-    .filter(m => {
+  // --- Dynamic Filter Options ---
+  const statusOptions = [
+      { label: 'Activated', value: 'Activated', color: '#4ade80' },
+      { label: 'Pending Approval', value: 'Pending Approval', color: '#60a5fa' },
+      { label: 'Deactivated', value: 'Deactivated', color: '#f87171' }
+  ];
+
+  const tierOptions = useMemo(() => {
+      return tierDefinitions.map(t => ({
+          label: t.name,
+          value: t.id,
+          color: t.color
+      }));
+  }, [tierDefinitions]);
+
+  const verifiedOptions = [
+      { label: 'Verified', value: true, color: '#4ade80' },
+      { label: 'Unverified', value: false, color: '#9ca3af' }
+  ];
+
+  // --- Filtering & Sorting Logic ---
+  const filteredMembers = useMemo(() => {
+      return members.filter(m => {
+        // Global Search
         const matchesSearch = (m.fullName || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
                               (m.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                               (m.club_id || '').toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesStatus = statusFilter === 'All' || m.status === statusFilter;
-        return matchesSearch && matchesStatus;
-    })
-    .sort((a, b) => {
+        if (!matchesSearch) return false;
+
+        // Column Filters
+        if (filters.status && filters.status.length > 0) {
+            if (!filters.status.includes(m.status)) return false;
+        }
+
+        if (filters.tier && filters.tier.length > 0) {
+            if (!filters.tier.includes(m.tier)) return false;
+        }
+
+        if (filters.isIdVerified && filters.isIdVerified.length > 0) {
+            if (!filters.isIdVerified.includes(!!m.isIdVerified)) return false;
+        }
+
+        if (filters.joinDate) {
+            const { start, end } = filters.joinDate;
+            const date = new Date(m.joinDate).getTime();
+            if (start && date < new Date(start).getTime()) return false;
+            if (end && date > new Date(end).getTime()) return false;
+        }
+
+        return true;
+    }).sort((a, b) => {
         const aValue = a[sortConfig.key];
         const bValue = b[sortConfig.key];
+        
+        // Handle boolean sorting (false < true)
+        if (typeof aValue === 'boolean' && typeof bValue === 'boolean') {
+             return sortConfig.direction === 'asc' 
+                ? (aValue === bValue ? 0 : aValue ? 1 : -1)
+                : (aValue === bValue ? 0 : aValue ? -1 : 1);
+        }
+
         if (aValue === undefined || bValue === undefined) return 0;
         if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
         if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
     });
+  }, [members, searchQuery, filters, sortConfig]);
+
+  // --- Columns Definition ---
+  const columns: Column<Member>[] = useMemo(() => [
+      {
+          key: 'fullName',
+          label: t('members.table.member'),
+          sortable: true,
+          className: 'pl-6 whitespace-nowrap',
+          render: (member) => (
+              <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#1A1A1A] flex items-center justify-center overflow-hidden border border-[#333]">
+                      {member.avatarUrl ? <img src={member.avatarUrl} alt="" className="w-full h-full object-cover" /> : <span className="font-bold text-gray-500">{member.fullName.charAt(0)}</span>}
+                  </div>
+                  <div className="font-bold text-white text-sm">{member.fullName}</div>
+              </div>
+          )
+      },
+      {
+          key: 'email',
+          label: t('members.table.email'),
+          sortable: true,
+          className: 'text-sm text-gray-400'
+      },
+      {
+          key: 'phone',
+          label: t('members.table.phone'),
+          sortable: true,
+          className: 'text-sm text-gray-400',
+          render: (member) => member.phone || '-'
+      },
+      {
+          key: 'club_id',
+          label: t('members.table.clubId'),
+          sortable: true,
+          className: 'text-sm font-mono text-gray-500 whitespace-nowrap',
+          render: (member) => member.club_id || '-'
+      },
+      {
+          key: 'tier',
+          label: t('members.table.tier'),
+          sortable: true,
+          filterable: true,
+          filterType: 'multi-select',
+          filterOptions: tierOptions,
+          className: 'text-sm font-bold',
+          render: (member) => {
+              const info = getTierDisplay(member.tier);
+              return <span style={{ color: info.color }}>{info.name}</span>;
+          }
+      },
+      {
+          key: 'status',
+          label: t('members.table.status'),
+          sortable: true,
+          filterable: true,
+          filterType: 'multi-select',
+          filterOptions: statusOptions,
+          className: 'text-center',
+          render: (member) => (
+              <StatusBadge 
+                variant={getStatusVariant(member.status)}
+                className="w-24"
+              >
+                  {member.status === 'Pending Approval' ? 'Pending' : member.status}
+              </StatusBadge>
+          )
+      },
+      {
+          key: 'joinDate',
+          label: t('members.table.joined'),
+          sortable: true,
+          filterable: true,
+          filterType: 'date-range',
+          className: 'text-sm text-gray-500',
+          render: (member) => new Date(member.joinDate).toLocaleDateString()
+      },
+      {
+          key: 'isIdVerified',
+          label: 'Verified',
+          sortable: true,
+          filterable: true,
+          filterType: 'multi-select',
+          filterOptions: verifiedOptions,
+          className: 'text-center w-24',
+          render: (member) => member.isIdVerified ? (
+              <CheckCircle2 size={16} className="text-brand-green mx-auto" />
+          ) : (
+              <AlertCircle size={16} className="text-gray-600 mx-auto opacity-30" />
+          )
+      },
+      {
+          key: 'actions',
+          label: t('common.actions'),
+          className: 'pr-4 text-right w-[1%] whitespace-nowrap',
+          render: (member) => (
+              <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {member.status === 'Pending Approval' && (
+                      <>
+                          <button 
+                              onClick={() => openEdit(member)}
+                              className="p-1.5 text-blue-400 hover:text-white hover:bg-blue-500/20 rounded-full transition-colors"
+                              title="Review Application"
+                          >
+                              <UserCheck size={16} />
+                          </button>
+                          <div className="w-px h-4 bg-[#333] my-auto mx-1"></div>
+                      </>
+                  )}
+                  <button 
+                      onClick={() => handleOpenWallet(member)}
+                      className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
+                      title="Wallet"
+                  >
+                      <Wallet size={16} />
+                  </button>
+                  <button 
+                      onClick={() => openEdit(member)}
+                      className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
+                      title={t('common.edit')}
+                  >
+                      <Edit2 size={16} />
+                  </button>
+              </div>
+          )
+      }
+  ], [tierOptions, statusOptions, verifiedOptions, t]); // Dependencies for useMemo
 
   const manageView = (
       <div className="flex flex-col h-full animate-in fade-in slide-in-from-bottom-2">
@@ -327,121 +509,18 @@ const MembersView = () => {
                 className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-2.5 text-white placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none transition-all`}
               />
             </div>
-            
-            {/* Status Filter */}
-            <div className="relative min-w-[200px]">
-                <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-                <select 
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-2.5 text-white outline-none appearance-none cursor-pointer focus:ring-1 focus:ring-brand-green`}
-                >
-                    <option value="All">{t('members.filterStatus')}</option>
-                    <option value="Activated">Activated</option>
-                    <option value="Pending Approval">Pending</option>
-                    <option value="Deactivated">Deactivated</option>
-                </select>
-            </div>
           </ControlBar>
 
-          <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden flex flex-col shadow-xl flex-1 min-h-0 mb-3`}>
-              <div className="overflow-y-auto h-full">
-                  <table className="w-full text-left border-collapse">
-                      <thead>
-                          <tr className="text-xs uppercase text-gray-500 font-bold tracking-wider">
-                              <SortHeader label={t('members.table.member')} sortKey="fullName" className="pl-6" />
-                              <SortHeader label={t('members.table.email')} sortKey="email" />
-                              <SortHeader label={t('members.table.phone')} sortKey="phone" />
-                              <SortHeader label={t('members.table.clubId')} sortKey="club_id" />
-                              <SortHeader label={t('members.table.tier')} sortKey="tier" />
-                              <SortHeader label={t('members.table.status')} sortKey="status" className="text-center" />
-                              <SortHeader label={t('members.table.joined')} sortKey="joinDate" />
-                              <th className="px-2 py-3 text-center sticky top-0 bg-[#1A1A1A] z-10 w-20 border-b border-[#262626]">Verified</th>
-                              <th className="px-2 py-3 pr-4 text-right sticky top-0 bg-[#1A1A1A] z-10 w-[1%] whitespace-nowrap border-b border-[#262626]">{t('common.actions')}</th>
-                          </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#262626]">
-                          {filteredMembers.length === 0 ? (
-                              <tr>
-                                  <td colSpan={9} className="py-12 text-center text-gray-500">
-                                      No members found.
-                                  </td>
-                              </tr>
-                          ) : (
-                              filteredMembers.map((member) => {
-                                  const tierInfo = getTierDisplay(member.tier);
-                                  return (
-                                  <tr key={member.id} className="hover:bg-[#222] transition-colors group">
-                                      <td className="px-2 py-3 pl-6">
-                                          <div className="flex items-center gap-3">
-                                              <div className="w-10 h-10 rounded-full bg-[#1A1A1A] flex items-center justify-center overflow-hidden border border-[#333]">
-                                                  {member.avatarUrl ? <img src={member.avatarUrl} alt="" className="w-full h-full object-cover" /> : <span className="font-bold text-gray-500">{member.fullName.charAt(0)}</span>}
-                                              </div>
-                                              <div>
-                                                  <div className="font-bold text-white text-sm">{member.fullName}</div>
-                                                  {member.nickname && <div className="text-xs text-gray-500">"{member.nickname}"</div>}
-                                              </div>
-                                          </div>
-                                      </td>
-                                      <td className="px-2 py-3 text-sm text-gray-400">{member.email}</td>
-                                      <td className="px-2 py-3 text-sm text-gray-400">{member.phone || '-'}</td>
-                                      <td className="px-2 py-3 text-sm font-mono text-gray-500">{member.club_id || '-'}</td>
-                                      <td className="px-2 py-3 text-sm font-bold">
-                                          <span style={{ color: tierInfo.color }}>{tierInfo.name}</span>
-                                      </td>
-                                      <td className="px-2 py-3 text-center">
-                                          <StatusBadge 
-                                            variant={getStatusVariant(member.status)}
-                                            className="w-24"
-                                          >
-                                              {member.status === 'Pending Approval' ? 'Pending' : member.status}
-                                          </StatusBadge>
-                                      </td>
-                                      <td className="px-2 py-3 text-sm text-gray-500">{new Date(member.joinDate).toLocaleDateString()}</td>
-                                      <td className="px-2 py-3 text-center">
-                                          {member.isIdVerified ? (
-                                              <CheckCircle2 size={16} className="text-brand-green mx-auto" />
-                                          ) : (
-                                              <AlertCircle size={16} className="text-gray-600 mx-auto opacity-30" />
-                                          )}
-                                      </td>
-                                      <td className="px-2 py-3 pr-4 text-right">
-                                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                              {member.status === 'Pending Approval' && (
-                                                  <>
-                                                      <button 
-                                                          onClick={() => openEdit(member)}
-                                                          className="p-1.5 text-blue-400 hover:text-white hover:bg-blue-500/20 rounded-full transition-colors"
-                                                          title="Review Application"
-                                                      >
-                                                          <UserCheck size={16} />
-                                                      </button>
-                                                      <div className="w-px h-4 bg-[#333] my-auto mx-1"></div>
-                                                  </>
-                                              )}
-                                              <button 
-                                                  onClick={() => handleOpenWallet(member)}
-                                                  className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
-                                                  title="Wallet"
-                                              >
-                                                  <Wallet size={16} />
-                                              </button>
-                                              <button 
-                                                  onClick={() => openEdit(member)}
-                                                  className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
-                                                  title={t('common.edit')}
-                                              >
-                                                  <Edit2 size={16} />
-                                              </button>
-                                          </div>
-                                      </td>
-                                  </tr>
-                              )})
-                          )}
-                      </tbody>
-                  </table>
-              </div>
-          </div>
+          <Table 
+              data={filteredMembers}
+              columns={columns}
+              keyExtractor={(member) => member.id}
+              sortConfig={sortConfig}
+              onSort={handleSort}
+              filters={filters}
+              onFilter={handleFilter}
+              emptyState="No members found."
+          />
       </div>
   );
 

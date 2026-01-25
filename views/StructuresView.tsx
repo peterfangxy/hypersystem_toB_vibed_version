@@ -1,6 +1,5 @@
-
-import React, { useState, useEffect } from 'react';
-import { Layers, DollarSign, Plus, Clock, Hash, Coins, Edit2, Trash2, Cpu, Table, ArrowRight, Calculator, Repeat } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Layers, DollarSign, Plus, Clock, Hash, Coins, Edit2, Trash2, Cpu, Table as TableIcon, ArrowRight, Calculator, Repeat } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
 import { THEME } from '../theme';
 import { TournamentStructure, PayoutStructure } from '../types';
@@ -9,6 +8,8 @@ import StructureForm from '../components/StructureForm';
 import PayoutModelForm from '../components/PayoutModelForm';
 import { useLanguage } from '../contexts/LanguageContext';
 import { PageHeader, TabContainer } from '../components/ui/PageLayout';
+import { Table, Column } from '../components/ui/Table';
+import { SortDirection } from '../components/ui/ColumnHeader';
 
 const StructuresView = () => {
   const { t } = useLanguage();
@@ -19,6 +20,12 @@ const StructuresView = () => {
   const [structures, setStructures] = useState<TournamentStructure[]>([]);
   const [isStructFormOpen, setIsStructFormOpen] = useState(false);
   const [editingStructure, setEditingStructure] = useState<TournamentStructure | undefined>(undefined);
+
+  // Sorting State for Structures
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: SortDirection }>({ 
+    key: 'name', 
+    direction: 'asc' 
+  });
 
   // Payouts State
   const [payouts, setPayouts] = useState<PayoutStructure[]>([]);
@@ -82,105 +89,169 @@ const StructuresView = () => {
       const levels = s.items.filter(i => i.type === 'Level');
       if (levels.length === 0) return undefined;
       return levels.sort((a, b) => (a.level || 0) - (b.level || 0))[0];
-  }
+  };
+
+  // --- Sorting Logic ---
+  const handleSort = (key: string, direction?: SortDirection) => {
+      setSortConfig(current => {
+          if (direction) return { key, direction };
+          if (current.key === key && current.direction === 'asc') return { key, direction: 'desc' };
+          return { key, direction: 'asc' };
+      });
+  };
+
+  const sortedStructures = useMemo(() => {
+      return [...structures].sort((a, b) => {
+          const dir = sortConfig.direction === 'asc' ? 1 : -1;
+          
+          switch(sortConfig.key) {
+              case 'name':
+                  return a.name.localeCompare(b.name) * dir;
+              case 'startingChips':
+                  return (a.startingChips - b.startingChips) * dir;
+              case 'blinds': {
+                  const levelA = getFirstLevel(a);
+                  const levelB = getFirstLevel(b);
+                  const blindA = levelA ? (levelA.smallBlind || 0) : 0;
+                  const blindB = levelB ? (levelB.smallBlind || 0) : 0;
+                  return (blindA - blindB) * dir;
+              }
+              case 'levels': {
+                  const countA = a.items.filter(i => i.type === 'Level').length;
+                  const countB = b.items.filter(i => i.type === 'Level').length;
+                  return (countA - countB) * dir;
+              }
+              case 'rebuyLimit':
+                  return (a.rebuyLimit - b.rebuyLimit) * dir;
+              case 'length': {
+                  const durA = a.items.reduce((sum, item) => sum + item.duration, 0);
+                  const durB = b.items.reduce((sum, item) => sum + item.duration, 0);
+                  return (durA - durB) * dir;
+              }
+              default:
+                  return 0;
+          }
+      });
+  }, [structures, sortConfig]);
+
+  // --- Column Definitions ---
+  const blindColumns: Column<TournamentStructure>[] = useMemo(() => [
+      { 
+          key: 'name', 
+          label: t('structures.blindsTable.name'), 
+          sortable: true,
+          className: 'pl-6 font-bold text-white text-base whitespace-nowrap'
+      },
+      { 
+          key: 'startingChips', 
+          label: t('structures.blindsTable.chips'), 
+          sortable: true,
+          render: (s) => (
+               <div className="flex items-center gap-2 text-brand-green font-mono font-medium text-sm whitespace-nowrap">
+                   <Coins size={16} />
+                   {s.startingChips.toLocaleString()}
+               </div>
+          )
+      },
+      {
+          key: 'blinds',
+          label: t('structures.blindsTable.blinds'),
+          sortable: true,
+          render: (s) => {
+               const firstLevel = getFirstLevel(s);
+               if (!firstLevel) return null;
+               return (
+                   <div className="font-mono text-gray-300 font-medium text-sm whitespace-nowrap">
+                       {Number(firstLevel.smallBlind).toLocaleString()}/{Number(firstLevel.bigBlind).toLocaleString()}
+                       {(firstLevel.ante || 0) > 0 && (
+                           <span className="text-gray-500 ml-1">({Number(firstLevel.ante).toLocaleString()})</span>
+                       )}
+                   </div>
+               );
+          }
+      },
+      {
+          key: 'levels',
+          label: t('structures.blindsTable.levels'),
+          sortable: true,
+          render: (s) => (
+               <div className="flex items-center gap-2 text-gray-300 font-medium text-sm whitespace-nowrap">
+                   <Hash size={16} className="text-gray-500" />
+                   {s.items.filter(i => i.type === 'Level').length} {t('structures.blindsTable.levels')}
+               </div>
+          )
+      },
+      {
+          key: 'rebuyLimit',
+          label: t('structures.blindsTable.rebuys'),
+          sortable: true,
+          render: (s) => (
+               <div className="flex items-center gap-2 text-gray-300 font-medium text-sm whitespace-nowrap">
+                   <Repeat size={16} className="text-gray-500" />
+                   {s.rebuyLimit === 0 ? 'Freezeout' : `${s.rebuyLimit} Limit`}
+               </div>
+          )
+      },
+      {
+          key: 'length',
+          label: t('structures.blindsTable.length'),
+          sortable: true,
+          render: (s) => (
+               <div className="flex items-center gap-2 text-white font-bold text-base whitespace-nowrap">
+                   <Clock size={16} className="text-brand-green" />
+                   {calculateLength(s)}
+               </div>
+          )
+      },
+      {
+          key: 'actions',
+          label: t('common.actions'),
+          className: 'text-right pr-6 whitespace-nowrap',
+          render: (s) => (
+               <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                   <button 
+                       onClick={() => {
+                           setEditingStructure(s);
+                           setIsStructFormOpen(true);
+                       }}
+                       className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
+                       title={t('common.edit')}
+                   >
+                       <Edit2 size={16} />
+                   </button>
+                   <button 
+                       onClick={() => handleStructDelete(s.id)}
+                       className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-[#333] rounded-full transition-colors"
+                       title={t('common.delete')}
+                   >
+                       <Trash2 size={16} />
+                   </button>
+               </div>
+          )
+      }
+  ], [t]);
 
   // --- Sub-components ---
   const BlindsList = () => (
-    <div className="h-full flex flex-col">
-    {structures.length === 0 ? (
-       <div className="flex flex-col items-center justify-center py-20 text-gray-500 h-full">
-           <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mx-auto mb-4 border border-[#333]">
-           <Layers size={32} className="opacity-50" />
-           </div>
-           <h3 className="text-lg font-medium mb-2">{t('structures.blindsTable.empty')}</h3>
-           <button onClick={openStructCreate} className="text-brand-green hover:underline">{t('structures.blindsTable.createFirst')}</button>
-       </div>
-    ) : (
-       <div className="overflow-y-auto h-full animate-in fade-in slide-in-from-bottom-2">
-           <table className="w-full text-left border-collapse">
-           <thead>
-               <tr className="border-b border-[#262626] text-xs uppercase text-gray-500 font-bold tracking-wider">
-                   <th className="px-4 py-3 pl-6 sticky top-0 bg-[#1A1A1A] z-10 whitespace-nowrap">{t('structures.blindsTable.name')}</th>
-                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10 whitespace-nowrap">{t('structures.blindsTable.chips')}</th>
-                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10 whitespace-nowrap">{t('structures.blindsTable.blinds')}</th>
-                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10 whitespace-nowrap">{t('structures.blindsTable.levels')}</th>
-                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10 whitespace-nowrap">{t('structures.blindsTable.rebuys')}</th>
-                   <th className="px-4 py-3 sticky top-0 bg-[#1A1A1A] z-10 whitespace-nowrap">{t('structures.blindsTable.length')}</th>
-                   <th className="px-4 py-3 pr-6 text-right sticky top-0 bg-[#1A1A1A] z-10 whitespace-nowrap">{t('common.actions')}</th>
-               </tr>
-           </thead>
-           <tbody className="divide-y divide-[#262626]">
-               {structures.map(structure => {
-                   const firstLevel = getFirstLevel(structure);
-                   const levels = structure.items.filter(i => i.type === 'Level');
-
-                   return (
-                       <tr key={structure.id} className="hover:bg-[#222] transition-colors group">
-                           <td className="px-4 py-3 pl-6">
-                               <div className="font-bold text-white text-base">{structure.name}</div>
-                           </td>
-                           <td className="px-4 py-3">
-                               <div className="flex items-center gap-2 text-brand-green font-mono font-medium text-sm">
-                                   <Coins size={16} />
-                                   {structure.startingChips.toLocaleString()}
-                               </div>
-                           </td>
-                           <td className="px-4 py-3">
-                               {firstLevel && (
-                                   <div className="font-mono text-gray-300 font-medium text-sm">
-                                       {Number(firstLevel.smallBlind).toLocaleString()}/{Number(firstLevel.bigBlind).toLocaleString()}
-                                       {(firstLevel.ante || 0) > 0 ? (
-                                           <span className="text-gray-500 ml-1">({Number(firstLevel.ante).toLocaleString()})</span>
-                                       ) : null}
-                                   </div>
-                               )}
-                           </td>
-                           <td className="px-4 py-3">
-                               <div className="flex items-center gap-2 text-gray-300 font-medium text-sm">
-                                   <Hash size={16} className="text-gray-500" />
-                                   {levels.length} {t('structures.blindsTable.levels')}
-                               </div>
-                           </td>
-                           <td className="px-4 py-3">
-                               <div className="flex items-center gap-2 text-gray-300 font-medium text-sm">
-                                   <Repeat size={16} className="text-gray-500" />
-                                   {structure.rebuyLimit === 0 ? 'Freezeout' : `${structure.rebuyLimit} Limit`}
-                               </div>
-                           </td>
-                           <td className="px-4 py-3">
-                               <div className="flex items-center gap-2 text-white font-bold text-base">
-                                   <Clock size={16} className="text-brand-green" />
-                                   {calculateLength(structure)}
-                               </div>
-                           </td>
-                           <td className="px-4 py-3 pr-6 text-right">
-                               <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                   <button 
-                                       onClick={() => {
-                                           setEditingStructure(structure);
-                                           setIsStructFormOpen(true);
-                                       }}
-                                       className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
-                                       title={t('common.edit')}
-                                   >
-                                       <Edit2 size={16} />
-                                   </button>
-                                   <button 
-                                       onClick={() => handleStructDelete(structure.id)}
-                                       className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-[#333] rounded-full transition-colors"
-                                       title={t('common.delete')}
-                                   >
-                                       <Trash2 size={16} />
-                                   </button>
-                               </div>
-                           </td>
-                       </tr>
-                   );
-               })}
-           </tbody>
-           </table>
-       </div>
-    )}
+    <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-2">
+        <Table 
+            data={sortedStructures}
+            columns={blindColumns}
+            keyExtractor={(s) => s.id}
+            sortConfig={sortConfig}
+            onSort={handleSort}
+            emptyState={
+                <div className="flex flex-col items-center justify-center py-8">
+                    <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mx-auto mb-4 border border-[#333]">
+                        <Layers size={32} className="opacity-50" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-2">{t('structures.blindsTable.empty')}</h3>
+                    <button onClick={openStructCreate} className="text-brand-green hover:underline">
+                        {t('structures.blindsTable.createFirst')}
+                    </button>
+                </div>
+            }
+        />
     </div>
   );
 
@@ -213,7 +284,7 @@ const StructuresView = () => {
          <div className="flex-1">
              <div className="p-6 pb-2 sticky top-0 bg-[#171717] z-10">
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                    <Table size={14} /> {t('structures.payouts.matrices')}
+                    <TableIcon size={14} /> {t('structures.payouts.matrices')}
                 </h3>
              </div>
              
@@ -236,7 +307,7 @@ const StructuresView = () => {
                                 </td>
                                 <td className="px-6 py-4">
                                     <div className="inline-flex items-center gap-2 bg-[#1A1A1A] border border-[#333] px-2 py-1 rounded-lg text-sm text-gray-300">
-                                        <Table size={14} className="text-gray-500"/>
+                                        <TableIcon size={14} className="text-gray-500"/>
                                         {matrix.rules?.length || 0} {t('structures.payouts.table.ranges')}
                                     </div>
                                 </td>
