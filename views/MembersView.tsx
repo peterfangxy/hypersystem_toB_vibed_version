@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Plus, 
@@ -239,7 +240,7 @@ const MembersView = () => {
       handleFilter 
   } = useTableData<Member>({
       data: members,
-      initialSort: { key: 'fullName', direction: 'asc' },
+      initialSort: { key: 'joinDate', direction: 'desc' },
       searchQuery: searchQuery,
       searchKeys: ['fullName', 'email', 'club_id']
   });
