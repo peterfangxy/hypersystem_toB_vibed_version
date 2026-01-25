@@ -1,10 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
-import { Member, MembershipTier, Gender, MemberStatus } from '../types';
+import { Member, Gender, MemberStatus, TierDefinition } from '../types';
 import { THEME } from '../theme';
 import { Modal } from './ui/Modal';
 import { useLanguage } from '../contexts/LanguageContext';
 import NumberInput from './ui/NumberInput';
 import Button from './ui/Button';
+import * as DataService from '../services/dataService';
 import { Calendar, UserSquare2, Camera, ChevronDown, ChevronUp, Fingerprint, Globe, CheckCircle2, Ban, AlertTriangle, RotateCcw } from 'lucide-react';
 
 interface MemberFormProps {
@@ -21,6 +23,7 @@ const MOCK_ID_BACK = 'https://www.ris.gov.tw/documents/data/apply-idCard/images/
 const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, initialData, isActivationMode = false }) => {
   const { t } = useLanguage();
   const [isPhotosExpanded, setIsPhotosExpanded] = useState(false);
+  const [availableTiers, setAvailableTiers] = useState<TierDefinition[]>([]);
   
   // Deactivation Flow State
   const [isDeactivating, setIsDeactivating] = useState(false);
@@ -35,7 +38,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
     birthDate: '',
     age: 0,
     gender: 'Male',
-    tier: MembershipTier.BRONZE,
+    tier: '', // Default to no tier
     status: 'Pending Approval',
     notes: '',
     idNumber: '',
@@ -46,32 +49,36 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
   });
 
   useEffect(() => {
-    if (initialData) {
-      setFormData(initialData);
-    } else {
-      setFormData({
-        fullName: '',
-        nickname: '',
-        club_id: '',
-        email: '',
-        phone: '',
-        birthDate: '',
-        age: 0,
-        gender: 'Male',
-        tier: MembershipTier.BRONZE,
-        status: 'Pending Approval',
-        notes: '',
-        idNumber: '',
-        passportNumber: '',
-        idPhotoFrontUrl: MOCK_ID_FRONT,
-        idPhotoBackUrl: MOCK_ID_BACK,
-        isIdVerified: false
-      });
+    if (isOpen) {
+      setAvailableTiers(DataService.getTierDefinitions());
+      
+      if (initialData) {
+        setFormData(initialData);
+      } else {
+        setFormData({
+          fullName: '',
+          nickname: '',
+          club_id: '',
+          email: '',
+          phone: '',
+          birthDate: '',
+          age: 0,
+          gender: 'Male',
+          tier: '', // Default to empty/no tier
+          status: 'Pending Approval',
+          notes: '',
+          idNumber: '',
+          passportNumber: '',
+          idPhotoFrontUrl: MOCK_ID_FRONT,
+          idPhotoBackUrl: MOCK_ID_BACK,
+          isIdVerified: false
+        });
+      }
+      // Reset states on open
+      setIsPhotosExpanded(false);
+      setIsDeactivating(false);
+      setDeactivateInput('');
     }
-    // Reset states on open
-    setIsPhotosExpanded(false);
-    setIsDeactivating(false);
-    setDeactivateInput('');
   }, [initialData, isOpen]);
 
   const calculateAge = (dateString: string): number => {
@@ -434,12 +441,13 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-gray-300">{t('members.form.tier')}</label>
                   <select 
-                    value={formData.tier}
-                    onChange={e => setFormData({...formData, tier: e.target.value as MembershipTier})}
+                    value={formData.tier || ''}
+                    onChange={e => setFormData({...formData, tier: e.target.value})}
                     className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none appearance-none cursor-pointer`}
                   >
-                    {Object.values(MembershipTier).map(tier => (
-                      <option key={tier} value={tier}>{tier}</option>
+                    <option value="" className="text-gray-500">No Tier Assigned</option>
+                    {availableTiers.map(tier => (
+                      <option key={tier.id} value={tier.id}>{tier.name}</option>
                     ))}
                   </select>
                 </div>

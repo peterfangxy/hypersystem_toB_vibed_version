@@ -14,7 +14,9 @@ import {
   TournamentTransaction,
   PaymentMethod,
   ClockConfig,
-  RoleDefinition
+  RoleDefinition,
+  TierDefinition,
+  MembershipTier
 } from '../types';
 
 import {
@@ -42,6 +44,7 @@ const FINANCIALS_KEY = 'rf_financials';
 const TEAM_KEY = 'rf_team';
 const CLOCKS_KEY = 'rf_clocks';
 const ROLES_KEY = 'rf_roles';
+const TIERS_KEY = 'rf_tiers';
 
 // Helpers
 function getLocalData<T>(key: string): T | null {
@@ -94,6 +97,42 @@ export const saveMember = (member: Member): void => {
   if (idx >= 0) members[idx] = member;
   else members.push(member);
   setLocalData(MEMBERS_KEY, members);
+};
+
+// --- Membership Tiers ---
+const DEFAULT_TIERS: TierDefinition[] = [
+    { id: 'Diamond', name: 'Diamond', color: '#22d3ee', order: 1, requirements: '10,000 Points', benefits: 'Access to private room\nFree food & drinks\nPriority waitlist' },
+    { id: 'Platinum', name: 'Platinum', color: '#cbd5e1', order: 2, requirements: '5,000 Points', benefits: 'Free drinks\n2x Points multiplier' },
+    { id: 'Gold', name: 'Gold', color: '#eab308', order: 3, requirements: '1,000 Points', benefits: '1.5x Points multiplier' },
+    { id: 'Silver', name: 'Silver', color: '#9ca3af', order: 4, requirements: '500 Points', benefits: 'Standard earning rate' },
+    { id: 'Bronze', name: 'Bronze', color: '#c2410c', order: 5, requirements: 'Sign up', benefits: 'Basic membership' },
+];
+
+export const getTierDefinitions = (): TierDefinition[] => {
+    const data = getLocalData<TierDefinition[]>(TIERS_KEY);
+    if (!data || data.length === 0) {
+        setLocalData(TIERS_KEY, DEFAULT_TIERS);
+        return DEFAULT_TIERS;
+    }
+    // Ensure they are sorted
+    return data.sort((a, b) => a.order - b.order);
+};
+
+export const saveTierDefinition = (tier: TierDefinition): void => {
+    const tiers = getTierDefinitions();
+    const idx = tiers.findIndex(t => t.id === tier.id);
+    if (idx >= 0) tiers[idx] = tier;
+    else tiers.push(tier);
+    setLocalData(TIERS_KEY, tiers);
+};
+
+export const saveAllTierDefinitions = (tiers: TierDefinition[]): void => {
+    setLocalData(TIERS_KEY, tiers);
+};
+
+export const deleteTierDefinition = (id: string): void => {
+    const tiers = getTierDefinitions().filter(t => t.id !== id);
+    setLocalData(TIERS_KEY, tiers);
 };
 
 // --- Tables ---

@@ -81,6 +81,16 @@ export enum MembershipTier {
   DIAMOND = 'Diamond'
 }
 
+// New: Dynamic Tier Definition
+export interface TierDefinition {
+    id: string; // Unique ID, matches enum values for defaults
+    name: string; // Display Name
+    color: string; // Hex Color
+    order: number; // Sort Order
+    requirements?: string; // "Spend $500/mo"
+    benefits?: string; // "Free drinks, priority seating"
+}
+
 export type MemberStatus = 'Pending Approval' | 'Activated' | 'Deactivated';
 
 export type Gender = 'Male' | 'Female' | 'Other' | 'Prefer not to say';
@@ -106,7 +116,7 @@ export interface Member {
   isIdVerified?: boolean; // New field for staff verification
 
   joinDate: string;
-  tier: MembershipTier;
+  tier?: string; // ID of the TierDefinition, or undefined/null
   status: MemberStatus;
   notes?: string;
   avatarUrl?: string;
