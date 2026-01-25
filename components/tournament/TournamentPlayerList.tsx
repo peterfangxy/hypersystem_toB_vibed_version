@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   Trophy, 
@@ -9,6 +10,7 @@ import { RegistrationStatus, PokerTable } from '../../types';
 import { EnrichedRegistration } from '../BuyinMgmtModal';
 import { useLanguage } from '../../contexts/LanguageContext';
 import NumberInput from '../ui/NumberInput';
+import StatusBadge, { StatusVariant } from '../ui/StatusBadge';
 
 interface TournamentPlayerListProps {
   registrations: EnrichedRegistration[];
@@ -39,12 +41,12 @@ const TournamentPlayerList: React.FC<TournamentPlayerListProps> = ({
 }) => {
   const { t } = useLanguage();
 
-  const getStatusBadge = (status: RegistrationStatus) => {
+  const getStatusVariant = (status: RegistrationStatus): StatusVariant => {
     switch (status) {
-      case 'Reserved': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
-      case 'Joined': return 'bg-brand-green/10 text-brand-green border-brand-green/20';
-      case 'Cancelled': return 'bg-red-500/10 text-red-500 border-red-500/20';
-      default: return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
+      case 'Reserved': return 'info';
+      case 'Joined': return 'success';
+      case 'Cancelled': return 'danger';
+      default: return 'neutral';
     }
   };
 
@@ -101,9 +103,12 @@ const TournamentPlayerList: React.FC<TournamentPlayerListProps> = ({
 
                     {/* Status Column */}
                     <td className="px-6 py-3">
-                      <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${getStatusBadge(reg.status)}`}>
+                      <StatusBadge 
+                        variant={getStatusVariant(reg.status)}
+                        className="w-24"
+                      >
                         {reg.status}
-                      </span>
+                      </StatusBadge>
                     </td>
 
                     {/* Table / Seat Column */}

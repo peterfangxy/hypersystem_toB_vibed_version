@@ -13,6 +13,7 @@ import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
 import { Modal } from './ui/Modal';
 import NumberInput from './ui/NumberInput';
+import StatusBadge from './ui/StatusBadge';
 
 export interface EnrichedRegistration extends TournamentRegistration {
     member?: Member;
@@ -175,11 +176,12 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                                             
                                             {/* Type */}
                                             <div className="text-center">
-                                                <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border inline-block ${
-                                                    tx.type === 'BuyIn' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 'bg-orange-500/10 text-orange-500 border-orange-500/20'
-                                                }`}>
+                                                <StatusBadge 
+                                                    variant={tx.type === 'BuyIn' ? 'info' : 'warning'} 
+                                                    size="sm"
+                                                >
                                                     {tx.type === 'BuyIn' ? 'Buy-in' : 'Re-buy'}
-                                                </span>
+                                                </StatusBadge>
                                             </div>
                                             
                                             {/* Base Cost */}

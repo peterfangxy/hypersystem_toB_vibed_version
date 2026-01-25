@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Plus, 
@@ -475,8 +476,10 @@ const TableClocksList = () => {
                                     <div>
                                         <h3 className="text-xl font-bold text-white">{table.name}</h3>
                                         <div className="flex items-center gap-2 mt-1">
-                                            <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-brand-green animate-pulse' : (isError ? 'bg-red-500 animate-pulse' : 'bg-gray-600')}`} />
-                                            <span className="text-xs text-gray-500 font-bold uppercase">{isActive ? 'Active' : (isError ? 'Error' : 'Idle')}</span>
+                                            <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-red-500 animate-pulse' : (isError ? 'bg-orange-500 animate-pulse' : 'bg-gray-600')}`} />
+                                            <span className={`text-xs font-bold uppercase tracking-wider ${isActive ? 'text-red-500' : (isError ? 'text-orange-500' : 'text-gray-500')}`}>
+                                                {isActive ? 'LIVE' : (isError ? 'ERROR' : 'IDLE')}
+                                            </span>
                                         </div>
                                     </div>
                                     <div className="p-2 bg-[#222] rounded-full text-gray-400">

@@ -11,13 +11,14 @@ import {
   AlertCircle,
   UserCheck
 } from 'lucide-react';
-import { Member, MembershipTier } from '../types';
+import { Member, MembershipTier, MemberStatus } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
 import MemberForm from '../components/MemberForm';
 import MemberWalletModal from '../components/MemberWalletModal';
 import { useLanguage } from '../contexts/LanguageContext';
 import { PageHeader, ControlBar } from '../components/ui/PageLayout';
+import StatusBadge, { StatusVariant } from '../components/ui/StatusBadge';
 
 const MembersView = () => {
   const { t } = useLanguage();
@@ -72,7 +73,7 @@ const MembersView = () => {
       className={`px-2 py-3 cursor-pointer hover:text-white transition-colors group select-none sticky top-0 bg-[#1A1A1A] z-10 border-b border-[#262626] whitespace-nowrap ${className}`}
       onClick={() => handleSort(sortKey)}
     >
-      <div className={`flex items-center gap-2 ${className.includes('text-right') ? 'justify-end' : ''}`}>
+      <div className={`flex items-center gap-2 ${className.includes('text-right') ? 'justify-end' : className.includes('text-center') ? 'justify-center' : ''}`}>
         {label}
         <ArrowUpDown size={14} className={`text-gray-600 group-hover:text-gray-400 ${sortConfig.key === sortKey ? 'text-brand-green' : ''}`} />
       </div>
@@ -86,6 +87,15 @@ const MembersView = () => {
           case MembershipTier.GOLD: return 'text-yellow-500';
           case MembershipTier.SILVER: return 'text-gray-400';
           default: return 'text-orange-700'; // Bronze
+      }
+  };
+
+  const getStatusVariant = (status: MemberStatus): StatusVariant => {
+      switch(status) {
+          case 'Activated': return 'success';
+          case 'Pending Approval': return 'info';
+          case 'Deactivated': return 'danger';
+          default: return 'neutral';
       }
   };
 
@@ -157,13 +167,13 @@ const MembersView = () => {
                   <thead>
                       <tr className="text-xs uppercase text-gray-500 font-bold tracking-wider">
                           <SortHeader label={t('members.table.member')} sortKey="fullName" className="pl-6" />
-                          <th className="px-2 py-3 text-center sticky top-0 bg-[#1A1A1A] z-10 w-20 border-b border-[#262626]">Verified</th>
                           <SortHeader label={t('members.table.email')} sortKey="email" />
                           <SortHeader label={t('members.table.phone')} sortKey="phone" />
-                          <SortHeader label={t('members.table.clubId')} sortKey="club_id" className="w-[12%]" />
+                          <SortHeader label={t('members.table.clubId')} sortKey="club_id" />
                           <SortHeader label={t('members.table.tier')} sortKey="tier" />
-                          <SortHeader label={t('members.table.status')} sortKey="status" />
-                          <SortHeader label={t('members.table.joined')} sortKey="joinDate" className="w-[12%]" />
+                          <SortHeader label={t('members.table.status')} sortKey="status" className="text-center" />
+                          <SortHeader label={t('members.table.joined')} sortKey="joinDate" />
+                          <th className="px-2 py-3 text-center sticky top-0 bg-[#1A1A1A] z-10 w-20 border-b border-[#262626]">Verified</th>
                           <th className="px-2 py-3 pr-4 text-right sticky top-0 bg-[#1A1A1A] z-10 w-[1%] whitespace-nowrap border-b border-[#262626]">{t('common.actions')}</th>
                       </tr>
                   </thead>
@@ -188,6 +198,21 @@ const MembersView = () => {
                                           </div>
                                       </div>
                                   </td>
+                                  <td className="px-2 py-3 text-sm text-gray-400">{member.email}</td>
+                                  <td className="px-2 py-3 text-sm text-gray-400">{member.phone || '-'}</td>
+                                  <td className="px-2 py-3 text-sm font-mono text-gray-500">{member.club_id || '-'}</td>
+                                  <td className="px-2 py-3 text-sm font-bold">
+                                      <span className={getTierColor(member.tier)}>{member.tier}</span>
+                                  </td>
+                                  <td className="px-2 py-3 text-center">
+                                      <StatusBadge 
+                                        variant={getStatusVariant(member.status)}
+                                        className="w-24"
+                                      >
+                                          {member.status === 'Pending Approval' ? 'Pending' : member.status}
+                                      </StatusBadge>
+                                  </td>
+                                  <td className="px-2 py-3 text-sm text-gray-500">{new Date(member.joinDate).toLocaleDateString()}</td>
                                   <td className="px-2 py-3 text-center">
                                       {member.isIdVerified ? (
                                           <CheckCircle2 size={16} className="text-brand-green mx-auto" />
@@ -195,22 +220,6 @@ const MembersView = () => {
                                           <AlertCircle size={16} className="text-gray-600 mx-auto opacity-30" />
                                       )}
                                   </td>
-                                  <td className="px-2 py-3 text-sm text-gray-400">{member.email}</td>
-                                  <td className="px-2 py-3 text-sm text-gray-400">{member.phone || '-'}</td>
-                                  <td className="px-2 py-3 text-sm font-mono text-gray-500">{member.club_id || '-'}</td>
-                                  <td className="px-2 py-3 text-sm font-bold">
-                                      <span className={getTierColor(member.tier)}>{member.tier}</span>
-                                  </td>
-                                  <td className="px-2 py-3">
-                                      <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded border ${
-                                          member.status === 'Activated' ? 'bg-brand-green/10 text-brand-green border-brand-green/20' : 
-                                          member.status === 'Deactivated' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 
-                                          'bg-blue-500/10 text-blue-500 border-blue-500/20'
-                                      }`}>
-                                          {member.status === 'Pending Approval' ? 'Pending' : member.status}
-                                      </span>
-                                  </td>
-                                  <td className="px-2 py-3 text-sm text-gray-500">{new Date(member.joinDate).toLocaleDateString()}</td>
                                   <td className="px-2 py-3 pr-4 text-right">
                                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                           {member.status === 'Pending Approval' && (

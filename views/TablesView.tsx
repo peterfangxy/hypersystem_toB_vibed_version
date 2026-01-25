@@ -4,7 +4,6 @@ import {
   Plus, 
   Edit2, 
   Trash2, 
-  Circle, 
   Power,
   Users2
 } from 'lucide-react';
@@ -57,14 +56,6 @@ const TablesView = () => {
     setIsFormOpen(true);
   };
 
-  const getStatusColor = (status: TableStatus) => {
-    switch(status) {
-      case 'Active': return THEME.statusActive;
-      case 'Inactive': return THEME.statusInactive;
-      case 'Archived': return THEME.statusArchived;
-    }
-  };
-
   return (
     <div className="h-full flex flex-col w-full">
       <PageHeader
@@ -92,13 +83,13 @@ const TablesView = () => {
             <div className={`absolute top-0 right-0 p-20 rounded-full translate-x-1/3 -translate-y-1/3 opacity-5 pointer-events-none ${table.status === 'Active' ? 'bg-brand-green' : 'bg-gray-500'}`} />
 
             <div className="flex justify-between items-start mb-4 relative z-10">
-              <div className="flex flex-col">
+              <div className="flex flex-col gap-2">
                 <h3 className="text-xl font-bold text-white tracking-tight">{table.name}</h3>
-                <div className="flex items-center gap-2 mt-1">
-                  <Circle size={8} className={`fill-current ${getStatusColor(table.status)}`} />
-                  <span className={`text-xs font-medium uppercase tracking-wide ${getStatusColor(table.status)}`}>
-                    {table.status}
-                  </span>
+                <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${table.status === 'Active' ? 'bg-brand-green animate-pulse' : table.status === 'Archived' ? 'bg-red-500' : 'bg-gray-500'}`}></span>
+                    <span className={`text-xs font-bold uppercase tracking-wider ${table.status === 'Active' ? 'text-brand-green' : table.status === 'Archived' ? 'text-red-500' : 'text-gray-500'}`}>
+                        {table.status}
+                    </span>
                 </div>
               </div>
               

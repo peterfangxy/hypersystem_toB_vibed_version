@@ -23,14 +23,15 @@ import { useLanguage } from '../contexts/LanguageContext';
 import RoleConfigModal from '../components/RoleConfigModal';
 import InviteMemberModal from '../components/InviteMemberModal';
 import { PageHeader, TabContainer } from '../components/ui/PageLayout';
+import StatusBadge, { StatusVariant } from '../components/ui/StatusBadge';
 
-const getRoleBadge = (role: AccessRole) => {
+const getRoleVariant = (role: AccessRole): StatusVariant => {
     switch(role) {
-        case 'Owner': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
-        case 'Admin': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
-        case 'Operator': return 'bg-brand-green/10 text-brand-green border-brand-green/20';
-        case 'Viewer': return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
-        default: return 'bg-orange-500/10 text-orange-400 border-orange-500/20'; // Custom roles
+        case 'Owner': return 'purple';
+        case 'Admin': return 'info';
+        case 'Operator': return 'success';
+        case 'Viewer': return 'neutral';
+        default: return 'warning';
     }
 };
 
@@ -165,9 +166,9 @@ const TeamSettings = ({ team, onInvite, onRemove, onOpenConfig }: {
                           </div>
                       </div>
                       <div className="flex items-center gap-6">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${getRoleBadge(member.role)}`}>
+                          <StatusBadge variant={getRoleVariant(member.role)}>
                               {member.role}
-                          </span>
+                          </StatusBadge>
                           
                           <div className="text-xs text-gray-600">
                               {member.status === 'Active' ? (
@@ -343,9 +344,9 @@ const ThemeSettings = ({ settings, onThemeChange, onReset, onSave }: {
                   <button className={`${THEME.buttonPrimary} px-6 py-2 rounded-lg font-bold`}>
                       {t('settings.appearance.previewButton')}
                   </button>
-                  <div className="px-4 py-2 rounded-lg bg-brand-green/10 text-brand-green border border-brand-green/20 font-bold text-sm flex items-center">
+                  <StatusBadge variant="success" dot>
                       {t('settings.appearance.previewBadge')}
-                  </div>
+                  </StatusBadge>
                   <div className="px-4 py-2 border border-brand-border rounded-lg text-brand-white">
                       {t('settings.appearance.previewBordered')}
                   </div>

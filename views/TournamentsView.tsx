@@ -22,6 +22,7 @@ import TournamentForm from '../components/TournamentForm';
 import TournamentDetailPanel from '../components/TournamentDetailPanel';
 import { useLanguage } from '../contexts/LanguageContext';
 import { PageHeader, TabContainer, ControlBar } from '../components/ui/PageLayout';
+import StatusBadge, { StatusVariant } from '../components/ui/StatusBadge';
 
 const TournamentsView = () => {
   const { t } = useLanguage();
@@ -167,6 +168,19 @@ const TournamentsView = () => {
       return payouts.find(p => p.id === id)?.name;
   };
 
+  const getStatusVariant = (status?: TournamentStatus): StatusVariant => {
+      if (!status) return 'neutral';
+      switch(status) {
+          case 'Scheduled': return 'info';
+          case 'Registration': return 'success';
+          case 'In Progress': return 'warning';
+          case 'Completed': return 'neutral';
+          case 'Cancelled': return 'danger';
+          default: return 'neutral';
+      }
+  };
+
+  // Keep the styles for the select option to match the badge as closely as possible manually if needed
   const getStatusStyle = (status?: TournamentStatus) => {
       if (!status) return '';
       switch(status) {
@@ -266,7 +280,7 @@ const TournamentsView = () => {
                     <SortHeader label={t('tournaments.table.tournament')} sortKey="name" className="w-[22%]" />
                     <SortHeader label={t('tournaments.table.buyIn')} sortKey="buyIn" />
                     <StaticHeader label={t('tournaments.table.structure')} className="w-[15%]" />
-                    <StaticHeader label={t('tournaments.table.rebuys')} />
+                    <StaticHeader label={t('tournaments.table.rebuys')} className="text-center" />
                     <StaticHeader label={t('tournaments.table.players')} className="w-[12%]" />
                     <th className="px-2 py-3 pr-4 text-right sticky top-0 bg-[#1A1A1A] z-30 border-b border-[#262626] whitespace-nowrap">{t('common.actions')}</th>
                     </tr>
@@ -291,9 +305,9 @@ const TournamentsView = () => {
                             >
                                 <td className="px-2 py-3 pl-4" onClick={(e) => e.stopPropagation()}>
                                 {(tournament.status === 'Completed' || tournament.status === 'Cancelled') ? (
-                                    <span className={`inline-block text-[10px] font-bold uppercase tracking-wider border rounded py-1 px-2 text-center min-w-[100px] cursor-default ${getStatusStyle(tournament.status)}`}>
+                                    <StatusBadge variant={getStatusVariant(tournament.status)} className="min-w-[100px]">
                                         {tournament.status}
-                                    </span>
+                                    </StatusBadge>
                                 ) : (
                                     <select
                                         value={tournament.status}
@@ -343,16 +357,10 @@ const TournamentsView = () => {
                                         <span className="text-sm font-medium text-gray-500 italic">Custom</span>
                                     )}
                                 </td>
-                                <td className="px-2 py-3">
-                                    {tournament.rebuyLimit > 0 ? (
-                                        <span className="text-xs font-bold text-orange-400 bg-orange-400/10 px-2 py-1 rounded border border-orange-400/20 whitespace-nowrap">
-                                            {tournament.rebuyLimit} Rebuy{tournament.rebuyLimit > 1 ? 's' : ''}
-                                        </span>
-                                    ) : (
-                                        <span className="text-xs font-bold text-blue-400 bg-blue-400/10 px-2 py-1 rounded border border-blue-400/20 whitespace-nowrap">
-                                            Freezeout
-                                        </span>
-                                    )}
+                                <td className="px-2 py-3 text-center">
+                                    <span className="text-sm font-medium text-gray-300">
+                                        {tournament.rebuyLimit}
+                                    </span>
                                 </td>
                                 <td className="px-2 py-3 whitespace-nowrap">
                                     <div className="flex items-center gap-2">
