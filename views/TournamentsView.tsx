@@ -14,7 +14,8 @@ import {
   ChevronDown, 
   ChevronUp,
   DoorOpen,
-  Play
+  Play,
+  CheckCircle
 } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
 import { Tournament, TournamentStatus, TournamentStructure, PayoutStructure } from '../types';
@@ -360,6 +361,22 @@ const TournamentsView = () => {
                                             <div className="flex items-center gap-2 px-1">
                                                 <span className="text-xs font-bold uppercase hidden 2xl:inline">Start</span>
                                                 <Play size={16} fill="currentColor" />
+                                            </div>
+                                        </button>
+                                    )}
+
+                                    {tournament.status === 'In Progress' && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setExpandedTournamentId(tournament.id);
+                                            }}
+                                            className="p-1.5 text-orange-400 hover:text-white hover:bg-orange-500/20 rounded-lg transition-colors border border-transparent hover:border-orange-500/30 group/btn"
+                                            title="Tally & Finish"
+                                        >
+                                            <div className="flex items-center gap-2 px-1">
+                                                <span className="text-xs font-bold uppercase hidden 2xl:inline">Finish</span>
+                                                <CheckCircle size={16} />
                                             </div>
                                         </button>
                                     )}
