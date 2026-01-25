@@ -9,19 +9,25 @@ import {
   ArrowUpDown, 
   CheckCircle2, 
   AlertCircle,
-  UserCheck
+  UserCheck,
+  Users,
+  Settings
 } from 'lucide-react';
+import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
 import { Member, MembershipTier, MemberStatus } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
 import MemberForm from '../components/MemberForm';
 import MemberWalletModal from '../components/MemberWalletModal';
 import { useLanguage } from '../contexts/LanguageContext';
-import { PageHeader, ControlBar } from '../components/ui/PageLayout';
+import { PageHeader, ControlBar, TabContainer } from '../components/ui/PageLayout';
 import StatusBadge, { StatusVariant } from '../components/ui/StatusBadge';
 
 const MembersView = () => {
   const { t } = useLanguage();
+  const location = useLocation();
+  const isSettingsTab = location.pathname.includes('/settings');
+
   const [members, setMembers] = useState<Member[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | undefined>(undefined);
@@ -116,146 +122,216 @@ const MembersView = () => {
         return 0;
     });
 
+  const manageView = (
+      <div className="flex flex-col h-full animate-in fade-in slide-in-from-bottom-2">
+          <ControlBar>
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+              <input 
+                type="text"
+                placeholder={t('members.searchPlaceholder')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-2.5 text-white placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none transition-all`}
+              />
+            </div>
+            
+            {/* Status Filter */}
+            <div className="relative min-w-[200px]">
+                <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                <select 
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-2.5 text-white outline-none appearance-none cursor-pointer focus:ring-1 focus:ring-brand-green`}
+                >
+                    <option value="All">{t('members.filterStatus')}</option>
+                    <option value="Activated">Activated</option>
+                    <option value="Pending Approval">Pending</option>
+                    <option value="Deactivated">Deactivated</option>
+                </select>
+            </div>
+          </ControlBar>
+
+          <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden flex flex-col shadow-xl flex-1 min-h-0 mb-3`}>
+              <div className="overflow-y-auto h-full">
+                  <table className="w-full text-left border-collapse">
+                      <thead>
+                          <tr className="text-xs uppercase text-gray-500 font-bold tracking-wider">
+                              <SortHeader label={t('members.table.member')} sortKey="fullName" className="pl-6" />
+                              <SortHeader label={t('members.table.email')} sortKey="email" />
+                              <SortHeader label={t('members.table.phone')} sortKey="phone" />
+                              <SortHeader label={t('members.table.clubId')} sortKey="club_id" />
+                              <SortHeader label={t('members.table.tier')} sortKey="tier" />
+                              <SortHeader label={t('members.table.status')} sortKey="status" className="text-center" />
+                              <SortHeader label={t('members.table.joined')} sortKey="joinDate" />
+                              <th className="px-2 py-3 text-center sticky top-0 bg-[#1A1A1A] z-10 w-20 border-b border-[#262626]">Verified</th>
+                              <th className="px-2 py-3 pr-4 text-right sticky top-0 bg-[#1A1A1A] z-10 w-[1%] whitespace-nowrap border-b border-[#262626]">{t('common.actions')}</th>
+                          </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#262626]">
+                          {filteredMembers.length === 0 ? (
+                              <tr>
+                                  <td colSpan={9} className="py-12 text-center text-gray-500">
+                                      No members found.
+                                  </td>
+                              </tr>
+                          ) : (
+                              filteredMembers.map((member) => (
+                                  <tr key={member.id} className="hover:bg-[#222] transition-colors group">
+                                      <td className="px-2 py-3 pl-6">
+                                          <div className="flex items-center gap-3">
+                                              <div className="w-10 h-10 rounded-full bg-[#1A1A1A] flex items-center justify-center overflow-hidden border border-[#333]">
+                                                  {member.avatarUrl ? <img src={member.avatarUrl} alt="" className="w-full h-full object-cover" /> : <span className="font-bold text-gray-500">{member.fullName.charAt(0)}</span>}
+                                              </div>
+                                              <div>
+                                                  <div className="font-bold text-white text-sm">{member.fullName}</div>
+                                                  {member.nickname && <div className="text-xs text-gray-500">"{member.nickname}"</div>}
+                                              </div>
+                                          </div>
+                                      </td>
+                                      <td className="px-2 py-3 text-sm text-gray-400">{member.email}</td>
+                                      <td className="px-2 py-3 text-sm text-gray-400">{member.phone || '-'}</td>
+                                      <td className="px-2 py-3 text-sm font-mono text-gray-500">{member.club_id || '-'}</td>
+                                      <td className="px-2 py-3 text-sm font-bold">
+                                          <span className={getTierColor(member.tier)}>{member.tier}</span>
+                                      </td>
+                                      <td className="px-2 py-3 text-center">
+                                          <StatusBadge 
+                                            variant={getStatusVariant(member.status)}
+                                            className="w-24"
+                                          >
+                                              {member.status === 'Pending Approval' ? 'Pending' : member.status}
+                                          </StatusBadge>
+                                      </td>
+                                      <td className="px-2 py-3 text-sm text-gray-500">{new Date(member.joinDate).toLocaleDateString()}</td>
+                                      <td className="px-2 py-3 text-center">
+                                          {member.isIdVerified ? (
+                                              <CheckCircle2 size={16} className="text-brand-green mx-auto" />
+                                          ) : (
+                                              <AlertCircle size={16} className="text-gray-600 mx-auto opacity-30" />
+                                          )}
+                                      </td>
+                                      <td className="px-2 py-3 pr-4 text-right">
+                                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                              {member.status === 'Pending Approval' && (
+                                                  <>
+                                                      <button 
+                                                          onClick={() => openEdit(member)}
+                                                          className="p-1.5 text-blue-400 hover:text-white hover:bg-blue-500/20 rounded-full transition-colors"
+                                                          title="Review Application"
+                                                      >
+                                                          <UserCheck size={16} />
+                                                      </button>
+                                                      <div className="w-px h-4 bg-[#333] my-auto mx-1"></div>
+                                                  </>
+                                              )}
+                                              <button 
+                                                  onClick={() => handleOpenWallet(member)}
+                                                  className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
+                                                  title="Wallet"
+                                              >
+                                                  <Wallet size={16} />
+                                              </button>
+                                              <button 
+                                                  onClick={() => openEdit(member)}
+                                                  className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
+                                                  title={t('common.edit')}
+                                              >
+                                                  <Edit2 size={16} />
+                                              </button>
+                                          </div>
+                                      </td>
+                                  </tr>
+                              ))
+                          )}
+                      </tbody>
+                  </table>
+              </div>
+          </div>
+      </div>
+  );
+
+  const settingsView = (
+        <div className="flex flex-col items-center justify-center py-24 animate-in fade-in zoom-in-95 duration-500 border-2 border-dashed border-[#222] rounded-3xl bg-[#111] h-full mb-3">
+            <div className="w-20 h-20 rounded-full bg-[#1A1A1A] flex items-center justify-center mb-6 text-brand-green/50 border border-[#333]">
+                <Settings size={40} />
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-2">{t('members.settings.comingSoon')}</h3>
+            <p className="text-gray-500 max-w-md text-center">
+                {t('members.settings.comingSoonDesc')}
+            </p>
+        </div>
+  );
+
   return (
     <div className="h-full flex flex-col w-full">
       <PageHeader
         title={t('members.title')}
         subtitle={t('members.subtitle')}
         actions={
-            <button 
-                onClick={openCreate}
-                className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95`}
-            >
-                <Plus size={20} strokeWidth={2.5} />
-                {t('members.createBtn')}
-            </button>
+            !isSettingsTab && (
+                <button 
+                    onClick={openCreate}
+                    className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95`}
+                >
+                    <Plus size={20} strokeWidth={2.5} />
+                    {t('members.createBtn')}
+                </button>
+            )
         }
       />
 
-      <ControlBar>
-        {/* Search */}
-        <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-          <input 
-            type="text"
-            placeholder={t('members.searchPlaceholder')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-2.5 text-white placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none transition-all`}
-          />
-        </div>
-        
-        {/* Status Filter */}
-        <div className="relative min-w-[200px]">
-            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-            <select 
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-2.5 text-white outline-none appearance-none cursor-pointer focus:ring-1 focus:ring-brand-green`}
-            >
-                <option value="All">{t('members.filterStatus')}</option>
-                <option value="Activated">Activated</option>
-                <option value="Pending Approval">Pending</option>
-                <option value="Deactivated">Deactivated</option>
-            </select>
-        </div>
-      </ControlBar>
+      <TabContainer>
+        <NavLink
+          to="manage"
+          className={({isActive}) => `pb-2.5 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
+            isActive 
+              ? 'text-white' 
+              : 'text-gray-500 hover:text-gray-300'
+          }`}
+        >
+             {({isActive}) => (
+                <>
+                    <div className="flex items-center gap-2">
+                        <Users size={18} />
+                        {t('members.tabs.manage')}
+                    </div>
+                    {isActive && (
+                        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />
+                    )}
+                </>
+             )}
+        </NavLink>
 
-      <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden flex flex-col shadow-xl flex-1 min-h-0 mb-3`}>
-          <div className="overflow-y-auto h-full">
-              <table className="w-full text-left border-collapse">
-                  <thead>
-                      <tr className="text-xs uppercase text-gray-500 font-bold tracking-wider">
-                          <SortHeader label={t('members.table.member')} sortKey="fullName" className="pl-6" />
-                          <SortHeader label={t('members.table.email')} sortKey="email" />
-                          <SortHeader label={t('members.table.phone')} sortKey="phone" />
-                          <SortHeader label={t('members.table.clubId')} sortKey="club_id" />
-                          <SortHeader label={t('members.table.tier')} sortKey="tier" />
-                          <SortHeader label={t('members.table.status')} sortKey="status" className="text-center" />
-                          <SortHeader label={t('members.table.joined')} sortKey="joinDate" />
-                          <th className="px-2 py-3 text-center sticky top-0 bg-[#1A1A1A] z-10 w-20 border-b border-[#262626]">Verified</th>
-                          <th className="px-2 py-3 pr-4 text-right sticky top-0 bg-[#1A1A1A] z-10 w-[1%] whitespace-nowrap border-b border-[#262626]">{t('common.actions')}</th>
-                      </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#262626]">
-                      {filteredMembers.length === 0 ? (
-                          <tr>
-                              <td colSpan={9} className="py-12 text-center text-gray-500">
-                                  No members found.
-                              </td>
-                          </tr>
-                      ) : (
-                          filteredMembers.map((member) => (
-                              <tr key={member.id} className="hover:bg-[#222] transition-colors group">
-                                  <td className="px-2 py-3 pl-6">
-                                      <div className="flex items-center gap-3">
-                                          <div className="w-10 h-10 rounded-full bg-[#1A1A1A] flex items-center justify-center overflow-hidden border border-[#333]">
-                                              {member.avatarUrl ? <img src={member.avatarUrl} alt="" className="w-full h-full object-cover" /> : <span className="font-bold text-gray-500">{member.fullName.charAt(0)}</span>}
-                                          </div>
-                                          <div>
-                                              <div className="font-bold text-white text-sm">{member.fullName}</div>
-                                              {member.nickname && <div className="text-xs text-gray-500">"{member.nickname}"</div>}
-                                          </div>
-                                      </div>
-                                  </td>
-                                  <td className="px-2 py-3 text-sm text-gray-400">{member.email}</td>
-                                  <td className="px-2 py-3 text-sm text-gray-400">{member.phone || '-'}</td>
-                                  <td className="px-2 py-3 text-sm font-mono text-gray-500">{member.club_id || '-'}</td>
-                                  <td className="px-2 py-3 text-sm font-bold">
-                                      <span className={getTierColor(member.tier)}>{member.tier}</span>
-                                  </td>
-                                  <td className="px-2 py-3 text-center">
-                                      <StatusBadge 
-                                        variant={getStatusVariant(member.status)}
-                                        className="w-24"
-                                      >
-                                          {member.status === 'Pending Approval' ? 'Pending' : member.status}
-                                      </StatusBadge>
-                                  </td>
-                                  <td className="px-2 py-3 text-sm text-gray-500">{new Date(member.joinDate).toLocaleDateString()}</td>
-                                  <td className="px-2 py-3 text-center">
-                                      {member.isIdVerified ? (
-                                          <CheckCircle2 size={16} className="text-brand-green mx-auto" />
-                                      ) : (
-                                          <AlertCircle size={16} className="text-gray-600 mx-auto opacity-30" />
-                                      )}
-                                  </td>
-                                  <td className="px-2 py-3 pr-4 text-right">
-                                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                          {member.status === 'Pending Approval' && (
-                                              <>
-                                                  <button 
-                                                      onClick={() => openEdit(member)}
-                                                      className="p-1.5 text-blue-400 hover:text-white hover:bg-blue-500/20 rounded-full transition-colors"
-                                                      title="Review Application"
-                                                  >
-                                                      <UserCheck size={16} />
-                                                  </button>
-                                                  <div className="w-px h-4 bg-[#333] my-auto mx-1"></div>
-                                              </>
-                                          )}
-                                          <button 
-                                              onClick={() => handleOpenWallet(member)}
-                                              className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
-                                              title="Wallet"
-                                          >
-                                              <Wallet size={16} />
-                                          </button>
-                                          <button 
-                                              onClick={() => openEdit(member)}
-                                              className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
-                                              title={t('common.edit')}
-                                          >
-                                              <Edit2 size={16} />
-                                          </button>
-                                      </div>
-                                  </td>
-                              </tr>
-                          ))
-                      )}
-                  </tbody>
-              </table>
-          </div>
+        <NavLink
+          to="settings"
+          className={({isActive}) => `pb-2.5 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
+            isActive 
+              ? 'text-white' 
+              : 'text-gray-500 hover:text-gray-300'
+          }`}
+        >
+             {({isActive}) => (
+                <>
+                    <div className="flex items-center gap-2">
+                        <Settings size={18} />
+                        {t('members.tabs.settings')}
+                    </div>
+                    {isActive && (
+                        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />
+                    )}
+                </>
+             )}
+        </NavLink>
+      </TabContainer>
+
+      <div className="flex-1 min-h-0">
+          <Routes>
+              <Route path="manage" element={manageView} />
+              <Route path="settings" element={settingsView} />
+              <Route index element={<Navigate to="manage" replace />} />
+          </Routes>
       </div>
 
       <MemberForm 

@@ -29,6 +29,14 @@ export const translations = {
       createBtn: "New Member",
       searchPlaceholder: "Search members by name, email or ID...",
       filterStatus: "Filter by Status",
+      tabs: {
+        manage: "Manage Members",
+        settings: "Membership Settings"
+      },
+      settings: {
+        comingSoon: "Coming Soon",
+        comingSoonDesc: "Advanced membership configuration and tier management features are under development."
+      },
       table: {
         member: "Member",
         email: "Email",

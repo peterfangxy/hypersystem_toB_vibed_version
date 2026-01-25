@@ -42,7 +42,7 @@ const App: React.FC = () => {
               <Routes>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/dashboard/*" element={<DashboardView />} />
-                <Route path="/members" element={<MembersView />} />
+                <Route path="/members/*" element={<MembersView />} />
                 <Route path="/tables" element={<TablesView />} />
                 <Route path="/tournaments/*" element={<TournamentsView />} />
                 <Route path="/structures/*" element={<StructuresView />} />
