@@ -12,7 +12,9 @@ import {
   Copy, 
   Trash2, 
   ChevronDown, 
-  ChevronUp
+  ChevronUp,
+  DoorOpen,
+  Play
 } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
 import { Tournament, TournamentStatus, TournamentStructure, PayoutStructure } from '../types';
@@ -129,7 +131,8 @@ const TournamentsView = () => {
       }
   };
   
-  const handleStatusChange = (tournament: Tournament, newStatus: TournamentStatus) => {
+  const handleStatusChange = (e: React.MouseEvent, tournament: Tournament, newStatus: TournamentStatus) => {
+      e.stopPropagation();
       const updated = { ...tournament, status: newStatus };
       DataService.saveTournament(updated);
       refreshData();
@@ -177,32 +180,6 @@ const TournamentsView = () => {
           case 'Completed': return 'neutral';
           case 'Cancelled': return 'danger';
           default: return 'neutral';
-      }
-  };
-
-  // Keep the styles for the select option to match the badge as closely as possible manually if needed
-  const getStatusStyle = (status?: TournamentStatus) => {
-      if (!status) return '';
-      switch(status) {
-          case 'Scheduled': return THEME.statusScheduled;
-          case 'Registration': return THEME.statusRegistration;
-          case 'In Progress': return THEME.statusInProgress;
-          case 'Completed': return THEME.statusCompleted;
-          case 'Cancelled': return THEME.statusCancelled;
-      }
-  };
-
-  const getValidStatusOptions = (currentStatus?: TournamentStatus): TournamentStatus[] => {
-      if (!currentStatus) return [];
-      switch(currentStatus) {
-          case 'Scheduled':
-              return ['Scheduled', 'Registration', 'Cancelled'];
-          case 'Registration':
-              return ['Registration', 'In Progress', 'Cancelled'];
-          case 'In Progress':
-              return ['In Progress', 'Cancelled'];
-          default:
-              return [currentStatus];
       }
   };
 
@@ -304,23 +281,9 @@ const TournamentsView = () => {
                                 }`}
                             >
                                 <td className="px-2 py-3 pl-4" onClick={(e) => e.stopPropagation()}>
-                                {(tournament.status === 'Completed' || tournament.status === 'Cancelled') ? (
-                                    <StatusBadge variant={getStatusVariant(tournament.status)} className="min-w-[100px]">
+                                    <StatusBadge variant={getStatusVariant(tournament.status)} className="min-w-[100px] text-center">
                                         {tournament.status}
                                     </StatusBadge>
-                                ) : (
-                                    <select
-                                        value={tournament.status}
-                                        onChange={(e) => handleStatusChange(tournament, e.target.value as TournamentStatus)}
-                                        className={`text-[10px] font-bold uppercase tracking-wider border rounded py-0.5 px-2 outline-none cursor-pointer appearance-none text-center min-w-[100px] transition-colors ${getStatusStyle(tournament.status)}`}
-                                    >
-                                        {getValidStatusOptions(tournament.status).map(opt => (
-                                            <option key={opt} value={opt} className="bg-[#171717] text-white">
-                                                {opt}
-                                            </option>
-                                        ))}
-                                    </select>
-                                )}
                                 </td>
                                 <td className="px-2 py-3 text-sm font-medium text-gray-300 whitespace-nowrap">
                                 {tournament.startDate && new Date(tournament.startDate).toLocaleDateString(undefined, {
@@ -373,25 +336,52 @@ const TournamentsView = () => {
                                 </td>
                                 <td className="px-2 py-3 pr-4 text-right" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex justify-end gap-2 items-center">
+                                    
+                                    {/* Quick State Transitions */}
+                                    {tournament.status === 'Scheduled' && (
+                                        <button
+                                            onClick={(e) => handleStatusChange(e, tournament, 'Registration')}
+                                            className="p-1.5 text-blue-400 hover:text-white hover:bg-blue-500/20 rounded-lg transition-colors border border-transparent hover:border-blue-500/30 group/btn"
+                                            title="Open Registration"
+                                        >
+                                            <div className="flex items-center gap-2 px-1">
+                                                <span className="text-xs font-bold uppercase hidden 2xl:inline">Open Reg</span>
+                                                <DoorOpen size={16} />
+                                            </div>
+                                        </button>
+                                    )}
+                                    
+                                    {tournament.status === 'Registration' && (
+                                        <button
+                                            onClick={(e) => handleStatusChange(e, tournament, 'In Progress')}
+                                            className="p-1.5 text-brand-green hover:text-white hover:bg-green-500/20 rounded-lg transition-colors border border-transparent hover:border-green-500/30 group/btn"
+                                            title="Start Tournament"
+                                        >
+                                            <div className="flex items-center gap-2 px-1">
+                                                <span className="text-xs font-bold uppercase hidden 2xl:inline">Start</span>
+                                                <Play size={16} fill="currentColor" />
+                                            </div>
+                                        </button>
+                                    )}
+
                                     {/* Action Buttons */}
+                                    <div className="w-px h-4 bg-[#333] mx-1"></div>
+
                                     <button 
                                         onClick={() => toggleExpand(tournament.id)}
-                                        className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap min-w-[90px] ${
+                                        className={`p-1.5 rounded-lg transition-colors ${
                                             isExpanded 
-                                            ? 'bg-brand-green text-black' 
-                                            : 'bg-[#222] text-gray-400 hover:bg-[#333] hover:text-white'
+                                            ? 'bg-[#333] text-white' 
+                                            : 'text-gray-500 hover:text-white hover:bg-[#222]'
                                         }`}
+                                        title={isExpanded ? t('common.close') : t('common.manage')}
                                     >
-                                        {isExpanded ? (
-                                            <>{t('common.close')} <ChevronUp size={14} /></>
-                                        ) : (
-                                            <>{t('common.manage')} <ChevronDown size={14} /></>
-                                        )}
+                                        {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                                     </button>
 
                                     <button 
                                         onClick={() => openEdit(tournament)}
-                                        className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
+                                        className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-lg transition-colors"
                                         title={t('common.edit')}
                                     >
                                         <Edit2 size={16} />
