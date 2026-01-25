@@ -13,7 +13,8 @@ import {
   Phone, 
   MapPin, 
   RotateCcw,
-  Settings
+  Settings,
+  Link as LinkIcon
 } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink } from 'react-router-dom';
 import { THEME } from '../theme';
@@ -84,6 +85,19 @@ const GeneralSettings = ({ settings, setSettings, onSave }: {
                       value={settings.address}
                       onChange={e => setSettings({...settings, address: e.target.value})}
                       className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none transition-all`}
+                  />
+              </div>
+
+              <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                      <LinkIcon size={14}/> Google Map Link
+                  </label>
+                  <input 
+                      type="url"
+                      value={settings.googleMapLink || ''}
+                      onChange={e => setSettings({...settings, googleMapLink: e.target.value})}
+                      className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none transition-all placeholder:text-gray-600`}
+                      placeholder="https://maps.app.goo.gl/..."
                   />
               </div>
               

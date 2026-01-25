@@ -58,6 +58,7 @@ export const getClubSettings = (): ClubSettings => {
   const defaults: ClubSettings = {
     name: 'Royal Flush Club',
     address: '123 Poker Blvd, Las Vegas, NV',
+    googleMapLink: '',
     contactEmail: 'info@royalflush.com',
     contactPhone: '+1 (555) 123-4567',
     logoUrl: '',

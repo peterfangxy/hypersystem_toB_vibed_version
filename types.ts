@@ -332,6 +332,7 @@ export interface ClubTheme {
 export interface ClubSettings {
     name: string;
     address: string;
+    googleMapLink?: string;
     contactEmail: string;
     contactPhone: string;
     logoUrl: string;
