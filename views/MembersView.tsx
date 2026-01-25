@@ -26,6 +26,7 @@ import { Table, Column } from '../components/ui/Table';
 import { useLanguage } from '../contexts/LanguageContext';
 import { PageHeader, ControlBar, TabContainer } from '../components/ui/PageLayout';
 import StatusBadge, { StatusVariant } from '../components/ui/StatusBadge';
+import { useTableData } from '../hooks/useTableData';
 
 // --- Membership Settings Component ---
 const MembershipSettings = () => {
@@ -226,12 +227,21 @@ const MembersView = () => {
   const [editingMember, setEditingMember] = useState<Member | undefined>(undefined);
   const [walletMember, setWalletMember] = useState<Member | null>(null);
 
-  // Filters & Sorting State
+  // Search State
   const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState<Record<string, any>>({});
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Member; direction: SortDirection }>({ 
-    key: 'fullName', 
-    direction: 'asc' 
+
+  // Use the Hook
+  const { 
+      data: filteredMembers, 
+      sortConfig, 
+      filters, 
+      handleSort, 
+      handleFilter 
+  } = useTableData<Member>({
+      data: members,
+      initialSort: { key: 'fullName', direction: 'asc' },
+      searchQuery: searchQuery,
+      searchKeys: ['fullName', 'email', 'club_id']
   });
 
   useEffect(() => {
@@ -258,32 +268,6 @@ const MembersView = () => {
   const openEdit = (member: Member) => {
     setEditingMember(member);
     setIsFormOpen(true);
-  };
-
-  // --- Header Handlers ---
-  const handleSort = (key: string, direction?: SortDirection) => {
-    setSortConfig(current => {
-        if (direction) {
-             return { key: key as keyof Member, direction };
-        }
-        let newDir: SortDirection = 'asc';
-        if (current.key === key && current.direction === 'asc') {
-            newDir = 'desc';
-        }
-        return { key: key as keyof Member, direction: newDir };
-    });
-  };
-
-  const handleFilter = (key: string, value: any) => {
-      setFilters(prev => {
-          const next = { ...prev };
-          if (value === undefined || (Array.isArray(value) && value.length === 0) || value === '') {
-              delete next[key];
-          } else {
-              next[key] = value;
-          }
-          return next;
-      });
   };
 
   const getTierDisplay = (tierId?: string) => {
@@ -320,54 +304,6 @@ const MembersView = () => {
       { label: 'Verified', value: true, color: '#4ade80' },
       { label: 'Unverified', value: false, color: '#9ca3af' }
   ];
-
-  // --- Filtering & Sorting Logic ---
-  const filteredMembers = useMemo(() => {
-      return members.filter(m => {
-        // Global Search
-        const matchesSearch = (m.fullName || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
-                              (m.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                              (m.club_id || '').toLowerCase().includes(searchQuery.toLowerCase());
-        if (!matchesSearch) return false;
-
-        // Column Filters
-        if (filters.status && filters.status.length > 0) {
-            if (!filters.status.includes(m.status)) return false;
-        }
-
-        if (filters.tier && filters.tier.length > 0) {
-            if (!filters.tier.includes(m.tier)) return false;
-        }
-
-        if (filters.isIdVerified && filters.isIdVerified.length > 0) {
-            if (!filters.isIdVerified.includes(!!m.isIdVerified)) return false;
-        }
-
-        if (filters.joinDate) {
-            const { start, end } = filters.joinDate;
-            const date = new Date(m.joinDate).getTime();
-            if (start && date < new Date(start).getTime()) return false;
-            if (end && date > new Date(end).getTime()) return false;
-        }
-
-        return true;
-    }).sort((a, b) => {
-        const aValue = a[sortConfig.key];
-        const bValue = b[sortConfig.key];
-        
-        // Handle boolean sorting (false < true)
-        if (typeof aValue === 'boolean' && typeof bValue === 'boolean') {
-             return sortConfig.direction === 'asc' 
-                ? (aValue === bValue ? 0 : aValue ? 1 : -1)
-                : (aValue === bValue ? 0 : aValue ? -1 : 1);
-        }
-
-        if (aValue === undefined || bValue === undefined) return 0;
-        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
-        return 0;
-    });
-  }, [members, searchQuery, filters, sortConfig]);
 
   // --- Columns Definition ---
   const columns: Column<Member>[] = useMemo(() => [

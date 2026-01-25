@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Layers, DollarSign, Plus, Clock, Hash, Coins, Edit2, Trash2, Cpu, Table as TableIcon, ArrowRight, Calculator, Repeat } from 'lucide-react';
+import { Layers, DollarSign, Plus, Clock, Hash, Coins, Edit2, Cpu, Table as TableIcon, ArrowRight, Calculator, Repeat } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
 import { THEME } from '../theme';
 import { TournamentStructure, PayoutStructure } from '../types';
@@ -9,7 +9,8 @@ import PayoutModelForm from '../components/PayoutModelForm';
 import { useLanguage } from '../contexts/LanguageContext';
 import { PageHeader, TabContainer } from '../components/ui/PageLayout';
 import { Table, Column } from '../components/ui/Table';
-import { SortDirection } from '../components/ui/ColumnHeader';
+import { useTableData } from '../hooks/useTableData';
+import DeleteWithConfirmation from '../components/ui/DeleteWithConfirmation';
 
 const StructuresView = () => {
   const { t } = useLanguage();
@@ -20,12 +21,6 @@ const StructuresView = () => {
   const [structures, setStructures] = useState<TournamentStructure[]>([]);
   const [isStructFormOpen, setIsStructFormOpen] = useState(false);
   const [editingStructure, setEditingStructure] = useState<TournamentStructure | undefined>(undefined);
-
-  // Sorting State for Structures
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: SortDirection }>({ 
-    key: 'name', 
-    direction: 'asc' 
-  });
 
   // Payouts State
   const [payouts, setPayouts] = useState<PayoutStructure[]>([]);
@@ -46,10 +41,8 @@ const StructuresView = () => {
   };
 
   const handleStructDelete = (id: string) => {
-    if (window.confirm(t('common.delete') + '?')) {
-        DataService.deleteTournamentStructure(id);
-        setStructures(DataService.getTournamentStructures());
-    }
+      DataService.deleteTournamentStructure(id);
+      setStructures(DataService.getTournamentStructures());
   };
 
   const openStructCreate = () => {
@@ -66,10 +59,8 @@ const StructuresView = () => {
   };
 
   const handlePayoutDelete = (id: string) => {
-      if (window.confirm(t('common.delete') + '?')) {
-          DataService.deletePayoutStructure(id);
-          setPayouts(DataService.getPayoutStructures());
-      }
+      DataService.deletePayoutStructure(id);
+      setPayouts(DataService.getPayoutStructures());
   };
 
   const openPayoutCreate = () => {
@@ -85,30 +76,24 @@ const StructuresView = () => {
   };
 
   const getFirstLevel = (s: TournamentStructure) => {
-      // Robustly find the first actual level by sorting by level index
       const levels = s.items.filter(i => i.type === 'Level');
       if (levels.length === 0) return undefined;
       return levels.sort((a, b) => (a.level || 0) - (b.level || 0))[0];
   };
 
-  // --- Sorting Logic ---
-  const handleSort = (key: string, direction?: SortDirection) => {
-      setSortConfig(current => {
-          if (direction) return { key, direction };
-          if (current.key === key && current.direction === 'asc') return { key, direction: 'desc' };
-          return { key, direction: 'asc' };
-      });
-  };
-
-  const sortedStructures = useMemo(() => {
-      return [...structures].sort((a, b) => {
-          const dir = sortConfig.direction === 'asc' ? 1 : -1;
+  // --- Table Logic: Structures (Blinds) ---
+  const {
+      data: filteredStructures,
+      sortConfig: structSortConfig,
+      handleSort: handleStructSort
+  } = useTableData<TournamentStructure>({
+      data: structures,
+      initialSort: { key: 'name', direction: 'asc' },
+      searchKeys: ['name'],
+      customSort: (a, b, key, direction) => {
+          const dir = direction === 'asc' ? 1 : -1;
           
-          switch(sortConfig.key) {
-              case 'name':
-                  return a.name.localeCompare(b.name) * dir;
-              case 'startingChips':
-                  return (a.startingChips - b.startingChips) * dir;
+          switch(key) {
               case 'blinds': {
                   const levelA = getFirstLevel(a);
                   const levelB = getFirstLevel(b);
@@ -121,18 +106,29 @@ const StructuresView = () => {
                   const countB = b.items.filter(i => i.type === 'Level').length;
                   return (countA - countB) * dir;
               }
-              case 'rebuyLimit':
-                  return (a.rebuyLimit - b.rebuyLimit) * dir;
               case 'length': {
                   const durA = a.items.reduce((sum, item) => sum + item.duration, 0);
                   const durB = b.items.reduce((sum, item) => sum + item.duration, 0);
                   return (durA - durB) * dir;
               }
               default:
-                  return 0;
+                  return null;
           }
-      });
-  }, [structures, sortConfig]);
+      }
+  });
+
+  // --- Table Logic: Payouts (Matrices) ---
+  const customMatrices = useMemo(() => payouts.filter(p => p.type === 'Custom Matrix'), [payouts]);
+  
+  const {
+      data: filteredPayouts,
+      sortConfig: payoutSortConfig,
+      handleSort: handlePayoutSort
+  } = useTableData<PayoutStructure>({
+      data: customMatrices,
+      initialSort: { key: 'name', direction: 'asc' },
+      searchKeys: ['name', 'description']
+  });
 
   // --- Column Definitions ---
   const blindColumns: Column<TournamentStructure>[] = useMemo(() => [
@@ -219,14 +215,79 @@ const StructuresView = () => {
                    >
                        <Edit2 size={16} />
                    </button>
-                   <button 
-                       onClick={() => handleStructDelete(s.id)}
-                       className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-[#333] rounded-full transition-colors"
-                       title={t('common.delete')}
-                   >
-                       <Trash2 size={16} />
-                   </button>
+                   <DeleteWithConfirmation 
+                       onConfirm={() => handleStructDelete(s.id)}
+                       itemName={s.name}
+                       title="Delete Structure?"
+                   />
                </div>
+          )
+      }
+  ], [t]);
+
+  const payoutColumns: Column<PayoutStructure>[] = useMemo(() => [
+      {
+          key: 'name',
+          label: t('structures.payouts.table.name'),
+          sortable: true,
+          className: 'pl-6 w-[25%]',
+          render: (matrix) => (
+              <div>
+                  <div className="font-bold text-white text-base">{matrix.name}</div>
+                  <div className="text-xs text-gray-500 mt-1 line-clamp-1">{matrix.description}</div>
+              </div>
+          )
+      },
+      {
+          key: 'rules',
+          label: t('structures.payouts.table.rules'),
+          className: 'w-[15%]',
+          render: (matrix) => (
+              <div className="inline-flex items-center gap-2 bg-[#1A1A1A] border border-[#333] px-2 py-1 rounded-lg text-sm text-gray-300">
+                  <TableIcon size={14} className="text-gray-500"/>
+                  {matrix.rules?.length || 0} {t('structures.payouts.table.ranges')}
+              </div>
+          )
+      },
+      {
+          key: 'range',
+          label: t('structures.payouts.table.range'),
+          render: (matrix) => {
+              if (matrix.rules && matrix.rules.length > 0) {
+                  return (
+                    <div className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                        <span>{matrix.rules[0].minPlayers}</span>
+                        <ArrowRight size={12} className="text-gray-600"/>
+                        <span>{matrix.rules[matrix.rules.length - 1].maxPlayers} Players</span>
+                    </div>
+                  );
+              }
+              return <span className="text-sm text-gray-600 italic">{t('structures.payouts.table.noRules')}</span>;
+          }
+      },
+      {
+          key: 'actions',
+          label: t('common.actions'),
+          className: 'text-right pr-6 w-[10%]',
+          render: (matrix) => (
+              <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                      onClick={() => {
+                          setEditingPayout(matrix);
+                          setIsPayoutFormOpen(true);
+                      }}
+                      className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
+                      title={t('common.edit')}
+                  >
+                      <Edit2 size={16} />
+                  </button>
+                  <DeleteWithConfirmation 
+                      disabled={!!matrix.isSystemDefault}
+                      onConfirm={() => handlePayoutDelete(matrix.id)}
+                      itemName={matrix.name}
+                      title="Delete Payout Model?"
+                  />
+              </div>
           )
       }
   ], [t]);
@@ -235,11 +296,11 @@ const StructuresView = () => {
   const BlindsList = () => (
     <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-2">
         <Table 
-            data={sortedStructures}
+            data={filteredStructures}
             columns={blindColumns}
             keyExtractor={(s) => s.id}
-            sortConfig={sortConfig}
-            onSort={handleSort}
+            sortConfig={structSortConfig}
+            onSort={handleStructSort}
             emptyState={
                 <div className="flex flex-col items-center justify-center py-8">
                     <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mx-auto mb-4 border border-[#333]">
@@ -281,80 +342,26 @@ const StructuresView = () => {
          </div>
 
          {/* 2. Custom Matrices Section */}
-         <div className="flex-1">
-             <div className="p-6 pb-2 sticky top-0 bg-[#171717] z-10">
+         <div className="flex-1 flex flex-col min-h-0">
+             <div className="p-6 pb-2">
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
                     <TableIcon size={14} /> {t('structures.payouts.matrices')}
                 </h3>
              </div>
              
-             <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="text-xs uppercase text-gray-500 font-bold tracking-wider">
-                            <th className="px-6 py-3 whitespace-nowrap">{t('structures.payouts.table.name')}</th>
-                            <th className="px-6 py-3 whitespace-nowrap">{t('structures.payouts.table.rules')}</th>
-                            <th className="px-6 py-3 whitespace-nowrap">{t('structures.payouts.table.range')}</th>
-                            <th className="px-6 py-3 text-right whitespace-nowrap">{t('common.actions')}</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#262626]">
-                        {payouts.filter(p => p.type === 'Custom Matrix').map(matrix => (
-                            <tr key={matrix.id} className="hover:bg-[#222] transition-colors group">
-                                <td className="px-6 py-4">
-                                    <div className="font-bold text-white text-base">{matrix.name}</div>
-                                    <div className="text-xs text-gray-500 mt-1">{matrix.description}</div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <div className="inline-flex items-center gap-2 bg-[#1A1A1A] border border-[#333] px-2 py-1 rounded-lg text-sm text-gray-300">
-                                        <TableIcon size={14} className="text-gray-500"/>
-                                        {matrix.rules?.length || 0} {t('structures.payouts.table.ranges')}
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    {matrix.rules && matrix.rules.length > 0 ? (
-                                        <div className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                                            <span>{matrix.rules[0].minPlayers}</span>
-                                            <ArrowRight size={12} className="text-gray-600"/>
-                                            <span>{matrix.rules[matrix.rules.length - 1].maxPlayers} Players</span>
-                                        </div>
-                                    ) : (
-                                        <span className="text-sm text-gray-600 italic">{t('structures.payouts.table.noRules')}</span>
-                                    )}
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button 
-                                            onClick={() => {
-                                                setEditingPayout(matrix);
-                                                setIsPayoutFormOpen(true);
-                                            }}
-                                            className="p-1.5 text-gray-500 hover:text-white hover:bg-[#333] rounded-full transition-colors"
-                                            title={t('common.edit')}
-                                        >
-                                            <Edit2 size={16} />
-                                        </button>
-                                        {!matrix.isSystemDefault && (
-                                            <button 
-                                                onClick={() => handlePayoutDelete(matrix.id)}
-                                                className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-[#333] rounded-full transition-colors"
-                                                title={t('common.delete')}
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        )}
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-                {payouts.filter(p => p.type === 'Custom Matrix').length === 0 && (
+             <Table 
+                data={filteredPayouts}
+                columns={payoutColumns}
+                keyExtractor={(p) => p.id}
+                sortConfig={payoutSortConfig}
+                onSort={handlePayoutSort}
+                className="mx-6 mb-6"
+                emptyState={
                     <div className="text-center py-10 text-gray-600">
                         {t('structures.payouts.table.empty')}
                     </div>
-                )}
-             </div>
+                }
+             />
          </div>
      </div>
   );

@@ -66,7 +66,7 @@ export function Table<T>({
                                 return (
                                     <th 
                                         key={col.key} 
-                                        className={`px-2 py-3 h-10 bg-[#1A1A1A] border-b border-[#262626] font-bold text-gray-500 text-xs uppercase tracking-wider ${col.headerClassName || col.className || ''}`}
+                                        className={`px-2 py-3 h-10 bg-[#1A1A1A] border-b border-[#262626] font-bold text-gray-500 text-xs uppercase tracking-wider whitespace-nowrap ${col.headerClassName || col.className || ''}`}
                                     >
                                         {col.label}
                                     </th>

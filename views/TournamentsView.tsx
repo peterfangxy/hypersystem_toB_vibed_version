@@ -25,6 +25,7 @@ import { PageHeader, TabContainer, ControlBar } from '../components/ui/PageLayou
 import StatusBadge, { StatusVariant } from '../components/ui/StatusBadge';
 import { Table, Column } from '../components/ui/Table';
 import { SortDirection } from '../components/ui/ColumnHeader';
+import { useTableData } from '../hooks/useTableData';
 
 const TournamentsView = () => {
   const { t } = useLanguage();
@@ -44,12 +45,43 @@ const TournamentsView = () => {
   // Accordion State
   const [expandedTournamentId, setExpandedTournamentId] = useState<string | null>(null);
 
-  // Filtering & Sorting State
+  // Search State
   const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState<Record<string, any>>({});
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: SortDirection }>({ 
-    key: 'startDate', 
-    direction: 'desc' 
+
+  // Use the Hook
+  const { 
+      data: filteredTournaments, 
+      sortConfig, 
+      filters, 
+      handleSort, 
+      handleFilter,
+      setFilters 
+  } = useTableData<Tournament>({
+      data: tournaments,
+      initialSort: { key: 'startDate', direction: 'desc' },
+      searchQuery: searchQuery,
+      searchKeys: ['name'],
+      customSort: (a, b, key, direction) => {
+          // Specific handling for Date sorting to include Time
+          if (key === 'startDate' && a.startDate && b.startDate && a.startTime && b.startTime) {
+              const dir = direction === 'asc' ? 1 : -1;
+              const dateA = new Date(`${a.startDate}T${a.startTime}`);
+              const dateB = new Date(`${b.startDate}T${b.startTime}`);
+              return dateA < dateB ? -1 * dir : 1 * dir;
+          }
+          return null; // Fallback to default
+      }
+  });
+
+  const {
+      data: filteredTemplates,
+      sortConfig: templateSortConfig,
+      handleSort: handleTemplateSort
+  } = useTableData<Tournament>({
+      data: templates,
+      initialSort: { key: 'name', direction: 'asc' },
+      searchQuery: searchQuery,
+      searchKeys: ['name']
   });
 
   useEffect(() => {
@@ -68,14 +100,6 @@ const TournamentsView = () => {
     if (expandedTournamentId) {
         // Use a timeout to ensure DOM layout has settled after expand/collapse animations or state updates
         const timer = setTimeout(() => {
-            // NOTE: We need to find the scroll container within the Table component.
-            // Since Table wraps in a div with class 'overflow-y-auto', we can try to find it via ID or traversal.
-            // Alternatively, since Table doesn't expose ref, we rely on document.getElementById scrollIntoView logic
-            // or we assume the main window scroll or the table's container scroll.
-            
-            // The previous logic used a ref on the manual table container. 
-            // Now the Table component owns the scroll container.
-            // We can scroll the row into view.
             const row = document.getElementById(`tournament-row-${expandedTournamentId}`);
             if (row) {
                 // Use 'start' to snap the sticky row to the top (under the header)
@@ -142,26 +166,6 @@ const TournamentsView = () => {
       setExpandedTournamentId(prev => prev === id ? null : id);
   };
 
-  const handleSort = (key: string, direction?: SortDirection) => {
-    setSortConfig(current => {
-        if (direction) return { key, direction };
-        if (current.key === key && current.direction === 'asc') return { key, direction: 'desc' };
-        return { key, direction: 'asc' };
-    });
-  };
-
-  const handleFilter = (key: string, value: any) => {
-      setFilters(prev => {
-          const next = { ...prev };
-          if (value === undefined || (Array.isArray(value) && value.length === 0) || value === '') {
-              delete next[key];
-          } else {
-              next[key] = value;
-          }
-          return next;
-      });
-  };
-
   // --- Helpers for Render ---
   const getStructureName = (id?: string) => {
       if (!id) return null;
@@ -184,42 +188,6 @@ const TournamentsView = () => {
           default: return 'neutral';
       }
   };
-
-  // --- Filtering & Sorting Data ---
-  const filteredTournaments = useMemo(() => {
-      return tournaments
-        .filter(t => {
-            const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase());
-            
-            let matchesStatus = true;
-            if (filters.status && filters.status.length > 0) {
-                matchesStatus = filters.status.includes(t.status);
-            }
-
-            return matchesSearch && matchesStatus;
-        })
-        .sort((a, b) => {
-            const dir = sortConfig.direction === 'asc' ? 1 : -1;
-            const aValue = a[sortConfig.key as keyof Tournament];
-            const bValue = b[sortConfig.key as keyof Tournament];
-
-            // Specific handling for Date sorting to include Time
-            if (sortConfig.key === 'startDate' && a.startDate && b.startDate && a.startTime && b.startTime) {
-                const dateA = new Date(`${a.startDate}T${a.startTime}`);
-                const dateB = new Date(`${b.startDate}T${b.startTime}`);
-                return dateA < dateB ? -1 * dir : 1 * dir;
-            }
-
-            if (aValue === undefined || bValue === undefined) return 0;
-            if (aValue < bValue) return -1 * dir;
-            if (aValue > bValue) return 1 * dir;
-            return 0;
-        });
-  }, [tournaments, searchQuery, filters, sortConfig]);
-
-  const filteredTemplates = useMemo(() => {
-      return templates.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()));
-  }, [templates, searchQuery]);
 
   // --- Column Definitions ---
   const statusOptions = [
@@ -584,8 +552,8 @@ const TournamentsView = () => {
                     data={filteredTemplates}
                     columns={templateColumns}
                     keyExtractor={(t) => t.id}
-                    sortConfig={sortConfig}
-                    onSort={handleSort}
+                    sortConfig={templateSortConfig}
+                    onSort={handleTemplateSort}
                     emptyState={
                         <div className="flex flex-col items-center justify-center py-8">
                             <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mx-auto mb-4 border border-[#333]">

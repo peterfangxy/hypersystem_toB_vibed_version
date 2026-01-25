@@ -3,22 +3,13 @@
 
 This document outlines technical debt and architectural improvements to ensure the application remains maintainable, performant, and consistent as features grow.
 
-## 1. Standardize UI Components (High Priority)
+## 1. Standardize UI Components (Completed)
 **Current State:**
-The `TournamentsView` and `MembersView` utilize the robust `Table` component. However, the `StructuresView` (Payouts tab) still uses a hardcoded HTML table implementation.
+All major views (`TournamentsView`, `MembersView`, `StructuresView`) now utilize the robust `Table` component and the `useTableData` hook for consistent sorting and filtering behavior.
 
-**Action:**
-*   Refactor `StructuresView` to use the `Table` component for the Payouts list.
-*   Ensure the `Table` component handles the specific "Rules" and "Range" column rendering requirements of the Payouts model.
-
-## 2. Extract Table Logic Hook (Medium Priority)
+## 2. Extract Table Logic Hook (Completed)
 **Current State:**
-Both `MembersView` and `TournamentsView` implement nearly identical `useMemo` logic for client-side filtering and sorting. This leads to code duplication.
-
-**Action:**
-*   Create `hooks/useTableData.ts`.
-*   Abstract the sorting (multi-type) and filtering (multi-select, date range) logic into this hook.
-*   **Benefit:** Reduces boilerplate in Views and ensures consistent sorting behavior across the app.
+The `useTableData` hook has been extracted and implemented across `MembersView`, `TournamentsView`, and `StructuresView`. It abstracts sorting (multi-type) and filtering (multi-select, date range) logic.
 
 ## 3. Decouple Business Logic (High Priority)
 ### A. Financial Calculations

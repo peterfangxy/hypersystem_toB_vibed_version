@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
-import { PokerTable, TableStatus } from '../types';
+import { PokerTable } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
 import { Modal } from './ui/Modal';
+import NumberInput from './ui/NumberInput';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface TableFormProps {
@@ -69,31 +69,17 @@ const TableForm: React.FC<TableFormProps> = ({ isOpen, onClose, onSubmit, initia
             />
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-300">{t('tables.form.status')}</label>
-              <select 
-                value={formData.status}
-                onChange={e => setFormData({...formData, status: e.target.value as TableStatus})}
-                className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none appearance-none cursor-pointer`}
-              >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-                <option value="Archived">Archived</option>
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-300">{t('tables.form.capacity')}</label>
-              <select 
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-300">{t('tables.form.capacity')}</label>
+            <NumberInput 
                 value={formData.capacity}
-                onChange={e => setFormData({...formData, capacity: parseInt(e.target.value)})}
-                className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none appearance-none cursor-pointer`}
-              >
-                {[2, 6, 8, 9, 10].map(num => (
-                  <option key={num} value={num}>{num} {t('tables.seats')}</option>
-                ))}
-              </select>
-            </div>
+                onChange={(val) => setFormData({...formData, capacity: val || 9})}
+                min={2}
+                max={10}
+                step={1}
+                suffix={t('tables.seats')}
+                size="lg"
+            />
           </div>
 
             <div className="space-y-1">

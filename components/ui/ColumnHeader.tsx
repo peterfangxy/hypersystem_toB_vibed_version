@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   ArrowUp, 
@@ -193,7 +192,7 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = ({
   // --- Scenario 1: Filterable (Complex Header) ---
   if (filterable) {
       return (
-        <th className={`relative group px-2 py-3 border-b border-[#262626] bg-[#1A1A1A] select-none ${className}`}>
+        <th className={`relative group px-2 py-3 border-b border-[#262626] bg-[#1A1A1A] select-none whitespace-nowrap ${className}`}>
             <div className={`flex items-center gap-2 h-full cursor-pointer hover:bg-[#222] -m-2 p-2 rounded-lg transition-colors ${className.includes('text-right') ? 'justify-end' : className.includes('text-center') ? 'justify-center' : ''}`}
                  onClick={() => setIsOpen(!isOpen)}
             >
@@ -268,7 +267,7 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = ({
   // --- Scenario 2: Simple Sortable (No Filter) ---
   return (
     <th 
-        className={`relative group px-2 py-3 border-b border-[#262626] bg-[#1A1A1A] select-none cursor-pointer hover:bg-[#222] transition-colors ${className}`}
+        className={`relative group px-2 py-3 border-b border-[#262626] bg-[#1A1A1A] select-none cursor-pointer hover:bg-[#222] transition-colors whitespace-nowrap ${className}`}
         onClick={handleSimpleSort}
     >
         <div className={`flex items-center gap-2 h-full ${className.includes('text-right') ? 'justify-end' : className.includes('text-center') ? 'justify-center' : ''}`}>

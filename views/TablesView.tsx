@@ -1,9 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
   Edit2, 
-  Trash2, 
   Power,
   Users2
 } from 'lucide-react';
@@ -13,6 +11,7 @@ import { THEME } from '../theme';
 import TableForm from '../components/TableForm';
 import { useLanguage } from '../contexts/LanguageContext';
 import { PageHeader } from '../components/ui/PageLayout';
+import DeleteWithConfirmation from '../components/ui/DeleteWithConfirmation';
 
 const TablesView = () => {
   const { t } = useLanguage();
@@ -32,10 +31,8 @@ const TablesView = () => {
   };
 
   const handleDelete = (id: string) => {
-    if (window.confirm(t('tables.removeConfirm'))) {
-      DataService.deleteTable(id);
-      setTables(DataService.getTables());
-    }
+    DataService.deleteTable(id);
+    setTables(DataService.getTables());
   };
 
   const handleToggleStatus = (e: React.MouseEvent, table: PokerTable) => {
@@ -101,13 +98,12 @@ const TablesView = () => {
                 >
                   <Edit2 size={16} />
                 </button>
-                <button 
-                  onClick={() => handleDelete(table.id)}
-                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-[#333] rounded-full transition-colors"
-                  title={t('common.delete')}
-                >
-                  <Trash2 size={16} />
-                </button>
+                <DeleteWithConfirmation 
+                    onConfirm={() => handleDelete(table.id)}
+                    itemName={table.name}
+                    title="Delete Table?"
+                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-[#333] rounded-full transition-colors"
+                />
               </div>
             </div>
 

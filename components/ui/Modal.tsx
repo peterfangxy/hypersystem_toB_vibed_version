@@ -1,5 +1,5 @@
-
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { THEME } from '../../theme';
 
@@ -30,8 +30,26 @@ export const Modal: React.FC<ModalProps> = ({
   title, 
   children, 
   size = 'md',
-  zIndex = 50 
+  zIndex = 100 
 }) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -40,17 +58,23 @@ export const Modal: React.FC<ModalProps> = ({
     return () => window.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  // Use slimmer padding for smaller modals (and now xl) to save vertical space
+  // Use slimmer padding for smaller modals to save vertical space
   const headerPadding = ['sm', 'md', 'lg', 'xl'].includes(size) ? 'p-4' : 'p-6';
 
-  return (
+  return createPortal(
     <div 
       className="fixed inset-0 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
       style={{ zIndex }}
+      onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+      }}
     >
-      <div className={`${THEME.card} border ${THEME.border} rounded-3xl w-full ${sizeClasses[size]} shadow-2xl overflow-hidden flex flex-col max-h-[95vh] relative animate-in zoom-in-95 duration-200`}>
+      <div 
+        className={`${THEME.card} border ${THEME.border} rounded-3xl w-full ${sizeClasses[size]} shadow-2xl overflow-hidden flex flex-col max-h-[95vh] relative animate-in zoom-in-95 duration-200`}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         {(title || onClose) && (
           <div className={`flex justify-between items-start ${headerPadding} border-b border-[#222] shrink-0`}>
@@ -74,6 +98,7 @@ export const Modal: React.FC<ModalProps> = ({
         {/* Content */}
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
