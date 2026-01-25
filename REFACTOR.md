@@ -1,29 +1,78 @@
 
-# Refactoring Roadmap
+# Engineering & Refactoring Roadmap
 
-This document outlines technical debt and architectural improvements to ensure the application remains maintainable, performant, and consistent as features grow.
+This document outlines technical debt, architectural improvements, and future optimizations. It is prioritized by impact on stability, maintainability, and scalability.
 
-## 1. Standardize UI Components (Completed)
-**Current State:**
-All major views (`TournamentsView`, `MembersView`, `StructuresView`) now utilize the robust `Table` component and the `useTableData` hook for consistent sorting and filtering behavior.
+## 🔴 High Priority (Stability & Architecture)
 
-## 2. Extract Table Logic Hook (Completed)
-**Current State:**
-The `useTableData` hook has been extracted and implemented across `MembersView`, `TournamentsView`, and `StructuresView`. It abstracts sorting (multi-type) and filtering (multi-select, date range) logic.
+### 1. Decouple Financial Logic & Centralize Math
+**Problem:** 
+Financial calculations (Net Payable, Discounts, Wallet deduction logic) are currently duplicated between `BuyinMgmtModal.tsx` and `useTournamentLogic.ts` / `TournamentPlayerList.tsx`. This violates DRY and risks financial discrepancies.
+**Solution:**
+*   Create `utils/financeUtils.ts`.
+*   Extract core functions: `calculateTransactionNet(tx)`, `calculateRegistrationTotal(reg)`, `validateWalletBalance(amount, wallet)`.
+*   Ensure the "Outstanding Balance" calculated in the list view uses the exact same function as the modal.
 
-## 3. Decouple Business Logic (High Priority)
-### A. Financial Calculations
-**Location:** `components/BuyinMgmtModal.tsx` & `hooks/useTournamentLogic.ts`
-*   Extract core math for net payable, discounts, and wallet balances into `utils/financialUtils.ts`.
-*   Ensure the "Outstanding Balance" calculated in the list view matches the detailed view exactly.
+### 2. Refactor Synchronous Data Layer
+**Problem:** 
+`DataService.ts` relies on synchronous `localStorage` calls. This blocks the main thread during large reads/writes and makes migrating to a real backend (API/DB) difficult, as all UI components expect immediate return values.
+**Solution:**
+*   Refactor `DataService` methods to return `Promise<T>`.
+*   Implement a `useQuery` / `useMutation` pattern (or use TanStack Query) in the UI components to handle loading states and async data fetching.
+*   *Migration Path:* Update `DataService` to return Promises that resolve immediately (mocking async), then refactor UI components one by one.
 
-### B. Payout Validation
-**Location:** `components/PayoutModelForm.tsx`
-*   Extract the complex validation rules (gaps, overlaps, sum-to-100) into `utils/payoutValidator.ts`.
+### 3. Split Monolithic `types.ts`
+**Problem:** 
+`types.ts` has grown to 300+ lines containing Domain Models, UI Types, Enums, and Utility types. It creates circular dependencies and makes the codebase hard to navigate.
+**Solution:**
+*   Create `types/` directory.
+*   `types/models.ts`: Core entities (Member, Tournament, Table).
+*   `types/enums.ts`: Enums (MembershipTier, PayoutModel).
+*   `types/ui.ts`: UI-specific types (ClockField, Theme).
+*   `types/api.ts`: Service response wrappers.
 
-## 4. Form State Management (Future)
-**Current State:**
-Forms (`TournamentForm`, `MemberForm`) manage state with simple `useState`. As validation rules grow (especially for Tournaments), this becomes unwieldy.
+## 🟡 Medium Priority (Maintenance & DX)
 
-**Action:**
-*   Adopt a form library (e.g., React Hook Form) or create a `useForm` hook with Zod schema validation.
+### 4. Optimize Clock Rendering
+**Problem:** 
+`ClockRunner` (in `ClocksView`) uses a `setInterval` that triggers state updates, which causes `ClockDisplay` to re-render the entire DOM tree every second. While React is fast, complex layouts with many widgets causes unnecessary layout thrashing.
+**Solution:**
+*   Memoize `ClockDisplay` components.
+*   Separate "static" widgets (shapes, images, text labels) from "dynamic" widgets (timer, blinds).
+*   Render static widgets once, and only update dynamic widgets via refs or a localized context.
+
+### 5. Form State Management
+**Problem:** 
+Forms (`TournamentForm`, `MemberForm`, `StructureForm`) use native `useState` with large objects. Validation logic is manual and interspersed with UI code.
+**Solution:**
+*   Adopt `react-hook-form` for state management.
+*   Integrate `zod` for schema definition and validation.
+*   This will standardize validation error handling and reduce boilerplate.
+
+### 6. Payout Validation Utility
+**Problem:** 
+Complex validation logic for Custom Payout Matrices (gaps, overlaps, sum-to-100) resides inside the UI component `PayoutModelForm.tsx`.
+**Solution:**
+*   Extract validation logic to `utils/payoutValidator.ts`.
+*   Add unit tests to ensure edge cases (e.g., 1-player gap, overlapping ranges) are caught correctly.
+
+## 🟢 Low Priority (Polish & Features)
+
+### 7. Lazy Loading Routes
+**Problem:** 
+All views are imported eagerly in `App.tsx`. As the bundle grows, initial load time will increase.
+**Solution:**
+*   Use `React.lazy()` and `Suspense` for top-level views (`DashboardView`, `MembersView`, etc.).
+
+### 8. Internationalization Optimization
+**Problem:** 
+`translations.ts` is a single large object loaded instantly.
+**Solution:**
+*   Split translations into separate JSON files (`en.json`, `zh.json`).
+*   Load languages asynchronously via `LanguageContext`.
+
+### 9. Theme Context Performance
+**Problem:** 
+Theme application currently writes directly to `document.documentElement.style`.
+**Solution:**
+*   While effective, moving this to a dedicated `ThemeProvider` that uses a CSS-in-JS solution or structured CSS variables via a class (e.g., `theme-dark`, `theme-custom`) might be more robust for future "Dark/Light" mode toggles beyond just color swapping.

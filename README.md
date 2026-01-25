@@ -1,108 +1,114 @@
 
-# Royal Flush Manager
+# Royal Flush Manager ♠️
 
-A premium, high-fidelity Point-of-Sale (POS) and Club Management System designed specifically for professional poker rooms. Built with **React 18**, **TypeScript**, and **Tailwind CSS**.
+A professional-grade, high-fidelity Club Management System and Point-of-Sale (POS) designed specifically for poker rooms and card clubs. Built with **React 18**, **TypeScript**, and **Tailwind CSS**.
 
-## 🌟 Key Features
-
-### 1. 📺 Advanced Digital Signage (Clocks)
-*   **WYSIWYG Editor**: A drag-and-drop canvas editor to design custom tournament screens. Support for dynamic widgets (Timer, Blinds, Antes, Players, Avg Stack), shapes, and images.
-*   **News Ticker Mode**: Create scrolling text marquees for announcements, payouts, or sponsor messages. Supports custom speeds and content.
-*   **Intelligent Table Clocks**: 
-    *   Automatically detects which tournament is running on specific tables.
-    *   **Smart Priority Logic**: Prioritizes "In Progress" games over "Registration" or "Idle" states to prevent conflicts.
-    *   **Auto-Scheduling**: Displays upcoming registration details when no live game is active.
-*   **JSON Import/Export**: Share clock layouts between devices or back them up easily.
-*   **Fullscreen Mode**: Optimized for TV displays and projectors.
-
-### 2. ♠️ Tournament Operations
-*   **Event Lifecycle**: Manage the full flow from Scheduling -> Registration -> Live Play -> Completion.
-*   **Structure Builder**: Create reusable blind structures with duration, ante types (BB Ante), and break schedules.
-*   **Payout Engine**: 
-    *   **Algorithm**: Standard ICM and ChipEV calculators.
-    *   **Custom Matrix**: Define complex payout rules (e.g., "Top 15% gets paid", "Winner Takes All").
-*   **Live Tournament Director**: 
-    *   **Chip Reconciliation**: End-of-tournament tool to verify total chips in play against the buy-in ledger before finalizing results.
-    *   **Seating Management**: Assign and track player seats per table.
-    *   **Templates**: Save frequent tournament configurations for one-click setup.
-
-### 3. 💰 Financial Point-of-Sale
-*   **Member Wallets**: Digital wallet system for every player. Track deposits, withdrawals, and current balance.
-*   **Complex Buy-ins**: Handle multi-faceted payments including:
-    *   Cash & Wallet deductions.
-    *   Discounts (Membership, Campaign, Vouchers).
-    *   Partial payments and tracking outstanding balances.
-*   **Transaction Logs**: Granular history of every financial interaction (Buy-in, Re-buy, Add-on, Payout).
-*   **Dashboard Analytics**: Real-time overview of monthly revenue, prize pools, and active player counts.
-
-### 4. 👥 Member & Floor Management
-*   **CRM**: distinct profiles, membership tiers (Bronze to Diamond), identity verification storage, and activity logs.
-*   **Floor Map**: Manage poker tables, track capacity, and toggle table status (Active/Inactive/Archived).
-*   **Role-Based Access**: 
-    *   **Admin**: Full system access.
-    *   **Operator**: Day-to-day operations (Tournaments/Tables).
-    *   **Viewer**: Read-only access for displays.
-
-### 5. 🎨 Customization & Architecture
-*   **Theming Engine**: Global appearance settings. Instantly change primary accents, background colors, and typography across the entire app via CSS variables.
-*   **Internationalization (i18n)**: Fully localized interface supporting **English** and **Chinese (Simplified)**.
-*   **Data Persistence**: robust `localStorage` service acting as a mock backend with relational data integrity.
+This application serves as a complete solution for managing members, running complex tournaments, handling financial transactions, and displaying real-time digital signage.
 
 ---
 
-## 📂 Code Structure
+## 🌟 Key Features
 
-### Core
-*   **`App.tsx`**: Main router and layout shell.
-*   **`theme.ts`**: CSS variable definitions and Tailwind utility mappings.
-*   **`types.ts`**: Comprehensive TypeScript definitions for all domain entities.
-*   **`contexts/LanguageContext.tsx`**: Context provider for localization.
+### 1. 🏆 Tournament Operations
+*   **Complete Lifecycle**: Manage events from Scheduling -> Registration -> Live Play -> Reconciliation -> Completion.
+*   **Advanced Templates**: Create reusable tournament templates with pre-defined structures, buy-ins, and clock layouts.
+*   **Live Director Tools**:
+    *   **Seating Management**: Auto-assign seats, handle table balancing, and track occupied seats.
+    *   **Chip Reconciliation**: End-of-game tools to balance total chips in play against the buy-in ledger.
+    *   **Smart Statuses**: Quick transitions for "Open Registration", "Start Clock", and "Finish".
 
-### Hooks (`/hooks`)
-*   **`useTournamentLogic.ts`**: Centralized logic for tournament data fetching, seat management, and player status updates.
-*   **`useTournamentTimer.ts`**: Decoupled engine for handling blind levels, breaks, and countdowns.
-*   **`useCanvasInteraction.ts`**: Math logic for the Clock Editor's drag-and-drop and grid snapping features.
+### 2. 💰 Financial Point-of-Sale & Wallets
+*   **Member Wallets**: Built-in digital wallet system for every player.
+    *   **Transactions**: Handle Deposits and Withdrawals with support for Cash, Bank Transfer, and Crypto.
+    *   **Audit Log**: Full transaction history per member.
+*   **Complex Buy-in Management**:
+    *   Support for Buy-ins, Re-buys, and Add-ons.
+    *   **Split Payments**: Handle partial payments via Wallet balance + Cash.
+    *   **Discounts**: Apply Membership, Voucher, or Campaign discounts dynamically.
+    *   **Outstanding Tracking**: Real-time calculation of net payable vs. paid amounts.
 
-### Services (`/services`)
-*   **`dataService.ts`**: LocalStorage ORM layer.
-*   **`tournamentService.ts`**: Pure business logic for calculating tournament results, prizes, and rankings.
-*   **`mockData.ts`**: Barrel file exporting seed data.
-*   **`seeds/`**: Split seed files for better maintainability (`clockSeeds.ts`, `memberSeeds.ts`, `pokerSeeds.ts`).
-*   **`geminiService.ts`**: AI integration layer.
+### 3. 📺 Digital Signage (Clocks)
+*   **WYSIWYG Editor**: Drag-and-drop canvas editor to design custom tournament screens.
+    *   **Widgets**: Timer, Blinds, Antes, Players, Avg Stack, Payouts, Shapes, Images, and dynamic Tickers.
+    *   **Layer Management**: Z-index control, grouping, and locking.
+*   **Smart Display System**:
+    *   **Tournament Mode**: Dedicated fullscreen clock for specific events.
+    *   **Table Mode**: Intelligent displays for individual tables that detect which tournament is currently running on them.
+    *   **Idle Screensaver**: Auto-scheduling display when no games are active.
+    *   **Wake Lock**: Prevents screens from sleeping during events.
 
-### Views (`/views`)
-*   **`DashboardView.tsx`**: Analytics and high-level KPIs.
-*   **`ClocksView.tsx`**: Hub for running Tournament Clocks, Table Clocks, and the Layout Editor.
-*   **`TournamentsView.tsx`**: Management grid for events and templates.
-*   **`MembersView.tsx`**: Member list, CRM, and Wallet access.
-*   **`StructuresView.tsx`**: Configuration for Blind Structures and Payout Models.
-*   **`SettingsView.tsx`**: Global club settings, team management, and theme customization.
+### 4. ⚙️ Structures & Logic
+*   **Blind Structure Builder**: 
+    *   Visual schedule builder with Drag-and-Drop reordering.
+    *   Support for Levels, Breaks, Small/Big Blinds, and Antes.
+    *   Estimators for tournament duration.
+*   **Payout Engine**:
+    *   **Algorithms**: Standard ICM and ChipEV calculators.
+    *   **Custom Matrices**: Define complex rules (e.g., "Top 15%", "Winner Takes All", "Final Table Only") with validation for gaps and overlaps.
 
-### Components (`/components`)
-*   **`ui/Table.tsx`**: A powerful, reusable data table component supporting sorting, column filtering (multi-select, date), and expandable detail rows.
-*   **`ClockEditor.tsx`**: Canvas-based editor for designing clock layouts.
-*   **`ClockDisplay.tsx`**: Rendering engine for clock configs (used in Editor, Previews, and Live Mode).
-*   **`TournamentDetailPanel.tsx`**: The "Run of Show" interface for active tournaments.
-*   **`BuyinMgmtModal.tsx`**: Detailed ledger for managing individual player payments.
-*   **`MemberWalletModal.tsx`**: Banking interface for member deposits/withdrawals.
-*   **`TournamentForm.tsx`**: Wizard for creating events with live clock preview.
+### 5. 👥 Membership & CRM
+*   **Member Database**: Track personal details, notes, and activity.
+*   **Tier Management**: Configurable loyalty tiers (e.g., Bronze, Silver, Gold) with custom colors and benefits.
+*   **Identity Verification**: Storage for ID/Passport numbers and photo references (Front/Back) with verification status.
+
+### 6. 🛡️ Admin & Security
+*   **RBAC (Role-Based Access Control)**: Granular permission system.
+    *   Define custom roles (e.g., Floor Manager, Dealer, Viewer).
+    *   Set View/Edit/No Access permissions per module (Dashboard, Financials, Settings, etc.).
+*   **Audit Ready**: All financial actions and tournament results are persisted.
+
+---
+
+## 🛠 Technical Architecture
+
+### Core Stack
+*   **Framework**: React 18 (Vite)
+*   **Language**: TypeScript
+*   **Styling**: Tailwind CSS + CSS Variables for theming.
+*   **Routing**: React Router DOM v6.
+*   **Icons**: Lucide React.
+
+### Data Layer (`/services`)
+*   **Persistence**: Custom `DataService` acting as a synchronous ORM over `localStorage`.
+    *   *Note*: Designed to be swappable with an async backend (Supabase/Firebase) in the future.
+*   **Seeds**: Robust seeding logic (`mockData.ts`) to populate the app with realistic test data for demos.
+
+### UI Architecture (`/components`)
+*   **Atomic Design**: Reusable base components (`Button`, `Modal`, `NumberInput`, `Table`) in `components/ui`.
+*   **Domain Modules**: Complex logic is encapsulated in domain folders:
+    *   `components/clock/`: Canvas interaction, rendering engine, and property editors.
+    *   `components/tournament/`: Detail panels, player lists, and stat footers.
+*   **Hooks**: Heavy logic extracted to custom hooks:
+    *   `useTournamentLogic`: Centralized state machine for active tournaments.
+    *   `useTournamentTimer`: Accurate countdown logic handling levels and breaks.
+    *   `useTableData`: Generic sorting, filtering, and searching for data grids.
+
+### Localization
+*   **i18n**: Built-in `LanguageContext` supporting hot-swapping between English (`en`) and Chinese (`zh`).
+
+---
 
 ## 🚀 Getting Started
 
-1.  **Install Dependencies**: 
+1.  **Install Dependencies**
     ```bash
     npm install
     ```
-2.  **Run Development Server**: 
+
+2.  **Start Development Server**
     ```bash
     npm run dev
     ```
-3.  **Reset Data**: To reset the database to its initial seed state (including sample tournaments, members, and layouts), clear your browser's Local Storage (Application -> Local Storage -> Clear) and refresh the page.
 
-## 🛠 Tech Stack
-*   **Framework**: React 18
-*   **Language**: TypeScript
-*   **Styling**: Tailwind CSS
-*   **Icons**: Lucide React
-*   **Routing**: React Router DOM
-*   **AI Integration**: Google GenAI SDK (@google/genai) - *Ready for future prediction features.*
+3.  **Initial Setup**: 
+    The app will automatically seed `localStorage` with sample data (Members, Tournaments, Structures, Layouts) on the first load. To reset, clear your browser's Local Storage.
+
+---
+
+## 🎨 Theming
+
+Global themes are handled via CSS variables defined in `index.html` and managed by `SettingsView`.
+*   **Primary Color**: `--color-brand-green`
+*   **Backgrounds**: `--color-brand-black`, `--color-brand-dark`
+*   **Typography**: Inter font family.
+

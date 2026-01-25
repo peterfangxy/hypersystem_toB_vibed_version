@@ -3,21 +3,21 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   ArrowLeft, 
   Save, 
-  Download,
+  Download, 
   Upload,
   Check,
   AlertCircle,
   Copy
 } from 'lucide-react';
-import { ClockConfig, ClockField, ClockFieldType } from '../types';
-import { THEME } from '../theme';
-import { useLanguage } from '../contexts/LanguageContext';
-import { Modal } from './ui/Modal';
-import { useCanvasInteraction } from '../hooks/useCanvasInteraction';
+import { ClockConfig, ClockField, ClockFieldType } from '../../types';
+import { THEME } from '../../theme';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { Modal } from '../ui/Modal';
+import { useCanvasInteraction } from '../../hooks/useCanvasInteraction';
 
-import ClockLayersPanel from './clock/ClockLayersPanel';
-import ClockPropertiesPanel from './clock/ClockPropertiesPanel';
-import ClockCanvas from './clock/ClockCanvas';
+import ClockLayersPanel from './ClockLayersPanel';
+import ClockPropertiesPanel from './ClockPropertiesPanel';
+import ClockCanvas from './ClockCanvas';
 
 interface ClockEditorProps {
   initialConfig?: ClockConfig;

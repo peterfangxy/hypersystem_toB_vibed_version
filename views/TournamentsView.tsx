@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, 
@@ -18,8 +19,8 @@ import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom'
 import { Tournament, TournamentStatus, TournamentStructure, PayoutStructure } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
-import TournamentForm from '../components/TournamentForm';
-import TournamentDetailPanel from '../components/TournamentDetailPanel';
+import TournamentForm from '../components/tournament/TournamentForm';
+import TournamentDetailPanel from '../components/tournament/TournamentDetailPanel';
 import { useLanguage } from '../contexts/LanguageContext';
 import { PageHeader, TabContainer, ControlBar } from '../components/ui/PageLayout';
 import StatusBadge, { StatusVariant } from '../components/ui/StatusBadge';

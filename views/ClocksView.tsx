@@ -25,8 +25,8 @@ import { Routes, Route, Navigate, NavLink, useNavigate, useParams } from 'react-
 import { ClockConfig, Tournament, TournamentRegistration, TournamentStructure, PokerTable } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
-import ClockEditor from '../components/ClockEditor';
-import ClockDisplay from '../components/ClockDisplay';
+import ClockEditor from '../components/clock/ClockEditor';
+import ClockDisplay from '../components/clock/ClockDisplay';
 import { useLanguage } from '../contexts/LanguageContext';
 import { PageHeader, TabContainer } from '../components/ui/PageLayout';
 import { useTournamentTimer } from '../hooks/useTournamentTimer';

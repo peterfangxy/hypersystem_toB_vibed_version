@@ -6,16 +6,16 @@ import {
   Loader2,
   X
 } from 'lucide-react';
-import { Tournament, RegistrationStatus, TournamentTransaction } from '../types';
-import * as DataService from '../services/dataService';
-import { THEME } from '../theme';
-import { BuyinMgmtModal, EnrichedRegistration } from './BuyinMgmtModal';
-import AddPlayerModal from './AddPlayerModal';
-import { useLanguage } from '../contexts/LanguageContext';
-import TournamentStatsFooter from './tournament/TournamentStatsFooter';
-import TournamentPlayerList from './tournament/TournamentPlayerList';
-import { useTournamentLogic } from '../hooks/useTournamentLogic';
-import { TournamentService } from '../services/tournamentService';
+import { Tournament, RegistrationStatus, TournamentTransaction } from '../../types';
+import * as DataService from '../../services/dataService';
+import { THEME } from '../../theme';
+import { BuyinMgmtModal, EnrichedRegistration } from '../BuyinMgmtModal';
+import AddPlayerModal from '../AddPlayerModal';
+import { useLanguage } from '../../contexts/LanguageContext';
+import TournamentStatsFooter from './TournamentStatsFooter';
+import TournamentPlayerList from './TournamentPlayerList';
+import { useTournamentLogic } from '../../hooks/useTournamentLogic';
+import { TournamentService } from '../../services/tournamentService';
 
 interface TournamentDetailPanelProps {
   tournament: Tournament;

@@ -12,13 +12,13 @@ import {
   Sparkles, 
   MonitorPlay
 } from 'lucide-react';
-import { Tournament, PayoutModel, TournamentStatus, PokerTable, TournamentStructure, PayoutStructure, ClockConfig } from '../types';
-import * as DataService from '../services/dataService';
-import { THEME } from '../theme';
-import { Modal } from './ui/Modal';
-import NumberInput from './ui/NumberInput';
-import { useLanguage } from '../contexts/LanguageContext';
-import ClockDisplay from './ClockDisplay';
+import { Tournament, PayoutModel, TournamentStatus, PokerTable, TournamentStructure, PayoutStructure, ClockConfig } from '../../types';
+import * as DataService from '../../services/dataService';
+import { THEME } from '../../theme';
+import { Modal } from '../ui/Modal';
+import NumberInput from '../ui/NumberInput';
+import { useLanguage } from '../../contexts/LanguageContext';
+import ClockDisplay from '../clock/ClockDisplay';
 
 interface TournamentFormProps {
   isOpen: boolean;

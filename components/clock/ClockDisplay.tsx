@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ClockConfig, ClockField } from '../types';
+import { ClockConfig, ClockField } from '../../types';
 
 interface ClockDisplayProps {
   config: ClockConfig;
