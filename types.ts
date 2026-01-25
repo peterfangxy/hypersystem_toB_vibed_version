@@ -81,7 +81,7 @@ export enum MembershipTier {
   DIAMOND = 'Diamond'
 }
 
-export type MemberStatus = 'Submitted' | 'Pending Approval' | 'Activated' | 'Deactivated';
+export type MemberStatus = 'Pending Approval' | 'Activated' | 'Deactivated';
 
 export type Gender = 'Male' | 'Female' | 'Other' | 'Prefer not to say';
 
@@ -103,6 +103,7 @@ export interface Member {
   passportNumber?: string;
   idPhotoFrontUrl?: string;
   idPhotoBackUrl?: string;
+  isIdVerified?: boolean; // New field for staff verification
 
   joinDate: string;
   tier: MembershipTier;

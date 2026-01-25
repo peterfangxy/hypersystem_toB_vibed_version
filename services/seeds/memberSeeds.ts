@@ -87,6 +87,10 @@ const generateMembers = (): Member[] => {
 
         // Random join date between Jan 1, 2022 and Today
         const joinDate = getRandomDate(new Date(2022, 0, 1), new Date());
+        
+        // New logic: 90% active, 10% pending
+        const isActive = index <= 45;
+        const status = isActive ? 'Activated' : 'Pending Approval';
 
         return {
             id,
@@ -100,7 +104,8 @@ const generateMembers = (): Member[] => {
             gender: Math.random() > 0.8 ? 'Female' : 'Male',
             joinDate: joinDate,
             tier,
-            status: index > 45 ? 'Pending Approval' : 'Activated',
+            status,
+            isIdVerified: isActive, // Active members have verified IDs
             avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
             idNumber: randomIdNumber,
             passportNumber: randomPassport,
