@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Maximize2, 
   X,
@@ -10,6 +10,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import { ClockConfig, Tournament, TournamentStructure, PokerTable } from '../../types';
 import * as DataService from '../../services/dataService';
+import { subscribe } from '../../services/broadcastService';
 import ClockDisplay from '../../components/clock/ClockDisplay';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useTournamentTimer } from '../../hooks/useTournamentTimer';
@@ -120,7 +121,7 @@ const ClockRunner = () => {
   }, [navigate, tableId]);
 
   // 1. Resolve Tournament Logic (Table vs Tournament Mode)
-  useEffect(() => {
+  const resolveTournament = useCallback(() => {
       // MODE A: Specific Tournament ID (Tournament Clock)
       if (tournamentId) {
           const t = DataService.getTournaments().find(t => t.id === tournamentId);
@@ -178,21 +179,26 @@ const ClockRunner = () => {
       }
   }, [tournamentId, tableId, navigate]);
 
-  // 2. Load Clock Data if Active
   useEffect(() => {
-    if (status !== 'active' || !activeTournament) return;
+      resolveTournament();
+  }, [resolveTournament]);
 
+  // 2. Load Clock Config & Calculate Stats
+  const updateClockData = useCallback(() => {
+    if (!activeTournament) return;
+
+    // Refresh Config (if changed)
     const allConfigs = DataService.getClockConfigs();
     const specificConfig = allConfigs.find(c => c.id === activeTournament.clockConfigId);
     const defaultConfig = allConfigs.find(c => c.isDefault);
-    // If no specific config is found, use default. If no default, use the first one available.
     setConfig(specificConfig || defaultConfig || allConfigs[0] || null);
 
+    // Refresh Structure (if changed)
     const allStructures = DataService.getTournamentStructures();
     const foundStruct = allStructures.find(s => s.id === activeTournament.structureId);
     setStructure(foundStruct || null);
 
-    // Calculate Stats
+    // Recalculate Stats (Players, Chips)
     const regs = DataService.getTournamentRegistrations(activeTournament.id).filter(r => r.status !== 'Cancelled');
     const buyIns = regs.reduce((sum, r) => sum + (r.buyInCount || 0), 0);
     const chips = buyIns * activeTournament.startingChips;
@@ -205,7 +211,50 @@ const ClockRunner = () => {
       avgStack: avg,
       prizePool: buyIns * activeTournament.buyIn
     });
-  }, [activeTournament, status]);
+  }, [activeTournament]);
+
+  // Initial Data Load
+  useEffect(() => {
+    if (status === 'active' && activeTournament) {
+        updateClockData();
+    }
+  }, [activeTournament, status, updateClockData]);
+
+  // 3. Real-time Subscription using BroadcastService
+  useEffect(() => {
+      // Subscribe to events
+      const unsubscribe = subscribe((msg) => {
+          // Case 1: Tournament data updated (e.g. paused, finished, blinds changed)
+          if (msg.type === 'TOURNAMENT_UPDATED') {
+              if (activeTournament && msg.payload.tournamentId === activeTournament.id) {
+                  // Reload tournament object
+                  const fresh = DataService.getTournaments().find(t => t.id === activeTournament.id);
+                  if (fresh) setActiveTournament(fresh);
+              } 
+              // If we are in Table Mode, a tournament update might change which one is active
+              else if (tableId) {
+                  resolveTournament();
+              }
+          }
+
+          // Case 2: Registration updated (New player, Rebuy) -> Refresh Stats
+          if (msg.type === 'REGISTRATION_UPDATED') {
+              if (activeTournament && msg.payload.tournamentId === activeTournament.id) {
+                  updateClockData();
+              }
+          }
+
+          // Case 3: Clock Layout Edited
+          if (msg.type === 'CLOCK_CONFIG_UPDATED') {
+              if (config && msg.payload.clockId === config.id) {
+                  updateClockData();
+              }
+          }
+      });
+
+      return () => unsubscribe();
+  }, [activeTournament, config, tableId, updateClockData, resolveTournament]);
+
 
   const toggleFullscreen = async () => {
       if (!document.fullscreenElement) {

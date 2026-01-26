@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Tournament, TournamentRegistration, Member, PokerTable, RegistrationStatus, TournamentTransaction } from '../types';
 import * as DataService from '../services/dataService';
+import { broadcast, subscribe } from '../services/broadcastService';
 import { EnrichedRegistration } from '../components/BuyinMgmtModal';
 
 export const useTournamentLogic = (tournament: Tournament) => {
@@ -25,7 +26,22 @@ export const useTournamentLogic = (tournament: Tournament) => {
 
     useEffect(() => {
         refresh();
-    }, [refresh]);
+        
+        // Subscribe to cross-tab updates
+        const unsubscribe = subscribe((message) => {
+            if (
+                message.type === 'REGISTRATION_UPDATED' && 
+                message.payload?.tournamentId === tournament.id
+            ) {
+                refresh();
+            }
+            if (message.type === 'TOURNAMENT_UPDATED' && message.payload?.tournamentId === tournament.id) {
+                refresh();
+            }
+        });
+
+        return () => unsubscribe();
+    }, [refresh, tournament.id]);
 
     // --- Computed Data ---
     
@@ -123,12 +139,11 @@ export const useTournamentLogic = (tournament: Tournament) => {
 
     const registerMember = (memberId: string) => {
         DataService.addRegistration(tournament.id, memberId);
-        refresh();
+        // refresh(); // Handled by broadcast listener now
     };
 
     const updateStatus = (regId: string, status: RegistrationStatus) => {
         DataService.updateRegistrationStatus(regId, status);
-        refresh();
     };
 
     const updateSeat = (regId: string, tableId: string, seatNumber: number): boolean => {
@@ -159,30 +174,25 @@ export const useTournamentLogic = (tournament: Tournament) => {
         }
 
         DataService.updateRegistrationSeat(regId, tableId, validSeat);
-        refresh();
         return true;
     };
 
     const updateChips = (regId: string, chips: number) => {
         DataService.updateRegistrationChips(regId, chips);
-        refresh();
     };
 
     const signMember = (regId: string, isSigned: boolean, signatureUrl?: string) => {
         DataService.updateRegistrationSignature(regId, isSigned, signatureUrl);
-        refresh();
     };
 
     const updateTransactions = (regId: string, transactions: TournamentTransaction[]) => {
         DataService.updateRegistrationTransactions(regId, transactions);
         const buyInCount = transactions.length;
         DataService.updateRegistrationBuyIn(regId, buyInCount);
-        refresh();
     };
 
     const removeRegistration = (regId: string) => {
         DataService.deleteRegistration(regId);
-        refresh();
     };
 
     return {
