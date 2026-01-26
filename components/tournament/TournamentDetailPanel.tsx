@@ -11,6 +11,7 @@ import * as DataService from '../../services/dataService';
 import { THEME } from '../../theme';
 import { BuyinMgmtModal, EnrichedRegistration } from '../BuyinMgmtModal';
 import AddPlayerModal from '../AddPlayerModal';
+import SignatureModal from '../SignatureModal';
 import { useLanguage } from '../../contexts/LanguageContext';
 import TournamentStatsFooter from './TournamentStatsFooter';
 import TournamentPlayerList from './TournamentPlayerList';
@@ -41,6 +42,9 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
   // Payment Modal State
   const [paymentModalReg, setPaymentModalReg] = useState<EnrichedRegistration | null>(null);
 
+  // Signing State
+  const [signingReg, setSigningReg] = useState<EnrichedRegistration | null>(null);
+
   // Processing State
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -65,6 +69,20 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
   
   const handleChipChange = (regId: string, chips: number) => {
       actions.updateChips(regId, chips);
+  };
+
+  const handleSignClick = (regId: string) => {
+      const reg = registrations.find(r => r.id === regId);
+      if (reg) {
+          setSigningReg(reg);
+      }
+  };
+
+  const handleSignatureConfirm = (signatureData: string) => {
+      if (signingReg) {
+          actions.signMember(signingReg.id, true, signatureData);
+          setSigningReg(null);
+      }
   };
 
   const handleTransactionsSave = (regId: string, transactions: TournamentTransaction[]) => {
@@ -161,6 +179,7 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
         onSeatChange={handleSeatChange}
         onStatusChange={handleStatusChange}
         onChipChange={handleChipChange}
+        onSign={handleSignClick}
         onPaymentClick={setPaymentModalReg}
         onDelete={handleDelete}
       />
@@ -192,6 +211,16 @@ const TournamentDetailPanel: React.FC<TournamentDetailPanelProps> = ({ tournamen
         tournament={tournament}
         onSave={handleTransactionsSave}
       />
+
+      {signingReg && (
+          <SignatureModal 
+              isOpen={!!signingReg}
+              onClose={() => setSigningReg(null)}
+              onConfirm={handleSignatureConfirm}
+              playerName={signingReg.member?.fullName || 'Player'}
+              chipCount={signingReg.finalChipCount || 0}
+          />
+      )}
     </div>
   );
 };

@@ -317,6 +317,19 @@ export const updateRegistrationChips = (regId: string, chips: number): void => {
     const reg = regs.find(r => r.id === regId);
     if (reg) {
         reg.finalChipCount = chips;
+        // Invalidate signature if chips are modified
+        reg.isSigned = false;
+        reg.signatureUrl = undefined;
+        setLocalData(REGISTRATIONS_KEY, regs);
+    }
+};
+
+export const updateRegistrationSignature = (regId: string, isSigned: boolean, signatureUrl?: string): void => {
+    const regs = getAllRegistrations();
+    const reg = regs.find(r => r.id === regId);
+    if (reg) {
+        reg.isSigned = isSigned;
+        if (signatureUrl) reg.signatureUrl = signatureUrl;
         setLocalData(REGISTRATIONS_KEY, regs);
     }
 };

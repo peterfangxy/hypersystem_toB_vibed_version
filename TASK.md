@@ -1,7 +1,8 @@
 
 ## TO DO (2026/01/26) 
-- complete export tab UI
+WIP - complete export tab UI
 - redesign payout model (merge algo type with matrix type?)
+DONE - tournament completion to add member signing step
 - do translations
 - update mock data to chinese
 - redesign deposit pay deduction in BuyinMgmtModal

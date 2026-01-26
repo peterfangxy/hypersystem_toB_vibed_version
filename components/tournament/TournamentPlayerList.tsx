@@ -4,7 +4,9 @@ import {
   Trophy, 
   PlayCircle, 
   Trash2, 
-  Coins 
+  Coins,
+  CheckCircle2,
+  PenTool
 } from 'lucide-react';
 import { RegistrationStatus, PokerTable } from '../../types';
 import { EnrichedRegistration } from '../BuyinMgmtModal';
@@ -22,6 +24,7 @@ interface TournamentPlayerListProps {
   onSeatChange: (regId: string, tableId: string, seatNumber: number) => void;
   onStatusChange: (regId: string, status: RegistrationStatus) => void;
   onChipChange: (regId: string, chips: number) => void;
+  onSign?: (regId: string) => void;
   onPaymentClick: (reg: EnrichedRegistration) => void;
   onDelete: (regId: string) => void;
 }
@@ -36,6 +39,7 @@ const TournamentPlayerList: React.FC<TournamentPlayerListProps> = ({
   onSeatChange,
   onStatusChange,
   onChipChange,
+  onSign,
   onPaymentClick,
   onDelete
 }) => {
@@ -165,19 +169,26 @@ const TournamentPlayerList: React.FC<TournamentPlayerListProps> = ({
 
                     {/* Chips Out Column */}
                     <td className="px-6 py-3 text-right">
-                        <NumberInput 
-                            value={reg.finalChipCount}
-                            onChange={(val) => onChipChange(reg.id, val || 0)}
-                            min={0}
-                            disabled={isLocked}
-                            size="sm"
-                            align="right"
-                            className={`w-32 ml-auto ${isLocked ? 'opacity-50' : ''}`}
-                            variant="bordered"
-                            enableScroll={false}
-                            allowEmpty={true}
-                            placeholder="0"
-                        />
+                        <div className="flex items-center justify-end gap-2">
+                            {reg.isSigned && (
+                                <div title="Signed by Member">
+                                    <CheckCircle2 size={16} className="text-brand-green animate-in zoom-in duration-200" />
+                                </div>
+                            )}
+                            <NumberInput 
+                                value={reg.finalChipCount}
+                                onChange={(val) => onChipChange(reg.id, val || 0)}
+                                min={0}
+                                disabled={isLocked}
+                                size="sm"
+                                align="right"
+                                className={`w-32 ${isLocked ? 'opacity-50' : ''}`}
+                                variant="bordered"
+                                enableScroll={false}
+                                allowEmpty={true}
+                                placeholder="0"
+                            />
+                        </div>
                      </td>
 
                     {/* Winnings Column */}
@@ -212,6 +223,16 @@ const TournamentPlayerList: React.FC<TournamentPlayerListProps> = ({
 
                         {!isLocked && (
                             <>
+                                {reg.status === 'Joined' && !reg.isSigned && onSign && (
+                                    <button 
+                                        onClick={() => onSign(reg.id)}
+                                        className="p-1.5 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 rounded-lg transition-colors"
+                                        title="Member E-Sign"
+                                    >
+                                        <PenTool size={16} />
+                                    </button>
+                                )}
+
                                 {reg.status === 'Reserved' && (
                                 <button 
                                     onClick={() => onStatusChange(reg.id, 'Joined')}

@@ -168,6 +168,11 @@ export const useTournamentLogic = (tournament: Tournament) => {
         refresh();
     };
 
+    const signMember = (regId: string, isSigned: boolean, signatureUrl?: string) => {
+        DataService.updateRegistrationSignature(regId, isSigned, signatureUrl);
+        refresh();
+    };
+
     const updateTransactions = (regId: string, transactions: TournamentTransaction[]) => {
         DataService.updateRegistrationTransactions(regId, transactions);
         const buyInCount = transactions.length;
@@ -195,6 +200,7 @@ export const useTournamentLogic = (tournament: Tournament) => {
             updateStatus,
             updateSeat,
             updateChips,
+            signMember,
             updateTransactions,
             removeRegistration
         }

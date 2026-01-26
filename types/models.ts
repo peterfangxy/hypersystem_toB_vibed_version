@@ -149,6 +149,10 @@ export interface TournamentRegistration {
   
   // Granular History
   transactions?: TournamentTransaction[];
+  
+  // Verification
+  isSigned?: boolean; // Member has confirmed final chip count
+  signatureUrl?: string; // Base64 data URL of the signature
 }
 
 export type StructureItemType = 'Level' | 'Break';
