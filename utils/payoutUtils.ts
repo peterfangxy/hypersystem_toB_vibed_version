@@ -3,6 +3,7 @@ import { PayoutRule, PayoutStructure, PayoutAllocation } from '../types';
 
 /**
  * Validates a single set of custom payout rules.
+ * Simplified to ignore player ranges (min/max checks) as we are moving to a single-distribution model.
  */
 export const validatePayoutRules = (rules: PayoutRule[], t: (key: string) => string): { isValid: boolean; error: string | null } => {
     if (rules.length === 0) {
@@ -10,48 +11,26 @@ export const validatePayoutRules = (rules: PayoutRule[], t: (key: string) => str
     }
 
     // 1. Check Distribution Sums
-    if (rules.some(r => r.percentages.reduce((a, b) => a + b, 0) !== 100)) {
-        return { isValid: false, error: t('structures.payoutForm.validation.sum') };
+    for (const rule of rules) {
+        const sum = rule.percentages.reduce((a, b) => a + b, 0);
+        if (Math.abs(sum - 100) > 0.1) {
+            return { isValid: false, error: `Total: ${Math.round(sum)}% (Must be 100%)` };
+        }
     }
 
-    // 2. Check Min/Max Validity
-    if (rules.some(r => r.minPlayers > r.maxPlayers)) {
-        return { isValid: false, error: t('structures.payoutForm.validation.minMax') };
-    }
-
-    // 3. Check Descending Payouts
+    // 2. Check Descending Payouts (Warning mostly, but good to enforce for sanity)
     for (const rule of rules) {
         for (let i = 0; i < rule.percentages.length - 1; i++) {
             if (rule.percentages[i] < rule.percentages[i+1]) {
                 return { 
                     isValid: false, 
-                    error: `${t('structures.payoutForm.validation.descending')} (${rule.minPlayers}-${rule.maxPlayers} players)` 
+                    error: `${t('structures.payoutForm.validation.descending')}` 
                 };
             }
         }
     }
 
-    // 4. Check for Gaps and Overlaps
-    const sorted = [...rules].sort((a, b) => a.minPlayers - b.minPlayers);
-    
-    for (let i = 0; i < sorted.length - 1; i++) {
-        const current = sorted[i];
-        const next = sorted[i+1];
-        
-        if (current.maxPlayers >= next.minPlayers) {
-            return { 
-                isValid: false, 
-                error: `${t('structures.payoutForm.validation.overlap')}: ${current.minPlayers}-${current.maxPlayers} / ${next.minPlayers}-${next.maxPlayers}` 
-            };
-        }
-        
-        if (current.maxPlayers + 1 !== next.minPlayers) {
-             return { 
-                 isValid: false, 
-                 error: `${t('structures.payoutForm.validation.gap')}: ${current.maxPlayers} -> ${next.minPlayers}` 
-             };
-        }
-    }
+    // Range overlap/gap checks removed as we now use a single god-range rule.
 
     return { isValid: true, error: null };
 };
@@ -65,15 +44,16 @@ const calculateSegmentDistribution = (
 ): number[] => {
     let percentages = [100]; // Default Winner Take All
 
-    if (allocation.type === 'Custom' && allocation.rules) {
-        const rule = allocation.rules.find(r => playerCount >= r.minPlayers && playerCount <= r.maxPlayers);
+    if (allocation.type === 'Custom' && allocation.rules && allocation.rules.length > 0) {
+        // Simplified Logic: Just take the first rule, ignoring player count matching
+        // In the new model, we only have one rule that applies to everyone.
+        // Fallback: If multiple rules exist (legacy data), try to find a match, else default to first.
+        const rule = allocation.rules.find(r => playerCount >= r.minPlayers && playerCount <= r.maxPlayers) || allocation.rules[0];
         if (rule) {
             percentages = [...rule.percentages];
         }
     } else if (allocation.type === 'ICM' || allocation.type === 'ChipEV') {
-        // Placeholder: In a real app, you'd pass stack sizes here for ICM. 
-        // For pre-calculation (without stacks), we default to 100% or a standard curve.
-        // We will default to 100% here as "Winner Take All" until stacks are available.
+        // Placeholder for calculator types
         return [100];
     }
 

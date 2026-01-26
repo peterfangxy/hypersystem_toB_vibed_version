@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
     Plus, Trash2, AlertCircle, CheckCircle2, Table, LayoutList, 
-    Cpu, Layers, Save, Upload, Download, Copy
+    Cpu, Layers, Save, Upload, Download, Pencil
 } from 'lucide-react';
 import { PayoutStructure, PayoutRule, PayoutType, PayoutAllocation } from '../types';
 import { THEME } from '../theme';
@@ -10,6 +10,7 @@ import { Modal } from './ui/Modal';
 import { useLanguage } from '../contexts/LanguageContext';
 import { validatePayoutRules } from '../utils/payoutUtils';
 import NumberInput from './ui/NumberInput';
+import { JsonIOModal } from './ui/JsonIOModal';
 
 interface PayoutModelFormProps {
   isOpen: boolean;
@@ -36,9 +37,6 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
   // Import/Export State
   const [isIOModalOpen, setIsIOModalOpen] = useState(false);
   const [ioMode, setIoMode] = useState<'import' | 'export'>('export');
-  const [ioJson, setIoJson] = useState('');
-  const [importError, setImportError] = useState<string | null>(null);
-  const [copySuccess, setCopySuccess] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -60,7 +58,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
             percent: 100,
             type: startType,
             color: COLORS[0],
-            rules: (startType === 'Custom' || startType === 'ICM') ? [{ minPlayers: 2, maxPlayers: 10, placesPaid: 2, percentages: [65, 35] }] : []
+            rules: (startType === 'Custom' || startType === 'ICM') ? [{ minPlayers: 0, maxPlayers: 99999, placesPaid: 3, percentages: [50, 30, 20] }] : []
         };
         setAllocations([defaultAlloc]);
         setSelectedAllocId(defaultAlloc.id);
@@ -84,7 +82,8 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
               if ((alloc.type === 'Custom' || alloc.type === 'ICM') && alloc.rules) {
                   const res = validatePayoutRules(alloc.rules, t);
                   if (!res.isValid) {
-                      error = `${alloc.name}: ${res.error}`;
+                      // Removed colon to avoid double colons (e.g. "Bonus Total: ...")
+                      error = `${alloc.name} ${res.error}`;
                       break;
                   }
               }
@@ -104,7 +103,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
           percent: remaining,
           type: 'Custom',
           color: COLORS[allocations.length % COLORS.length],
-          rules: [{ minPlayers: 2, maxPlayers: 10, placesPaid: 1, percentages: [100] }]
+          rules: [{ minPlayers: 0, maxPlayers: 99999, placesPaid: 3, percentages: [50, 30, 20] }]
       };
       setAllocations([...allocations, newAlloc]);
       setSelectedAllocId(newAlloc.id);
@@ -127,70 +126,48 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
       updateAllocation(allocId, { rules: newRules });
   };
 
-  // --- Rule Editor Helpers (Targeting selectedAllocation) ---
-  const handleAddRule = () => {
-      if (!selectedAllocation || !selectedAllocation.rules) return;
-      const rules = selectedAllocation.rules;
-      let highestMax = 1;
-      if (rules.length > 0) {
-          highestMax = Math.max(...rules.map(r => r.maxPlayers));
+  // --- Single Rule Editor Helpers (Targeting selectedAllocation) ---
+  
+  // Gets the single active rule or creates a default one
+  const getActiveRule = (): PayoutRule => {
+      if (selectedAllocation?.rules && selectedAllocation.rules.length > 0) {
+          return selectedAllocation.rules[0];
       }
-      const newMin = highestMax + 1;
-      const newMax = newMin + 9;
-      
-      updateRules(selectedAllocation.id, [
-          ...rules,
-          { minPlayers: newMin, maxPlayers: newMax, placesPaid: 1, percentages: [100] }
-      ]);
+      return { minPlayers: 0, maxPlayers: 99999, placesPaid: 3, percentages: [50, 30, 20] };
   };
 
-  const updateRuleRow = (ruleIdx: number, field: keyof PayoutRule, value: number | undefined) => {
-      if (!selectedAllocation || !selectedAllocation.rules) return;
+  const updateActiveRule = (field: keyof PayoutRule, value: number | undefined) => {
+      if (!selectedAllocation) return;
       
       const safeValue = value ?? 0;
-      const newRules = [...selectedAllocation.rules];
-      const rule = { ...newRules[ruleIdx], [field]: safeValue };
+      const rule = { ...getActiveRule(), [field]: safeValue };
       
-      // Smart Defaults logic
-      if (field === 'maxPlayers') {
-          const maxLimit = Math.min(10000, safeValue); 
-          if (rule.placesPaid > maxLimit) {
-              rule.placesPaid = maxLimit;
-              rule.percentages = rule.percentages.slice(0, rule.placesPaid);
-          }
-      }
+      // Ensure range is always wide
+      rule.minPlayers = 0;
+      rule.maxPlayers = 99999;
+
       if (field === 'placesPaid') {
           let newValue = safeValue;
-          const rangeCap = rule.maxPlayers;
           
           // Cap places paid at 50 to prevent UI issues
           if (newValue > 50) newValue = 50;
-          
-          if (newValue > rangeCap) newValue = rangeCap;
           if (newValue < 1) newValue = 1;
+          
           rule.placesPaid = newValue;
           const diff = newValue - rule.percentages.length;
           if (diff > 0) rule.percentages = [...rule.percentages, ...Array(diff).fill(0)];
           else if (diff < 0) rule.percentages = rule.percentages.slice(0, newValue);
       }
 
-      newRules[ruleIdx] = rule;
-      updateRules(selectedAllocation.id, newRules);
+      updateRules(selectedAllocation.id, [rule]);
   };
 
-  const updatePercentage = (ruleIdx: number, pctIdx: number, value: number | undefined) => {
-      if (!selectedAllocation || !selectedAllocation.rules) return;
+  const updatePercentage = (pctIdx: number, value: number | undefined) => {
+      if (!selectedAllocation) return;
       const safeValue = value ?? 0;
-      const newRules = [...selectedAllocation.rules];
-      newRules[ruleIdx].percentages[pctIdx] = safeValue;
-      updateRules(selectedAllocation.id, newRules);
-  };
-
-  const handleRemoveRule = (ruleIdx: number) => {
-      if (!selectedAllocation || !selectedAllocation.rules) return;
-      const newRules = [...selectedAllocation.rules];
-      newRules.splice(ruleIdx, 1);
-      updateRules(selectedAllocation.id, newRules);
+      const rule = { ...getActiveRule() };
+      rule.percentages[pctIdx] = safeValue;
+      updateRules(selectedAllocation.id, [rule]);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -207,49 +184,30 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
 
   // --- Import/Export Logic ---
   const handleOpenExport = () => {
-      const exportData: PayoutStructure = {
-          id: initialData?.id || crypto.randomUUID(),
-          name,
-          description,
-          allocations
-      };
-      setIoJson(JSON.stringify(exportData, null, 2));
       setIoMode('export');
-      setCopySuccess(false);
       setIsIOModalOpen(true);
   };
 
   const handleOpenImport = () => {
-      setIoJson('');
-      setImportError(null);
       setIoMode('import');
       setIsIOModalOpen(true);
   };
 
-  const handleCopyJson = () => {
-      navigator.clipboard.writeText(ioJson);
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
+  const handleImportData = (parsed: any) => {
+      setName(parsed.name || '');
+      setDescription(parsed.description || '');
+      setAllocations(parsed.allocations);
+      
+      if (parsed.allocations.length > 0) {
+          setSelectedAllocId(parsed.allocations[0].id);
+      }
   };
 
-  const handleConfirmImport = () => {
-      try {
-          const parsed = JSON.parse(ioJson);
-          if (!parsed.allocations || !Array.isArray(parsed.allocations)) {
-              throw new Error("Invalid format: missing 'allocations' array.");
-          }
-          
-          setName(parsed.name || '');
-          setDescription(parsed.description || '');
-          setAllocations(parsed.allocations);
-          
-          if (parsed.allocations.length > 0) {
-              setSelectedAllocId(parsed.allocations[0].id);
-          }
-          setIsIOModalOpen(false);
-      } catch (e) {
-          setImportError((e as Error).message);
+  const validateImport = (data: any): string | null => {
+      if (!data.allocations || !Array.isArray(data.allocations)) {
+          return "Invalid format: missing 'allocations' array.";
       }
+      return null;
   };
 
   const modalHeaderTitle = (
@@ -298,6 +256,18 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
       </div>
   );
 
+  const exportData: PayoutStructure = {
+      id: initialData?.id || crypto.randomUUID(),
+      name,
+      description,
+      allocations
+  };
+
+  // Helper for single rule rendering
+  const activeRule = selectedAllocation && (selectedAllocation.type === 'Custom' || selectedAllocation.type === 'ICM') ? getActiveRule() : null;
+  const totalPct = activeRule ? activeRule.percentages.reduce((a, b) => a + b, 0) : 0;
+  const isBalanced = Math.abs(totalPct - 100) < 0.1;
+
   return (
     <>
         <Modal
@@ -308,7 +278,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
         >
         <form onSubmit={handleSubmit} className="flex flex-col h-[85vh] overflow-hidden">
                 
-                {/* 1. Custom Toolbar (Cleaned up) */}
+                {/* 1. Custom Toolbar */}
                 <div className="p-4 bg-[#151515] border-b border-[#222] shrink-0 flex items-center justify-between gap-4">
                     
                     <div className="flex-1 flex gap-4 items-center">
@@ -372,7 +342,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
                                     className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center gap-3 relative ${
                                         selectedAllocId === alloc.id 
                                         ? 'bg-[#222] border-brand-green text-white shadow-md' 
-                                        : 'bg-[#151515] border-[#333] text-gray-400 hover:border-gray-500'
+                                        : 'bg-[#151515] border-[#333] text-gray-400 hover:border-gray-500 hover:text-white'
                                     }`}
                                 >
                                     <div className="flex flex-col gap-1 w-16 shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -393,14 +363,9 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
                                         <div className="text-[10px] font-bold uppercase tracking-wider opacity-70 mb-0.5">
                                             {alloc.type === 'Custom' ? 'Direct' : alloc.type}
                                         </div>
-                                        <input 
-                                            type="text"
-                                            value={alloc.name}
-                                            onChange={(e) => updateAllocation(alloc.id, { name: e.target.value })}
-                                            className="w-full bg-transparent text-sm font-bold outline-none truncate placeholder:text-gray-600"
-                                            placeholder="Name"
-                                            onClick={(e) => e.stopPropagation()} // Focus input, don't trigger select
-                                        />
+                                        <div className="text-sm font-bold truncate">
+                                            {alloc.name}
+                                        </div>
                                     </div>
                                     
                                     {allocations.length > 1 && (
@@ -421,162 +386,112 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
                     <div className="flex-1 bg-[#111] flex flex-col min-w-0">
                         {selectedAllocation ? (
                             <div className="flex flex-col h-full">
-                                {/* Config Header - Just Type Selector */}
-                                <div className="p-3 border-b border-[#222] bg-[#151515] flex items-center justify-between shrink-0">
-                                    <div className="flex items-center gap-2">
-                                        <Layers size={16} className="text-brand-green" />
-                                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Method</span>
-                                    </div>
-                                    <div className="flex bg-[#111] p-1 rounded-lg border border-[#333]">
-                                        {['Custom', 'ICM', 'ChipEV'].map(t => (
-                                            <button 
-                                                key={t}
-                                                type="button"
-                                                onClick={() => {
-                                                    // Initialize rules if switching to Matrix-based types
-                                                    const updates: Partial<PayoutAllocation> = { type: t as PayoutType };
-                                                    if ((t === 'Custom' || t === 'ICM') && (!selectedAllocation.rules || selectedAllocation.rules.length === 0)) {
-                                                        updates.rules = [{ minPlayers: 2, maxPlayers: 10, placesPaid: 2, percentages: [65, 35] }];
-                                                    }
-                                                    updateAllocation(selectedAllocation.id, updates);
-                                                }}
-                                                className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${
-                                                    selectedAllocation.type === t
-                                                    ? 'bg-brand-green/20 text-brand-green shadow-sm'
-                                                    : 'text-gray-500 hover:text-white hover:bg-[#222]'
-                                                }`}
-                                            >
-                                                {t === 'Custom' ? 'Direct' : t}
-                                            </button>
-                                        ))}
+                                {/* Consolidated Header: Name, Method, Places Paid */}
+                                <div className="p-5 border-b border-[#222] bg-[#151515] shrink-0">
+                                    <div className="flex items-center justify-between gap-6">
+                                        
+                                        {/* Name Input */}
+                                        <div className="flex-1">
+                                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                                                <Pencil size={12} /> Allocation Name
+                                            </label>
+                                            <input 
+                                                type="text" 
+                                                value={selectedAllocation.name}
+                                                onChange={(e) => updateAllocation(selectedAllocation.id, { name: e.target.value })}
+                                                className="bg-transparent text-2xl font-bold text-white outline-none w-full placeholder:text-gray-600 border-b border-transparent focus:border-brand-green/50 pb-1 transition-all"
+                                                placeholder="e.g. Main Pot"
+                                            />
+                                        </div>
+
+                                        {/* Controls Group */}
+                                        <div className="flex items-end gap-4">
+                                            {/* Method Switcher */}
+                                            <div>
+                                                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">
+                                                    Method
+                                                </label>
+                                                <div className="flex bg-[#111] p-1 rounded-lg border border-[#333]">
+                                                    {['Custom', 'ICM', 'ChipEV'].map(t => (
+                                                        <button 
+                                                            key={t}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                // Initialize rules if switching to Matrix-based types
+                                                                const updates: Partial<PayoutAllocation> = { type: t as PayoutType };
+                                                                if ((t === 'Custom' || t === 'ICM') && (!selectedAllocation.rules || selectedAllocation.rules.length === 0)) {
+                                                                    updates.rules = [{ minPlayers: 0, maxPlayers: 99999, placesPaid: 3, percentages: [50, 30, 20] }];
+                                                                }
+                                                                updateAllocation(selectedAllocation.id, updates);
+                                                            }}
+                                                            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+                                                                selectedAllocation.type === t
+                                                                ? 'bg-brand-green/20 text-brand-green shadow-sm'
+                                                                : 'text-gray-500 hover:text-white hover:bg-[#222]'
+                                                            }`}
+                                                        >
+                                                            {t === 'Custom' ? 'Direct' : t}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Places Paid Input (Conditional) */}
+                                            {(selectedAllocation.type === 'Custom' || selectedAllocation.type === 'ICM') && activeRule && (
+                                                <div>
+                                                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">
+                                                        Places Paid
+                                                    </label>
+                                                    <div className="w-24">
+                                                        <NumberInput 
+                                                            value={activeRule.placesPaid}
+                                                            onChange={(val) => updateActiveRule('placesPaid', val)}
+                                                            min={1}
+                                                            max={50} 
+                                                            size="md"
+                                                            align="center"
+                                                            className="w-full border border-[#333] rounded-xl bg-[#1A1A1A] text-brand-green font-bold"
+                                                            variant="filled"
+                                                            enableScroll={false}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* Specific Logic Editor */}
-                                <div className="flex-1 overflow-y-auto p-6">
-                                    {selectedAllocation.type === 'Custom' || selectedAllocation.type === 'ICM' ? (
-                                        <>
-                                            <div className="flex justify-between items-center mb-6">
-                                                <div className="flex flex-col">
-                                                    <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                                                        <Table size={16} className="text-gray-500" /> 
-                                                        {selectedAllocation.type === 'ICM' ? 'ICM Target Payouts' : 'Direct Payouts'}
-                                                    </h3>
+                                {/* Specific Logic Editor (Grid) */}
+                                <div className="flex-1 overflow-y-auto p-6 bg-[#111]">
+                                    {(selectedAllocation.type === 'Custom' || selectedAllocation.type === 'ICM') && activeRule ? (
+                                        <div>
+                                            {activeRule.placesPaid > 50 ? (
+                                                <div className="text-sm text-gray-500 italic py-10 text-center border border-dashed border-[#333] rounded-xl">
+                                                    Distribution configuration hidden for &gt; 50 places to maintain performance.
                                                 </div>
-                                                <button 
-                                                    type="button"
-                                                    onClick={handleAddRule}
-                                                    className="px-3 py-1.5 bg-[#222] hover:bg-[#333] text-brand-green border border-brand-green/20 hover:border-brand-green/50 rounded-lg text-xs font-bold flex items-center gap-2 transition-all"
-                                                >
-                                                    <Plus size={14} /> Add Range
-                                                </button>
-                                            </div>
-
-                                            <div className="space-y-4">
-                                                {(selectedAllocation.rules || []).map((rule, idx) => {
-                                                    const totalPct = rule.percentages.reduce((a, b) => a + b, 0);
-                                                    const isBalanced = Math.abs(totalPct - 100) < 0.1;
-                                                    const isPlacesPaidCapped = rule.placesPaid > 50;
-                                                    
-                                                    return (
-                                                        <div key={idx} className={`p-4 rounded-xl border ${isBalanced ? 'border-[#333]' : 'border-red-900/50 bg-red-900/5'} bg-[#1A1A1A] relative group`}>
-                                                            <div className="grid grid-cols-12 gap-4 items-start">
-                                                                {/* Range */}
-                                                                <div className="col-span-3 space-y-1">
-                                                                    <label className="text-[10px] font-bold text-gray-500 uppercase">Players</label>
-                                                                    <div className="flex items-center gap-2">
-                                                                        <NumberInput 
-                                                                            value={rule.minPlayers}
-                                                                            onChange={(val) => updateRuleRow(idx, 'minPlayers', val)}
-                                                                            min={2}
-                                                                            size="sm"
-                                                                            align="center"
-                                                                            className="w-full border border-[#333] rounded-lg bg-[#222]"
-                                                                            variant="transparent"
-                                                                            enableScroll={false}
-                                                                        />
-                                                                        <span className="text-gray-500">-</span>
-                                                                        <NumberInput 
-                                                                            value={rule.maxPlayers}
-                                                                            onChange={(val) => updateRuleRow(idx, 'maxPlayers', val)}
-                                                                            min={rule.minPlayers}
-                                                                            size="sm"
-                                                                            align="center"
-                                                                            className="w-full border border-[#333] rounded-lg bg-[#222]"
-                                                                            variant="transparent"
-                                                                            enableScroll={false}
-                                                                        />
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* Places */}
-                                                                <div className="col-span-2 space-y-1">
-                                                                    <label className="text-[10px] font-bold text-gray-500 uppercase">Places Paid</label>
-                                                                    <NumberInput 
-                                                                        value={rule.placesPaid}
-                                                                        onChange={(val) => updateRuleRow(idx, 'placesPaid', val)}
-                                                                        min={1}
-                                                                        max={50} // Cap at 50
-                                                                        size="sm"
-                                                                        align="center"
-                                                                        className="w-full border border-[#333] rounded-lg bg-[#222] text-brand-green font-bold"
-                                                                        variant="transparent"
-                                                                        enableScroll={false}
-                                                                    />
-                                                                </div>
-
-                                                                {/* Percentages */}
-                                                                <div className="col-span-7 space-y-1">
-                                                                    <div className="flex justify-between pr-8">
-                                                                        <label className="text-[10px] font-bold text-gray-500 uppercase">Distribution %</label>
-                                                                        <span className={`text-[10px] font-bold ${isBalanced ? 'text-green-500' : 'text-red-500'}`}>
-                                                                            Total: {Math.round(totalPct)}%
-                                                                        </span>
-                                                                    </div>
-                                                                    
-                                                                    {isPlacesPaidCapped ? (
-                                                                        <div className="text-[10px] text-gray-500 italic py-2">
-                                                                            Distribution configuration hidden for &gt; 50 places to maintain performance.
-                                                                        </div>
-                                                                    ) : (
-                                                                        <div className="flex flex-wrap gap-2">
-                                                                            {rule.percentages.map((pct, pIdx) => (
-                                                                                <div key={pIdx} className="relative w-16">
-                                                                                    <NumberInput 
-                                                                                        value={pct}
-                                                                                        onChange={(val) => updatePercentage(idx, pIdx, val)}
-                                                                                        size="sm"
-                                                                                        align="center"
-                                                                                        className={`w-full border rounded-lg bg-[#222] ${!isBalanced ? 'border-red-500/50' : 'border-[#333]'}`}
-                                                                                        variant="transparent"
-                                                                                        enableScroll={false}
-                                                                                        allowEmpty={true}
-                                                                                    />
-                                                                                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] text-gray-500 bg-[#1A1A1A] px-1 pointer-events-none">{pIdx + 1}st</span>
-                                                                                </div>
-                                                                            ))}
-                                                                        </div>
-                                                                    )}
-                                                                </div>
+                                            ) : (
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                                    {activeRule.percentages.map((pct, pIdx) => (
+                                                        <div key={pIdx} className="relative group">
+                                                            <div className="absolute -top-2.5 left-3 text-[9px] font-bold text-gray-500 bg-[#111] px-1.5 z-10">
+                                                                {pIdx + 1}{['st','nd','rd'][pIdx] || 'th'}
                                                             </div>
-                                                            <button 
-                                                                type="button"
-                                                                onClick={() => handleRemoveRule(idx)}
-                                                                className="absolute top-1/2 right-2 -translate-y-1/2 text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-2 hover:bg-[#111] rounded-lg"
-                                                            >
-                                                                <Trash2 size={16} />
-                                                            </button>
+                                                            <NumberInput 
+                                                                value={pct}
+                                                                onChange={(val) => updatePercentage(pIdx, val)}
+                                                                size="lg"
+                                                                align="center"
+                                                                suffix="%"
+                                                                className={`w-full border rounded-xl bg-[#1A1A1A] font-bold text-lg ${!isBalanced ? 'border-red-500/30' : 'border-[#333] group-hover:border-gray-500'} focus-within:border-brand-green focus-within:bg-[#222] transition-all`}
+                                                                variant="filled"
+                                                                enableScroll={false}
+                                                                allowEmpty={true}
+                                                            />
                                                         </div>
-                                                    );
-                                                })}
-                                                {(!selectedAllocation.rules || selectedAllocation.rules.length === 0) && (
-                                                    <div className="text-center py-10 text-gray-500 border border-dashed border-[#333] rounded-xl">
-                                                        <LayoutList size={32} className="mx-auto mb-2 opacity-50"/>
-                                                        <p>{t('structures.payoutForm.noRules')}</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
                                     ) : (
                                         <div className="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-50 pb-20">
                                             <Cpu size={48} />
@@ -601,71 +516,16 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
             </form>
         </Modal>
 
-        {/* Import/Export Modal */}
-        <Modal
+        {/* Use the Reusable JsonIOModal */}
+        <JsonIOModal 
             isOpen={isIOModalOpen}
             onClose={() => setIsIOModalOpen(false)}
+            mode={ioMode}
+            exportData={ioMode === 'export' ? exportData : undefined}
+            onImport={handleImportData}
+            validate={validateImport}
             title={ioMode === 'export' ? "Export Payout Model" : "Import Payout Model"}
-            size="xl"
-            zIndex={200}
-        >
-            <div className="p-6 flex flex-col h-[500px]">
-                {ioMode === 'export' && (
-                    <div className="mb-4 text-sm text-gray-400">
-                        Copy this JSON to save your payout model or share it with others.
-                    </div>
-                )}
-                {ioMode === 'import' && (
-                    <div className="mb-4 text-sm text-gray-400">
-                        Paste a valid JSON configuration below to load it into the editor.
-                    </div>
-                )}
-                
-                <textarea 
-                    value={ioJson}
-                    onChange={(e) => { setIoJson(e.target.value); setImportError(null); }}
-                    readOnly={ioMode === 'export'}
-                    className={`flex-1 bg-[#111] border rounded-xl p-4 font-mono text-xs text-gray-300 outline-none resize-none mb-4 ${importError ? 'border-red-500' : 'border-[#333] focus:border-brand-green'}`}
-                    placeholder={ioMode === 'import' ? 'Paste JSON here...' : ''}
-                />
-
-                {importError && (
-                    <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2 text-red-400 text-xs">
-                        <AlertCircle size={16} />
-                        {importError}
-                    </div>
-                )}
-
-                <div className="flex justify-end gap-3">
-                    <button 
-                        type="button"
-                        onClick={() => setIsIOModalOpen(false)}
-                        className="px-4 py-2 rounded-xl text-sm font-bold text-gray-400 hover:text-white hover:bg-[#222] transition-colors"
-                    >
-                        Cancel
-                    </button>
-                    
-                    {ioMode === 'export' ? (
-                        <button 
-                            type="button"
-                            onClick={handleCopyJson}
-                            className={`px-6 py-2 rounded-xl font-bold flex items-center gap-2 transition-all ${copySuccess ? 'bg-green-500 text-white' : THEME.buttonPrimary}`}
-                        >
-                            {copySuccess ? <CheckCircle2 size={18} /> : <Copy size={18} />}
-                            {copySuccess ? "Copied!" : "Copy to Clipboard"}
-                        </button>
-                    ) : (
-                        <button 
-                            type="button"
-                            onClick={handleConfirmImport}
-                            className={`${THEME.buttonPrimary} px-6 py-2 rounded-xl font-bold flex items-center gap-2`}
-                        >
-                            <Upload size={18} /> Import
-                        </button>
-                    )}
-                </div>
-            </div>
-        </Modal>
+        />
     </>
   );
 };

@@ -23,7 +23,7 @@ export const SEED_STRUCTURES: TournamentStructure[] = [
         id: 'struct_turbo',
         name: 'Turbo Daily (BB Ante)',
         startingChips: 20000,
-        rebuyLimit: 3,
+        rebuyLimit: 1,
         lastRebuyLevel: 6,
         items: [
             { type: 'Level', duration: 15, smallBlind: 100, bigBlind: 200, ante: 200, level: 1 },
@@ -218,153 +218,143 @@ export const SEED_PAYOUTS: PayoutStructure[] = [
     }
 ];
 
-const EXISTING_TOURNAMENTS: Tournament[] = [
-    {
-        id: 'evt-2023-0841',
-        name: 'Friday Night Turbo',
-        startDate: getLocalDate(0),
-        startTime: '19:00',
-        estimatedDurationMinutes: 240,
-        buyIn: 100,
-        fee: 20,
-        maxPlayers: 45,
-        startingChips: 20000,
+// --- TOURNAMENT GENERATION LOGIC ---
+
+const TEMPLATES = [
+    { name: 'Daily Turbo', buyIn: 50, fee: 10, struct: 'struct_turbo', payout: 'algo_1', chips: 20000, duration: 240 },
+    { name: 'Deepstack Weekend', buyIn: 150, fee: 25, struct: 'struct_deep', payout: 'algo_icm', chips: 50000, duration: 480 },
+    { name: 'Bounty Hunter', buyIn: 80, fee: 20, struct: 'struct_turbo', payout: 'algo_1', chips: 15000, duration: 240 },
+    { name: 'PLO Pot Limit', buyIn: 100, fee: 15, struct: 'struct_deep', payout: 'algo_1', chips: 25000, duration: 360 },
+    { name: 'Freezeout', buyIn: 200, fee: 30, struct: 'struct_deep', payout: 'algo_1', chips: 30000, duration: 420 },
+];
+
+const generateMockTournaments = (): Tournament[] => {
+    const list: Tournament[] = [];
+    const completedCount = 20;
+    
+    // 1. Generate 20 Completed Tournaments (Spread over last 14 days)
+    for (let i = 0; i < completedCount; i++) {
+        // Distribute i from 0 to 19 over 0 to 14 days
+        const daysAgo = Math.floor((i / completedCount) * 14);
+        const template = TEMPLATES[i % TEMPLATES.length];
+        
+        list.push({
+            id: `hist-evt-${i}`,
+            name: template.name,
+            startDate: getLocalDate(-daysAgo),
+            startTime: i % 2 === 0 ? '19:00' : '14:00',
+            estimatedDurationMinutes: template.duration,
+            buyIn: template.buyIn,
+            fee: template.fee,
+            maxPlayers: 50 + (i * 2),
+            startingChips: template.chips,
+            startingBlinds: '100/200',
+            blindLevelMinutes: 20,
+            blindIncreasePercent: 20,
+            rebuyLimit: template.name.includes('Freezeout') ? 0 : 1,
+            lastRebuyLevel: 6,
+            payoutModel: PayoutModel.FIXED,
+            structureId: template.struct,
+            payoutStructureId: template.payout,
+            clockConfigId: 'default_clock',
+            status: 'Completed',
+            description: `Historical event data for ${template.name}`,
+            tableIds: ['t1', 't2', 't3']
+        });
+    }
+
+    // 2. Generate 3 Scheduled Tournaments (Future)
+    const futureTemplates = [TEMPLATES[0], TEMPLATES[1], TEMPLATES[4]]; // Turbo, Deepstack, Freezeout
+    futureTemplates.forEach((tpl, idx) => {
+        const daysForward = idx === 0 ? 1 : idx === 1 ? 3 : 7;
+        list.push({
+            id: `sch-evt-${idx}`,
+            name: `Upcoming: ${tpl.name}`,
+            startDate: getLocalDate(daysForward),
+            startTime: '18:00',
+            estimatedDurationMinutes: tpl.duration,
+            buyIn: tpl.buyIn,
+            fee: tpl.fee,
+            maxPlayers: 60,
+            startingChips: tpl.chips,
+            startingBlinds: '100/200',
+            blindLevelMinutes: 20,
+            blindIncreasePercent: 20,
+            rebuyLimit: tpl.name.includes('Freezeout') ? 0 : 1,
+            lastRebuyLevel: 6,
+            payoutModel: PayoutModel.FIXED,
+            structureId: tpl.struct,
+            payoutStructureId: tpl.payout,
+            clockConfigId: 'default_clock',
+            status: 'Scheduled',
+            description: 'Register now for this upcoming event.',
+            tableIds: ['t1', 't2']
+        });
+    });
+
+    // 3. Generate 2 In-Progress "Test" Tournaments (Live)
+    // Dynamic Time Calculation for "Now"
+    const now = new Date();
+    // Helper to format time HH:mm 24h format
+    const formatTime = (d: Date) => d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false});
+    
+    const startTimeHyper = new Date(now.getTime() - 15 * 60000); // 15 mins ago
+    const startTimeBreaks = new Date(now.getTime() - 45 * 60000); // 45 mins ago
+
+    // Tournament A: Hyper Turbo Test
+    list.push({
+        id: 'live-test-hyper',
+        name: 'LIVE TEST: Hyper Turbo',
+        startDate: getLocalDate(0), // Today
+        startTime: formatTime(startTimeHyper), 
+        estimatedDurationMinutes: 60,
+        buyIn: 1000,
+        fee: 0,
+        maxPlayers: 9,
+        startingChips: 5000,
         startingBlinds: '100/200',
-        blindLevelMinutes: 15,
-        blindIncreasePercent: 20,
-        rebuyLimit: 1,
-        lastRebuyLevel: 6,
-        payoutModel: PayoutModel.FIXED,
-        structureId: 'struct_turbo',
+        blindLevelMinutes: 1,
+        blindIncreasePercent: 50,
+        rebuyLimit: 3, // Changed from 99
+        lastRebuyLevel: 6, // Changed from 99
+        payoutModel: PayoutModel.CHIP_EV,
+        structureId: 'struct_test_1min',
         payoutStructureId: 'algo_1',
         clockConfigId: 'default_clock',
-        status: 'Scheduled',
-        description: 'Fast paced action with BB Ante from level 1.',
-        tableIds: ['t1', 't2', 't3']
-    },
-    {
-        id: 'evt-2023-0842',
-        name: 'Sunday Deepstack',
-        startDate: getLocalDate(2), // 2 days from now
-        startTime: '14:00',
-        estimatedDurationMinutes: 480,
-        buyIn: 250,
-        fee: 30,
-        maxPlayers: 100,
-        startingChips: 50000,
-        startingBlinds: '50/100',
-        blindLevelMinutes: 40,
-        blindIncreasePercent: 15,
-        rebuyLimit: 0,
-        lastRebuyLevel: 8,
-        payoutModel: PayoutModel.FIXED,
-        structureId: 'struct_deep',
-        payoutStructureId: 'algo_icm',
-        clockConfigId: 'default_clock',
-        status: 'Scheduled',
-        description: 'Deep structure with 40min levels. Great value.',
-        tableIds: ['t1', 't2', 't3', 't4']
-    },
-    {
-        id: 'evt-2023-0845',
-        name: 'Wednesday Rebuy Madness',
-        startDate: getLocalDate(5), // 5 days from now
-        startTime: '19:30',
-        estimatedDurationMinutes: 180,
-        buyIn: 50,
-        fee: 10,
-        maxPlayers: 30,
+        status: 'In Progress',
+        description: 'Test Environment: 1 minute levels to test clock transitions.',
+        tableIds: ['t1']
+    });
+
+    // Tournament B: Break Test
+    list.push({
+        id: 'live-test-breaks',
+        name: 'LIVE TEST: Breaks Logic',
+        startDate: getLocalDate(0), // Today
+        startTime: formatTime(startTimeBreaks),
+        estimatedDurationMinutes: 120,
+        buyIn: 500,
+        fee: 0,
+        maxPlayers: 18,
         startingChips: 10000,
         startingBlinds: '100/200',
-        blindLevelMinutes: 10,
-        blindIncreasePercent: 25,
-        rebuyLimit: 99, // Unlimited
-        lastRebuyLevel: 6,
-        payoutModel: PayoutModel.FIXED,
-        structureId: 'struct_turbo',
-        payoutStructureId: 'custom_split_1',
-        clockConfigId: 'default_clock',
-        status: 'Scheduled',
-        description: 'Unlimited rebuys for the first hour.',
-        tableIds: ['t2', 't3']
-    },
-    {
-        id: 'evt-2023-0900',
-        name: 'High Roller Championship',
-        startDate: getLocalDate(14),
-        startTime: '16:00',
-        estimatedDurationMinutes: 600,
-        buyIn: 2500,
-        fee: 200,
-        maxPlayers: 64,
-        startingChips: 100000,
-        startingBlinds: '500/1000',
-        blindLevelMinutes: 60,
-        blindIncreasePercent: 10,
+        blindLevelMinutes: 1,
+        blindIncreasePercent: 20,
         rebuyLimit: 0,
-        lastRebuyLevel: 8,
-        payoutModel: PayoutModel.ICM,
-        structureId: 'struct_deep',
-        payoutStructureId: 'algo_icm',
+        lastRebuyLevel: 0,
+        payoutModel: PayoutModel.FIXED,
+        structureId: 'struct_test_breaks',
+        payoutStructureId: 'algo_1',
         clockConfigId: 'clock_light',
-        status: 'Scheduled',
-        description: 'The big one. 100k starting stack, 60min levels.',
-        tableIds: ['t1', 't2', 't3', 't4', 't5']
-    }
-];
+        status: 'In Progress',
+        description: 'Test Environment: Alternating levels and breaks.',
+        tableIds: ['t2', 't3']
+    });
 
-const generatePastTournaments = (): Tournament[] => {
-    const templates = [
-        { name: 'Daily Turbo', buyIn: 50, fee: 10, struct: 'struct_turbo' },
-        { name: 'Deepstack', buyIn: 120, fee: 20, struct: 'struct_deep' },
-        { name: 'Bounty Hunter', buyIn: 80, fee: 20, struct: 'struct_turbo' },
-        { name: 'PLO Night', buyIn: 100, fee: 15, struct: 'struct_deep' },
-    ];
-
-    const pastTournaments: Tournament[] = [];
-    
-    // Generate for the last 14 days
-    for (let i = 1; i <= 14; i++) {
-        const dateStr = getLocalDate(-i);
-        // Create 2 tournaments per day on average
-        const numEvents = i % 7 === 0 ? 3 : 2; 
-
-        for (let j = 0; j < numEvents; j++) {
-            const template = templates[(i + j) % templates.length];
-            // 5 Cancelled tournaments total approx
-            const isCancelled = (i * j) % 7 === 6 && pastTournaments.length < 5; 
-            
-            pastTournaments.push({
-                id: `past-evt-${i}-${j}`,
-                name: `${template.name} - ${new Date(dateStr).toLocaleDateString(undefined, {month:'short', day:'numeric'})}`,
-                startDate: dateStr,
-                startTime: j === 0 ? '14:00' : '19:00',
-                estimatedDurationMinutes: 240,
-                buyIn: template.buyIn,
-                fee: template.fee,
-                maxPlayers: 50,
-                startingChips: 15000,
-                startingBlinds: '100/200',
-                blindLevelMinutes: 20,
-                blindIncreasePercent: 20,
-                rebuyLimit: 1,
-                lastRebuyLevel: 6,
-                payoutModel: PayoutModel.FIXED,
-                structureId: template.struct,
-                payoutStructureId: 'algo_1',
-                clockConfigId: 'default_clock',
-                status: isCancelled ? 'Cancelled' : 'Completed',
-                tableIds: ['t1', 't2', 't3']
-            });
-        }
-    }
-    return pastTournaments;
+    return list;
 };
 
-export const SEED_TOURNAMENTS: Tournament[] = [
-    ...EXISTING_TOURNAMENTS,
-    ...generatePastTournaments()
-];
+export const SEED_TOURNAMENTS: Tournament[] = generateMockTournaments();
 
 export const SEED_TEMPLATES: Tournament[] = [
     {
