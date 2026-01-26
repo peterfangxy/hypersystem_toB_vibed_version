@@ -20,7 +20,7 @@ const generateRegistrations = (): TournamentRegistration[] => {
         let playerCount = isTest ? 8 : (10 + Math.floor(Math.random() * 30));
         
         // Specific Override for the Breaks Test Case
-        if (tournament.id === 'live-test-breaks') {
+        if (tournament.id === 'live-test-breaks' || tournament.id === 'live-test-breaks-split') {
             playerCount = TEST_CHIPS_OUT.length;
         }
         
@@ -51,7 +51,7 @@ const generateRegistrations = (): TournamentRegistration[] => {
             let buyInCount = (tournament.rebuyLimit > 0 && Math.random() > 0.7) ? 2 : 1;
             
             // Override for Test Case: Single Buy-in to ensure Prize Pool matches exactly
-            if (tournament.id === 'live-test-breaks') {
+            if (tournament.id === 'live-test-breaks' || tournament.id === 'live-test-breaks-split') {
                 buyInCount = 1;
             }
 
@@ -98,7 +98,7 @@ const generateRegistrations = (): TournamentRegistration[] => {
                 // Winner gets most, others get 0
                 finalChips = rank === 1 ? (playerCount * tournament.startingChips * 1.5) : 0;
             } else if (tournament.status === 'In Progress') {
-                if (tournament.id === 'live-test-breaks') {
+                if (tournament.id === 'live-test-breaks' || tournament.id === 'live-test-breaks-split') {
                     // Apply Specific Test Stack
                     finalChips = TEST_CHIPS_OUT[index] !== undefined ? TEST_CHIPS_OUT[index] : 0;
                 } else {

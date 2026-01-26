@@ -179,7 +179,7 @@ export const SEED_PAYOUTS: PayoutStructure[] = [
     },
     { 
         id: 'algo_icm', 
-        name: 'ICM Calculator', 
+        name: 'ICM (Winner Takes All)', 
         description: 'Calculates equity based on stack sizes.', 
         isSystemDefault: true,
         allocations: [
@@ -188,7 +188,10 @@ export const SEED_PAYOUTS: PayoutStructure[] = [
                 name: 'Main Prize Pool',
                 percent: 100,
                 type: 'ICM',
-                color: '#a855f7'
+                color: '#a855f7',
+                rules: [
+                    { minPlayers: 2, maxPlayers: 9, placesPaid: 2, percentages: [100, 0] }
+                ]
             }
         ]
     },
@@ -202,7 +205,10 @@ export const SEED_PAYOUTS: PayoutStructure[] = [
                 name: 'Main Pool (ICM)',
                 percent: 95,
                 type: 'ICM',
-                color: '#3b82f6'
+                color: '#3b82f6',
+                rules: [
+                    { minPlayers: 2, maxPlayers: 99, placesPaid: 1, percentages: [100] }
+                ]
             },
             {
                 id: 'alloc_split_1_hh',
@@ -211,7 +217,7 @@ export const SEED_PAYOUTS: PayoutStructure[] = [
                 type: 'Custom',
                 color: '#eab308',
                 rules: [
-                    { minPlayers: 2, maxPlayers: 1000, placesPaid: 1, percentages: [100] }
+                    { minPlayers: 2, maxPlayers: 1000, placesPaid: 3, percentages: [50, 30, 20] }
                 ]
             }
         ]
@@ -342,13 +348,38 @@ const generateMockTournaments = (): Tournament[] => {
         blindIncreasePercent: 20,
         rebuyLimit: 0,
         lastRebuyLevel: 0,
-        payoutModel: PayoutModel.FIXED,
+        payoutModel: PayoutModel.ICM,
         structureId: 'struct_test_breaks',
-        payoutStructureId: 'algo_1',
+        payoutStructureId: 'algo_icm',
         clockConfigId: 'clock_light',
         status: 'In Progress',
         description: 'Test Environment: Alternating levels and breaks.',
         tableIds: ['t2', 't3']
+    });
+
+    // Tournament C: Split Payout Test
+    list.push({
+        id: 'live-test-breaks-split',
+        name: 'TEST: 1min + Break (Split Payout)',
+        startDate: getLocalDate(0), // Today
+        startTime: formatTime(startTimeBreaks),
+        estimatedDurationMinutes: 120,
+        buyIn: 3000,
+        fee: 400,
+        maxPlayers: 18,
+        startingChips: 10000, // Calculated for test case
+        startingBlinds: '100/200',
+        blindLevelMinutes: 1,
+        blindIncreasePercent: 20,
+        rebuyLimit: 0,
+        lastRebuyLevel: 0,
+        payoutModel: PayoutModel.ICM,
+        structureId: 'struct_test_breaks',
+        payoutStructureId: 'custom_split_1', // Split Payout
+        clockConfigId: 'clock_light',
+        status: 'In Progress',
+        description: 'Test Environment: Split Payout (95% ICM / 5% High Hand).',
+        tableIds: ['t4']
     });
 
     return list;
