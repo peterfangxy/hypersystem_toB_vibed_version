@@ -333,10 +333,10 @@ const generateMockTournaments = (): Tournament[] => {
         startDate: getLocalDate(0), // Today
         startTime: formatTime(startTimeBreaks),
         estimatedDurationMinutes: 120,
-        buyIn: 500,
-        fee: 0,
+        buyIn: 3000,
+        fee: 400,
         maxPlayers: 18,
-        startingChips: 10000,
+        startingChips: 10000, // Calculated for test case
         startingBlinds: '100/200',
         blindLevelMinutes: 1,
         blindIncreasePercent: 20,

@@ -3,6 +3,8 @@ import { TournamentRegistration, TournamentTransaction } from '../../types';
 import { SEED_MEMBERS } from './memberSeeds';
 import { SEED_TOURNAMENTS } from './pokerSeeds';
 
+const TEST_CHIPS_OUT = [17390, 12640, 11240, 9150, 8470, 7860, 3250];
+
 const generateRegistrations = (): TournamentRegistration[] => {
     const registrations: TournamentRegistration[] = [];
     
@@ -15,7 +17,12 @@ const generateRegistrations = (): TournamentRegistration[] => {
         // Random number of players between 10 and 40
         // If it's a test tournament, keep it smaller
         const isTest = tournament.id.includes('test');
-        const playerCount = isTest ? 8 : (10 + Math.floor(Math.random() * 30));
+        let playerCount = isTest ? 8 : (10 + Math.floor(Math.random() * 30));
+        
+        // Specific Override for the Breaks Test Case
+        if (tournament.id === 'live-test-breaks') {
+            playerCount = TEST_CHIPS_OUT.length;
+        }
         
         // Shuffle members to pick random participants
         const shuffledMembers = [...SEED_MEMBERS].sort(() => 0.5 - Math.random());
@@ -41,7 +48,12 @@ const generateRegistrations = (): TournamentRegistration[] => {
             }
 
             // Random rebuys (unless Freezeout)
-            const buyInCount = (tournament.rebuyLimit > 0 && Math.random() > 0.7) ? 2 : 1;
+            let buyInCount = (tournament.rebuyLimit > 0 && Math.random() > 0.7) ? 2 : 1;
+            
+            // Override for Test Case: Single Buy-in to ensure Prize Pool matches exactly
+            if (tournament.id === 'live-test-breaks') {
+                buyInCount = 1;
+            }
 
             // Create transactions
             const transactions: TournamentTransaction[] = [];
@@ -86,8 +98,13 @@ const generateRegistrations = (): TournamentRegistration[] => {
                 // Winner gets most, others get 0
                 finalChips = rank === 1 ? (playerCount * tournament.startingChips * 1.5) : 0;
             } else if (tournament.status === 'In Progress') {
-                // Everyone has starting stack + variance
-                finalChips = tournament.startingChips * buyInCount; 
+                if (tournament.id === 'live-test-breaks') {
+                    // Apply Specific Test Stack
+                    finalChips = TEST_CHIPS_OUT[index] !== undefined ? TEST_CHIPS_OUT[index] : 0;
+                } else {
+                    // Everyone has starting stack + variance
+                    finalChips = tournament.startingChips * buyInCount; 
+                }
             }
 
             registrations.push({
