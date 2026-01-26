@@ -283,13 +283,25 @@ export const addRegistration = (tournamentId: string, memberId: string): void =>
         return;
     }
     
+    const now = new Date().toISOString();
     const newReg: TournamentRegistration = {
         id: crypto.randomUUID(),
         tournamentId,
         memberId,
         status: 'Reserved',
-        registeredAt: new Date().toISOString(),
-        buyInCount: 0 
+        registeredAt: now,
+        buyInCount: 1, // Default to 1 buy-in
+        transactions: [{ // Default unpaid transaction
+            id: crypto.randomUUID(),
+            type: 'BuyIn',
+            timestamp: now,
+            rebuyDiscount: 0,
+            membershipDiscount: 0,
+            voucherDiscount: 0,
+            campaignDiscount: 0,
+            depositPaid: 0,
+            isPaid: false
+        }]
     };
     regs.push(newReg);
     setLocalData(REGISTRATIONS_KEY, regs);
