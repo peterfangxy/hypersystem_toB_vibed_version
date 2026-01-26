@@ -21,6 +21,7 @@ Financial calculations (Net Payable, Discounts, Wallet deduction logic) are curr
 *   Implement a `useQuery` / `useMutation` pattern (or use TanStack Query) in the UI components to handle loading states and async data fetching.
 *   *Migration Path:* Update `DataService` to return Promises that resolve immediately (mocking async), then refactor UI components one by one.
 
+### DONE 
 ### 3. Split Monolithic `types.ts`
 **Problem:** 
 `types.ts` has grown to 300+ lines containing Domain Models, UI Types, Enums, and Utility types. It creates circular dependencies and makes the codebase hard to navigate.
@@ -49,12 +50,13 @@ Forms (`TournamentForm`, `MemberForm`, `StructureForm`) use native `useState` wi
 *   Integrate `zod` for schema definition and validation.
 *   This will standardize validation error handling and reduce boilerplate.
 
-### 6. Payout Validation Utility
+### DONE
+### 6. Payout Validation & Calculation Utility
 **Problem:** 
-Complex validation logic for Custom Payout Matrices (gaps, overlaps, sum-to-100) resides inside the UI component `PayoutModelForm.tsx`.
+Complex validation logic for Custom Payout Matrices (gaps, overlaps, sum-to-100) resides inside the UI component `PayoutModelForm.tsx`, and payout calculation logic is inside `tournamentService.ts`.
 **Solution:**
-*   Extract validation logic to `utils/payoutValidator.ts`.
-*   Add unit tests to ensure edge cases (e.g., 1-player gap, overlapping ranges) are caught correctly.
+*   Extracted validation logic to `utils/payoutUtils.ts` (validatePayoutRules).
+*   Extracted calculation logic to `utils/payoutUtils.ts` (calculatePayoutDistribution).
 
 ## 🟢 Low Priority (Polish & Features)
 

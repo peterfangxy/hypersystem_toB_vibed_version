@@ -157,48 +157,63 @@ export const SEED_STRUCTURES: TournamentStructure[] = [
 ];
 
 export const SEED_PAYOUTS: PayoutStructure[] = [
-    { id: 'algo_1', name: 'Standard Fixed (15%)', type: 'Algorithm', description: 'Top 15% of field paid. Standard steepness.', isSystemDefault: true },
-    { id: 'algo_icm', name: 'ICM Calculator', type: 'Algorithm', description: 'Calculates equity based on stack sizes.', isSystemDefault: true },
     { 
-        id: 'custom_1', 
-        name: 'Final Table Only', 
-        type: 'Custom Matrix', 
-        description: 'Pays top 3 for small fields, top 9 for large fields.',
-        rules: [
-            { minPlayers: 2, maxPlayers: 8, placesPaid: 2, percentages: [70, 30] },
-            { minPlayers: 9, maxPlayers: 20, placesPaid: 3, percentages: [50, 30, 20] },
-            { minPlayers: 21, maxPlayers: 100, placesPaid: 9, percentages: [30, 20, 14, 10, 8, 6, 5, 4, 3] },
+        id: 'algo_1', 
+        name: 'Standard Fixed (15%)', 
+        description: 'Pays top 15% of the field. System Default.', 
+        isSystemDefault: true,
+        allocations: [
+            {
+                id: 'alloc_1',
+                name: 'Main Prize Pool',
+                percent: 100,
+                type: 'Custom',
+                color: '#06C167',
+                rules: [
+                    { minPlayers: 2, maxPlayers: 8, placesPaid: 2, percentages: [65, 35] },
+                    { minPlayers: 9, maxPlayers: 20, placesPaid: 3, percentages: [50, 30, 20] },
+                    { minPlayers: 21, maxPlayers: 999, placesPaid: 15, percentages: [30, 20, 14, 10, 8, 6, 5, 4, 3] }, // Simplified
+                ]
+            }
+        ]
+    },
+    { 
+        id: 'algo_icm', 
+        name: 'ICM Calculator', 
+        description: 'Calculates equity based on stack sizes.', 
+        isSystemDefault: true,
+        allocations: [
+            {
+                id: 'alloc_icm_main',
+                name: 'Main Prize Pool',
+                percent: 100,
+                type: 'ICM',
+                color: '#a855f7'
+            }
         ]
     },
     {
-        id: 'custom_2',
-        name: 'Top 3 Heavy',
-        type: 'Custom Matrix', 
-        description: 'Aggressive payout structure rewarding the podium finishers.',
-        rules: [
-            { minPlayers: 2, maxPlayers: 10, placesPaid: 2, percentages: [75, 25] },
-            { minPlayers: 11, maxPlayers: 30, placesPaid: 3, percentages: [60, 30, 10] },
-            { minPlayers: 31, maxPlayers: 100, placesPaid: 5, percentages: [50, 25, 15, 7, 3] },
-        ]
-    },
-    {
-        id: 'custom_3',
-        name: 'Winner Takes All',
-        type: 'Custom Matrix',
-        description: 'Only the winner gets paid. High risk, high reward.',
-        rules: [
-            { minPlayers: 2, maxPlayers: 1000, placesPaid: 1, percentages: [100] }
-        ]
-    },
-    {
-        id: 'custom_4',
-        name: 'Broad & Flat (20%)',
-        type: 'Custom Matrix',
-        description: 'Pays out 20% of the field with a flatter curve.',
-        rules: [
-            { minPlayers: 5, maxPlayers: 10, placesPaid: 2, percentages: [60, 40] },
-            { minPlayers: 11, maxPlayers: 20, placesPaid: 4, percentages: [40, 25, 20, 15] },
-            { minPlayers: 21, maxPlayers: 50, placesPaid: 10, percentages: [20, 15, 12, 10, 8, 7, 6, 6, 5, 5] }
+        id: 'custom_split_1',
+        name: '95% ICM + 5% High Hand',
+        description: 'Splits pool: 95% distributed by ICM, 5% reserved for High Hand (Winner Take All)',
+        allocations: [
+            {
+                id: 'alloc_split_1_main',
+                name: 'Main Pool (ICM)',
+                percent: 95,
+                type: 'ICM',
+                color: '#3b82f6'
+            },
+            {
+                id: 'alloc_split_1_hh',
+                name: 'High Hand Promo',
+                percent: 5,
+                type: 'Custom',
+                color: '#eab308',
+                rules: [
+                    { minPlayers: 2, maxPlayers: 1000, placesPaid: 1, percentages: [100] }
+                ]
+            }
         ]
     }
 ];
@@ -267,57 +282,11 @@ const EXISTING_TOURNAMENTS: Tournament[] = [
         lastRebuyLevel: 6,
         payoutModel: PayoutModel.FIXED,
         structureId: 'struct_turbo',
-        payoutStructureId: 'custom_1',
+        payoutStructureId: 'custom_split_1',
         clockConfigId: 'default_clock',
         status: 'Scheduled',
         description: 'Unlimited rebuys for the first hour.',
         tableIds: ['t2', 't3']
-    },
-    {
-        id: 'evt-test-9901',
-        name: 'Test: 1-Min Blinds',
-        startDate: getLocalDate(0),
-        startTime: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false}), // Starts now
-        estimatedDurationMinutes: 60,
-        buyIn: 0,
-        fee: 0,
-        maxPlayers: 10,
-        startingChips: 5000,
-        startingBlinds: '100/200',
-        blindLevelMinutes: 1,
-        blindIncreasePercent: 50,
-        rebuyLimit: 0,
-        lastRebuyLevel: 0,
-        payoutModel: PayoutModel.FIXED,
-        structureId: 'struct_test_1min',
-        payoutStructureId: 'custom_3',
-        clockConfigId: 'default_clock',
-        status: 'In Progress',
-        description: 'Rapid fire test tournament. 1 min levels.',
-        tableIds: ['t1']
-    },
-    {
-        id: 'evt-test-9902',
-        name: 'Test: Frequent Breaks',
-        startDate: getLocalDate(0),
-        startTime: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false}), // Starts now
-        estimatedDurationMinutes: 60,
-        buyIn: 0,
-        fee: 0,
-        maxPlayers: 10,
-        startingChips: 10000,
-        startingBlinds: '100/200',
-        blindLevelMinutes: 1,
-        blindIncreasePercent: 0,
-        rebuyLimit: 0,
-        lastRebuyLevel: 0,
-        payoutModel: PayoutModel.FIXED,
-        structureId: 'struct_test_breaks',
-        payoutStructureId: 'custom_3',
-        clockConfigId: 'default_clock',
-        status: 'In Progress',
-        description: 'Test tournament with breaks after every level.',
-        tableIds: ['t2']
     },
     {
         id: 'evt-2023-0900',
@@ -434,7 +403,7 @@ export const SEED_TEMPLATES: Tournament[] = [
         lastRebuyLevel: 6,
         payoutModel: PayoutModel.FIXED,
         structureId: 'struct_deep',
-        payoutStructureId: 'custom_4',
+        payoutStructureId: 'custom_split_1',
         clockConfigId: 'default_clock',
         description: 'Satellite to the monthly main event. Top 20% win seats.'
     }

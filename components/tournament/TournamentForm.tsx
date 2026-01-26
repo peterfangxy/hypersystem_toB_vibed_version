@@ -5,12 +5,12 @@ import {
   DollarSign, 
   Trophy, 
   Armchair, 
-  Check, 
   ChevronDown, 
   Cpu, 
   Table, 
   Sparkles, 
-  MonitorPlay
+  MonitorPlay,
+  Check
 } from 'lucide-react';
 import { Tournament, PayoutModel, TournamentStatus, PokerTable, TournamentStructure, PayoutStructure, ClockConfig } from '../../types';
 import * as DataService from '../../services/dataService';
@@ -131,10 +131,10 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
       formData.clockConfigId, 
       formData.structureId, 
       formData.startingChips, 
-      formData.startingBlinds,
-      formData.name,
-      formData.description,
-      formData.maxPlayers,
+      formData.startingBlinds, 
+      formData.name, 
+      formData.description, 
+      formData.maxPlayers, 
       isOpen
   ]);
 
@@ -180,12 +180,20 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
       }
       const struct = payoutStructures.find(s => s.id === structId);
       if (struct) {
+           // Heuristic to determine legacy PayoutModel enum based on new allocation structure
+           let newModel = PayoutModel.FIXED;
+           const types = new Set(struct.allocations.map(a => a.type));
+           
+           if (types.has('ICM') && !types.has('Custom') && !types.has('ChipEV')) {
+               newModel = PayoutModel.ICM;
+           } else if (types.has('ChipEV') && !types.has('Custom') && !types.has('ICM')) {
+               newModel = PayoutModel.CHIP_EV;
+           }
+
            setFormData(prev => ({
                ...prev,
                payoutStructureId: structId,
-               payoutModel: struct.name.includes('ICM') ? PayoutModel.ICM : 
-                            struct.name.includes('Chip EV') ? PayoutModel.CHIP_EV : 
-                            PayoutModel.FIXED
+               payoutModel: newModel
            }));
       }
   };
@@ -506,13 +514,17 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                                 {(() => {
                                     const p = payoutStructures.find(ps => ps.id === formData.payoutStructureId);
                                     if (!p) return null;
+                                    
+                                    const types = Array.from(new Set(p.allocations.map(a => a.type)));
+                                    const displayType = types.length === 1 ? types[0] : 'Mixed';
+                                    
                                     return (
                                         <div className="flex items-start gap-3">
                                             <div className="mt-1 text-brand-green">
-                                                {p.type === 'Algorithm' ? <Cpu size={16} /> : <Table size={16} />}
+                                                {displayType === 'ICM' || displayType === 'ChipEV' ? <Cpu size={16} /> : <Table size={16} />}
                                             </div>
                                             <div>
-                                                <div className="font-bold text-white text-xs uppercase">{p.type}</div>
+                                                <div className="font-bold text-white text-xs uppercase">{displayType}</div>
                                                 <div className="text-gray-400 text-xs mt-0.5 line-clamp-2">{p.description || 'No description'}</div>
                                             </div>
                                         </div>
@@ -649,13 +661,13 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                                         onClick={() => toggleTable(table.id)}
                                         className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
                                             isSelected 
-                                            ? 'bg-brand-green/20 border-brand-green text-white' 
+                                            ? 'bg-brand-green/10 border-brand-green text-white' 
                                             : 'bg-[#1A1A1A] border-[#333] text-gray-400 hover:border-gray-500 hover:text-gray-300'
-                                        } ${isReadOnly ? 'opacity-60 cursor-not-allowed hover:border-[#333] hover:text-gray-400' : ''}`}
+                                        } ${isReadOnly ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     >
-                                        <div className="flex flex-col items-start">
-                                            <span className={`text-sm font-bold ${isSelected ? 'text-brand-green' : ''}`}>{table.name}</span>
-                                            <span className="text-xs opacity-70">{table.capacity} {t('tables.seats')}</span>
+                                        <div className="flex items-center gap-2">
+                                            <div className={`w-2 h-2 rounded-full ${table.status === 'Active' ? 'bg-green-500' : 'bg-red-500'}`} />
+                                            <span className="text-sm font-medium">{table.name}</span>
                                         </div>
                                         {isSelected && <Check size={16} className="text-brand-green" />}
                                     </button>
@@ -667,22 +679,24 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
             )}
         </fieldset>
 
-        {!isReadOnly ? (
-             <div className="pt-4">
+        <div className="pt-6 flex justify-end gap-3 border-t border-[#222] mt-6">
+            <button 
+                type="button"
+                onClick={onClose}
+                className={`${THEME.buttonSecondary} px-6 py-3 rounded-xl font-bold`}
+            >
+                {t('common.cancel')}
+            </button>
+            {!isReadOnly && (
                 <button 
-                    type="submit" 
-                    className={`w-full ${THEME.buttonPrimary} font-bold text-lg py-4 rounded-xl transition-transform active:scale-[0.98]`}
+                    type="submit"
+                    disabled={!formData.name}
+                    className={`${THEME.buttonPrimary} px-8 py-3 rounded-xl font-bold text-lg shadow-lg shadow-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                     {initialData ? t('tournaments.form.saveChanges') : (isTemplateMode ? t('tournaments.form.createTemplate') : t('tournaments.form.create'))}
                 </button>
-            </div>
-        ) : (
-            <div className="pt-4 flex justify-end">
-                <span className="text-gray-500 text-sm italic flex items-center gap-2">
-                    {t('tournaments.form.readOnly').replace('{status}', initialData?.status?.toLowerCase() || '')}
-                </span>
-            </div>
-        )}
+            )}
+        </div>
       </form>
     </Modal>
   );

@@ -65,8 +65,9 @@ export function useTableData<T>({
           if (filterValue && typeof filterValue === 'object' && ('start' in filterValue || 'end' in filterValue)) {
              if (!itemValue) return false;
              const itemDate = new Date(itemValue).getTime();
-             const start = filterValue.start ? new Date(filterValue.start).getTime() : -Infinity;
-             const end = filterValue.end ? new Date(filterValue.end).getTime() : Infinity;
+             const { start: filterStart, end: filterEnd } = filterValue as { start?: any, end?: any };
+             const start = filterStart ? new Date(filterStart).getTime() : -Infinity;
+             const end = filterEnd ? new Date(filterEnd).getTime() : Infinity;
              return itemDate >= start && itemDate <= end;
           }
 

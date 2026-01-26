@@ -343,7 +343,7 @@ export const SEED_CLOCKS: ClockConfig[] = [
           "height": 70,
           "borderColor": "#ffffff",
           "borderWidth": 0,
-          "imageUrl": "https://cdn-next.cybassets.com/media/W1siZiIsIjIzMjY4L2F0dGFjaGVkX3Bob3Rvcy8xNzA0NDE5NDY3X09H5ZyWLnBuZy5wbmciXV0.png?sha=f51c44ce228198e2"
+          "imageUrl": "https://s202.q4cdn.com/508919455/files/images/fact-sheets-images/WSOP/wsop-logo.png"
         },
         {
           "id": "1f90dd64-a764-4897-b780-302ad00684dd",

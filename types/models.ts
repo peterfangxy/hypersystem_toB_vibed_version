@@ -58,7 +58,7 @@ export interface PokerTable {
 
 // --- Payout Models ---
 
-export type PayoutType = 'Algorithm' | 'Custom Matrix';
+export type PayoutType = 'ICM' | 'ChipEV' | 'Custom';
 
 export interface PayoutRule {
   minPlayers: number;
@@ -67,13 +67,21 @@ export interface PayoutRule {
   percentages: number[]; // e.g. [50, 30, 20] must sum to 100
 }
 
+export interface PayoutAllocation {
+    id: string;
+    name: string; // e.g. "Main Pot", "Bounty Pool"
+    percent: number; // 0-100, portion of total prize pool
+    type: PayoutType;
+    color?: string; // UI helper
+    rules?: PayoutRule[]; // Only for Custom Matrix
+}
+
 export interface PayoutStructure {
   id: string;
   name: string;
-  type: PayoutType;
   description?: string;
-  isSystemDefault?: boolean; // If true, cannot be edited/deleted (e.g. ICM)
-  rules?: PayoutRule[]; // Only for Custom Matrix
+  isSystemDefault?: boolean;
+  allocations: PayoutAllocation[]; // List of splits (e.g. 95% Main, 5% High Hand)
 }
 
 // --- Tournament Models ---
