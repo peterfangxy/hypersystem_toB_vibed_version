@@ -24,9 +24,9 @@ interface ClockEditorProps {
 
 const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClose }) => {
   const { t } = useLanguage();
-  const [config, setConfig] = useState<ClockConfig>({
+  const [config, setConfig] = useState<ClockConfig>(initialConfig || {
       id: crypto.randomUUID(),
-      name: 'New Clock Layout',
+      name: t('clocks.editor.defaultNewLayoutName'),
       description: '',
       backgroundColor: '#111111',
       fontColor: '#FFFFFF',
@@ -354,7 +354,7 @@ const ClockEditor: React.FC<ClockEditorProps> = ({ initialConfig, onSave, onClos
             exportData={ioMode === 'export' ? config : undefined}
             onImport={handleImportData}
             validate={validateImport}
-            title={ioMode === 'export' ? "Export Configuration" : "Import Configuration"}
+            title={ioMode === 'export' ? t('common.io.exportTitle') : t('common.io.importTitle')}
         />
     </div>
   );

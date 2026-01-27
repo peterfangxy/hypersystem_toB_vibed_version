@@ -52,7 +52,7 @@ const ClockPropertiesPanel: React.FC<ClockPropertiesPanelProps> = ({
                 {/* Global Settings */}
                 <div className="space-y-4">
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                        <Layout size={16} /> Canvas Settings
+                        <Layout size={16} /> {t('clocks.editor.canvasSettings')}
                     </h3>
                     
                     <div>
@@ -118,7 +118,7 @@ const ClockPropertiesPanel: React.FC<ClockPropertiesPanelProps> = ({
             
             {/* Component Name Indicator */}
             <div className="mb-2">
-                <span className="text-[10px] text-gray-500 font-bold uppercase block mb-1">Selected Component</span>
+                <span className="text-[10px] text-gray-500 font-bold uppercase block mb-1">{t('clocks.editor.selectedComponent')}</span>
                 <div className="text-sm font-bold text-brand-green bg-[#1A1A1A] p-2 rounded border border-[#333]">
                     {t(`clocks.widgets.${selectedField.type}`) || selectedField.type}
                 </div>

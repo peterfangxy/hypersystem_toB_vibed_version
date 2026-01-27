@@ -91,7 +91,7 @@ const ClockLayersPanel: React.FC<ClockLayersPanelProps> = ({
                     value={config.description || ''}
                     onChange={(e) => onUpdateConfig({ description: e.target.value })}
                     className={`w-full ${THEME.input} rounded-lg px-3 py-2 text-xs resize-none h-20 bg-[#1A1A1A]`}
-                    placeholder="Notes about this layout..."
+                    placeholder={t('clocks.editor.notesPlaceholder')}
                 />
             </div>
         </div>
@@ -113,7 +113,7 @@ const ClockLayersPanel: React.FC<ClockLayersPanelProps> = ({
                 /* Widget Library View */
                 <div className="absolute inset-0 bg-[#111] z-20 flex flex-col animate-in slide-in-from-left-4">
                     <div className="p-4 border-b border-[#222] flex items-center justify-between bg-[#151515]">
-                        <span className="font-bold text-sm text-gray-300">Widget Library</span>
+                        <span className="font-bold text-sm text-gray-300">{t('clocks.editor.widgetLibrary')}</span>
                         <button onClick={() => setIsAddWidgetOpen(false)} className="text-gray-500 hover:text-white p-1 rounded hover:bg-[#222]"><X size={16}/></button>
                     </div>
                     <div className="overflow-y-auto p-2 space-y-1 flex-1">

@@ -8,6 +8,7 @@ import structures from './structures';
 import clocks from './clocks';
 import settings from './settings';
 import performance from './performance';
+import auditLogs from './auditLogs';
 
 export default {
   common,
@@ -18,5 +19,6 @@ export default {
   structures,
   clocks,
   settings,
-  performance
+  performance,
+  auditLogs
 };

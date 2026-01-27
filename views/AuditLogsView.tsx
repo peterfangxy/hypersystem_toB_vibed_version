@@ -104,7 +104,7 @@ const AuditLogsView: React.FC = () => {
   const columns: Column<AuditLog>[] = useMemo(() => [
       {
           key: 'timestamp',
-          label: 'Timestamp',
+          label: t('auditLogs.table.timestamp'),
           sortable: true,
           filterable: true,
           filterType: 'date-range',
@@ -126,7 +126,7 @@ const AuditLogsView: React.FC = () => {
       },
       {
           key: 'userName',
-          label: 'User',
+          label: t('auditLogs.table.user'),
           sortable: true,
           className: 'w-[200px]',
           render: (log) => (
@@ -146,7 +146,7 @@ const AuditLogsView: React.FC = () => {
       },
       {
           key: 'action',
-          label: 'Action',
+          label: t('auditLogs.table.action'),
           sortable: true,
           filterable: true,
           filterType: 'multi-select',
@@ -161,7 +161,7 @@ const AuditLogsView: React.FC = () => {
       },
       {
           key: 'targetType',
-          label: 'Target',
+          label: t('auditLogs.table.target'),
           sortable: true,
           filterable: true,
           filterType: 'multi-select',
@@ -178,20 +178,20 @@ const AuditLogsView: React.FC = () => {
       },
       {
           key: 'details',
-          label: 'Details',
+          label: t('auditLogs.table.details'),
           render: (log) => (
               <div className="text-sm text-gray-400 truncate max-w-[400px]" title={log.details || ''}>
                   {log.details || '-'}
               </div>
           )
       }
-  ], [actionOptions, targetTypeOptions]);
+  ], [actionOptions, targetTypeOptions, t]);
 
   return (
     <div className="h-full flex flex-col w-full">
         <PageHeader 
-            title={t('sidebar.auditLogs')}
-            subtitle="Monitor system activity, security events, and user actions."
+            title={t('auditLogs.title')}
+            subtitle={t('auditLogs.subtitle')}
         />
 
         <ControlBar>
@@ -199,7 +199,7 @@ const AuditLogsView: React.FC = () => {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
                 <input 
                     type="text"
-                    placeholder="Search logs by user, action, or details..."
+                    placeholder={t('auditLogs.searchPlaceholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-2.5 text-white placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none transition-all`}
@@ -218,7 +218,7 @@ const AuditLogsView: React.FC = () => {
             emptyState={
                 <div className="flex flex-col items-center justify-center py-12 text-gray-500">
                     <FileText size={32} className="opacity-20 mb-2" />
-                    <p>No audit logs found matching your criteria.</p>
+                    <p>{t('auditLogs.empty')}</p>
                 </div>
             }
         />
