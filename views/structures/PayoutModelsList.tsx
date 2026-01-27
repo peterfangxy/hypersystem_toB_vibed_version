@@ -67,10 +67,10 @@ const PayoutModelsList = () => {
         },
         {
             key: 'allocations',
-            label: 'Splits',
+            label: t('structures.payouts.table.splits'),
             className: 'w-[60%]',
             render: (item) => {
-                if (!item.allocations || item.allocations.length === 0) return <span className="text-gray-600 italic">Empty</span>;
+                if (!item.allocations || item.allocations.length === 0) return <span className="text-gray-600 italic">{t('structures.payouts.table.emptySplits')}</span>;
                 
                 return (
                     <div className="flex flex-wrap gap-2">
@@ -80,7 +80,7 @@ const PayoutModelsList = () => {
                                 <span className="text-gray-300 font-bold">{alloc.percent}%</span>
                                 <span className="text-gray-500 border-l border-[#333] pl-1.5 ml-0.5">{alloc.name}</span>
                                 <span className="text-[9px] text-gray-600 uppercase font-bold tracking-wider ml-1">
-                                    {alloc.type === 'Custom' ? 'Direct' : alloc.type}
+                                    {alloc.type === 'Custom' ? t('structures.payoutForm.direct') : alloc.type}
                                 </span>
                             </div>
                         ))}
@@ -105,7 +105,7 @@ const PayoutModelsList = () => {
                         disabled={!!item.isSystemDefault}
                         onConfirm={() => handleDelete(item.id)}
                         itemName={item.name}
-                        title="Delete Payout Model?"
+                        title={t('structures.payouts.deleteTitle')}
                     />
                 </div>
             )
@@ -120,7 +120,7 @@ const PayoutModelsList = () => {
                 className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 whitespace-nowrap`}
             >
                 <Plus size={20} strokeWidth={2.5} />
-                New Model
+                {t('structures.btn.createModel')}
             </button>
         </div>
 

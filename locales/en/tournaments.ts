@@ -15,6 +15,61 @@ export default {
     "search": "Search tournaments...",
     "status": "Filter by Status"
   },
+  "statusOption": {
+    "scheduled": "Scheduled",
+    "registration": "Registration",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "registrationStatus": {
+    "reserved": "Reserved",
+    "joined": "Joined",
+    "cancelled": "Cancelled",
+    "waitlist": "On Waitlist"
+  },
+  "addPlayerModal": {
+    "title": "Add Player",
+    "searchPlaceholder": "Search available members...",
+    "noResults": "No available members found"
+  },
+  "buyinModal": {
+    "title": "Payment Breakdown",
+    "headers": {
+      "time": "Time",
+      "type": "Type",
+      "base": "Base",
+      "rebuy": "Rebuy",
+      "member": "Member",
+      "voucher": "Voucher",
+      "campaign": "Campaign",
+      "deposit": "Deposit Pay",
+      "net": "Net",
+      "paid": "Paid"
+    },
+    "types": {
+      "buyIn": "Buy-in",
+      "reBuy": "Re-buy / Add-on"
+    },
+    "empty": "No transactions recorded. Click \"Add\" below.",
+    "addBtn": "Add",
+    "limitReached": "Tournament Limit Reached (Max {{max}})",
+    "summary": {
+      "net": "Total Net Payable",
+      "deposit": "Total Deposit Paid",
+      "outstanding": "Outstanding",
+      "avail": "Avail"
+    },
+    "save": "Save Changes"
+  },
+  "signatureModal": {
+    "title": "Final Chips Confirmation",
+    "confirmText": "I, <bold>{{name}}</bold>, confirm that I have <bold>{{chips}}</bold> chips remaining.",
+    "instruction": "Please sign below to verify this amount.",
+    "placeholder": "Sign Here",
+    "clear": "Clear Signature",
+    "confirm": "Confirm"
+  },
   "table": {
     "status": "Status",
     "date": "Date",
@@ -51,9 +106,9 @@ export default {
     "description": "Description",
     "structurePayouts": "Structure & Payouts",
     "structure": "Blind Structure",
-    "selectStructure": "Select structure...",
+    "selectStructure": "Select Structure...",
     "payoutModel": "Payout Model",
-    "selectPayout": "Select payout model...",
+    "selectPayout": "Select Payout Model...",
     "clockLayout": "Clock Layout",
     "selectTheme": "Select Theme",
     "preview": "Preview",
@@ -65,13 +120,23 @@ export default {
     "saveChanges": "Save Changes",
     "createTemplate": "Create Template",
     "create": "Create Tournament",
-    "readOnly": "Read Only ({status})"
+    "readOnly": "Read Only ({status})",
+    "placeholders": {
+        "name": "e.g. Saturday Night Fever",
+        "templateName": "e.g. Weekly Deepstack Template",
+        "description": "Tournament details..."
+    },
+    "structureCard": {
+        "chips": "Starting Chips",
+        "blinds": "Starting Blinds",
+        "rebuys": "Rebuy Limit"
+    }
   },
   "detail": {
     "searchPlayers": "Search players...",
     "addPlayer": "Add Player",
     "calculating": "Calculating Results...",
-    "verifying": "Verifying chip counts and payouts",
+    "verifying": "Verifying chips and payouts",
     "table": {
       "player": "Player",
       "status": "Status",
@@ -82,11 +147,11 @@ export default {
       "winnings": "Winnings",
       "manage": "Manage"
     },
-    "prizePool": "PRIZE POOL",
-    "houseFees": "HOUSE FEES",
-    "chipsInPlay": "CHIPS IN PLAY",
-    "chipsCounted": "CHIPS COUNTED",
-    "discrepancy": "DISCREPANCY",
+    "prizePool": "Prize Pool",
+    "houseFees": "House Fees",
+    "chipsInPlay": "Chips In Play",
+    "chipsCounted": "Chips Counted",
+    "discrepancy": "Discrepancy",
     "complete": "Complete Tournament"
   }
 };

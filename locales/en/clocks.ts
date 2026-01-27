@@ -80,5 +80,6 @@ export default {
     "shape_circle": "Circle",
     "shape_triangle": "Triangle",
     "image": "Image"
-  }
+  },
+  "deleteTitle": "Delete Layout?"
 };

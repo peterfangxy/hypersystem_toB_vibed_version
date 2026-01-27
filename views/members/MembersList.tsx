@@ -77,7 +77,7 @@ const MembersList = () => {
   };
 
   const getTierDisplay = (tierId?: string) => {
-      if (!tierId) return { name: 'No Tier', color: '#666666' };
+      if (!tierId) return { name: t('members.table.noTier'), color: '#666666' };
       const def = tierDefinitions.find(t => t.id === tierId);
       return def ? { name: def.name, color: def.color } : { name: tierId, color: '#999999' };
   };
@@ -88,6 +88,15 @@ const MembersList = () => {
           case 'Pending Approval': return 'info';
           case 'Deactivated': return 'danger';
           default: return 'neutral';
+      }
+  };
+
+  const getStatusLabel = (status: MemberStatus): string => {
+      switch(status) {
+          case 'Activated': return t('members.statusOption.activated');
+          case 'Pending Approval': return t('members.statusOption.pending');
+          case 'Deactivated': return t('members.statusOption.deactivated');
+          default: return status;
       }
   };
 
@@ -173,7 +182,7 @@ const MembersList = () => {
                 variant={getStatusVariant(member.status)}
                 className="w-24"
               >
-                  {member.status === 'Pending Approval' ? 'Pending' : member.status}
+                  {getStatusLabel(member.status)}
               </StatusBadge>
           )
       },
@@ -251,16 +260,6 @@ const MembersList = () => {
                 className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-2.5 text-white placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none transition-all`}
               />
             </div>
-            
-            {/* 
-            <button 
-                onClick={openCreate}
-                className={`${THEME.buttonPrimary} px-6 py-2.5 rounded-xl font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 whitespace-nowrap`}
-            >
-                <Plus size={20} strokeWidth={2.5} />
-                {t('members.createBtn')}
-            </button> 
-            */}
           </ControlBar>
 
           <Table 

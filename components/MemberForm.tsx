@@ -167,7 +167,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isDeactivating ? "Confirm Deactivation" : (isActivationMode ? "Verify & Activate Member" : (initialData ? t('members.form.titleEdit') : t('members.form.titleNew')))}
+      title={isDeactivating ? t('members.form.deactivate.title') : (isActivationMode ? t('members.form.activateBtn') : (initialData ? t('members.form.titleEdit') : t('members.form.titleNew')))}
       size="lg"
     >
       {isDeactivating ? (
@@ -176,11 +176,9 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
                   <AlertTriangle size={36} strokeWidth={2.5} />
               </div>
               <div className="space-y-2">
-                  <h3 className="text-2xl font-bold text-white">Deactivate Account?</h3>
-                  <p className="text-gray-400 text-sm leading-relaxed max-w-sm mx-auto">
-                      This will immediately restrict the member's access to tournaments and club facilities.
-                      <br/><br/>
-                      To confirm, please type <span className="font-bold text-white select-all bg-[#333] px-1.5 py-0.5 rounded border border-[#444]">YES</span> below.
+                  <h3 className="text-2xl font-bold text-white">{t('members.form.deactivate.warning')}</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed max-w-sm mx-auto whitespace-pre-wrap">
+                      {t('members.form.deactivate.message')}
                   </p>
               </div>
               
@@ -189,7 +187,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
                   value={deactivateInput}
                   onChange={e => setDeactivateInput(e.target.value)}
                   className={`w-full max-w-xs ${THEME.input} text-center font-bold tracking-widest text-lg py-3 rounded-xl border-red-900/50 focus:border-red-500 placeholder:text-gray-700`}
-                  placeholder="YES"
+                  placeholder={t('members.form.deactivate.confirmPlaceholder')}
                   autoFocus
                   autoComplete="off"
                   autoCapitalize="off"
@@ -202,7 +200,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
                     fullWidth
                     size="lg"
                   >
-                    Cancel
+                    {t('members.form.deactivate.cancelBtn')}
                   </Button>
                   <Button 
                       variant="danger" 
@@ -211,7 +209,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
                       fullWidth
                       size="lg"
                   >
-                      Confirm
+                      {t('members.form.deactivate.confirmBtn')}
                   </Button>
               </div>
           </div>
@@ -283,10 +281,10 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
                     onChange={e => setFormData({...formData, gender: e.target.value as Gender})}
                     className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none appearance-none cursor-pointer`}
                   >
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                    <option value="Prefer not to say">Prefer not to say</option>
+                    <option value="Male">{t('members.form.genderOptions.male')}</option>
+                    <option value="Female">{t('members.form.genderOptions.female')}</option>
+                    <option value="Other">{t('members.form.genderOptions.other')}</option>
+                    <option value="Prefer not to say">{t('members.form.genderOptions.preferNotToSay')}</option>
                   </select>
                 </div>
               </div>
@@ -296,7 +294,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
             <div className={`pt-4 border-t border-[#222] space-y-4 ${isActivationMode ? 'bg-brand-green/5 -mx-6 px-6 py-6 border-b border-brand-green/20' : ''}`}>
                 <div className="flex items-center justify-between">
                     <h3 className={`text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${isActivationMode ? 'text-brand-green' : 'text-gray-500'}`}>
-                        <UserSquare2 size={14} /> Identity Verification {isActivationMode && "(Required)"}
+                        <UserSquare2 size={14} /> {t('members.form.identity.title')} {isActivationMode && t('members.form.identity.required')}
                     </h3>
                     
                     {/* ID Verified Checkbox - Staff Only Control */}
@@ -313,33 +311,33 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
                         }`}>
                             {formData.isIdVerified && <CheckCircle2 size={14} strokeWidth={3}/>}
                         </div>
-                        <span className="text-sm font-bold">ID Verified</span>
+                        <span className="text-sm font-bold">{t('members.form.identity.verified')}</span>
                     </div>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                         <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                            <Fingerprint size={14} className="text-brand-green/70"/> ID Number
+                            <Fingerprint size={14} className="text-brand-green/70"/> {t('members.form.identity.idNumber')}
                         </label>
                         <input 
                             type="text" 
                             value={formData.idNumber || ''}
                             disabled
                             className={`w-full bg-[#1A1A1A] border border-[#333] text-gray-400 rounded-xl px-4 py-3 outline-none cursor-not-allowed font-mono`}
-                            placeholder="Not verified"
+                            placeholder={t('members.form.identity.notVerified')}
                         />
                     </div>
                     <div className="space-y-1">
                         <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                            <Globe size={14} className="text-blue-400/70"/> Passport Number
+                            <Globe size={14} className="text-blue-400/70"/> {t('members.form.identity.passportNumber')}
                         </label>
                         <input 
                             type="text" 
                             value={formData.passportNumber || ''}
                             disabled
                             className={`w-full bg-[#1A1A1A] border border-[#333] text-gray-400 rounded-xl px-4 py-3 outline-none cursor-not-allowed font-mono`}
-                            placeholder="Not verified"
+                            placeholder={t('members.form.identity.notVerified')}
                         />
                     </div>
                 </div>
@@ -352,7 +350,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
                         className="flex items-center justify-between w-full p-3 hover:bg-[#222] transition-colors outline-none"
                     >
                         <span className="text-sm font-bold text-gray-400 flex items-center gap-2">
-                            <Camera size={16} /> ID Photos
+                            <Camera size={16} /> {t('members.form.identity.idPhotos')}
                         </span>
                         <div className="text-gray-500">
                             {isPhotosExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -370,7 +368,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
                                             <div className="p-3 bg-[#1A1A1A] rounded-full mb-1">
                                                 <Camera size={20} />
                                             </div>
-                                            <span className="text-xs font-bold">Front ID</span>
+                                            <span className="text-xs font-bold">{t('members.form.identity.frontId')}</span>
                                         </div>
                                     )}
                                 </div>
@@ -382,7 +380,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
                                             <div className="p-3 bg-[#1A1A1A] rounded-full mb-1">
                                                 <Camera size={20} />
                                             </div>
-                                            <span className="text-xs font-bold">Back ID</span>
+                                            <span className="text-xs font-bold">{t('members.form.identity.backId')}</span>
                                         </div>
                                     )}
                                 </div>
@@ -445,7 +443,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
                     onChange={e => setFormData({...formData, tier: e.target.value})}
                     className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none appearance-none cursor-pointer`}
                   >
-                    <option value="" className="text-gray-500">No Tier Assigned</option>
+                    <option value="" className="text-gray-500">{t('members.form.noTier')}</option>
                     {availableTiers.map(tier => (
                       <option key={tier.id} value={tier.id}>{tier.name}</option>
                     ))}
@@ -462,9 +460,9 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
                         formData.status === 'Activated' ? 'text-brand-green font-bold' : ''
                     }`}
                   >
-                    <option value="Pending Approval">Pending Approval</option>
-                    <option value="Activated">Activated</option>
-                    <option value="Deactivated">Deactivated</option>
+                    <option value="Pending Approval">{t('members.statusOption.pending')}</option>
+                    <option value="Activated">{t('members.statusOption.activated')}</option>
+                    <option value="Deactivated">{t('members.statusOption.deactivated')}</option>
                   </select>
                 </div>
               </div>
@@ -476,7 +474,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
                   value={formData.notes}
                   onChange={e => setFormData({...formData, notes: e.target.value})}
                   className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none resize-none`}
-                  placeholder="Internal notes..."
+                  placeholder={t('members.form.placeholders.notes')}
                 />
               </div>
             </div>
@@ -490,7 +488,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
                           onClick={handleReactivate}
                           className="text-brand-green hover:text-green-400 text-sm font-bold flex items-center gap-2 px-3 py-3 rounded-xl border border-transparent hover:border-brand-green/20 hover:bg-brand-green/10 transition-colors whitespace-nowrap"
                       >
-                          <RotateCcw size={16} /> Reactivate
+                          <RotateCcw size={16} /> {t('members.form.deactivate.reactivateLabel')}
                       </button>
                   ) : (
                       <button
@@ -498,7 +496,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
                           onClick={() => setIsDeactivating(true)}
                           className="text-red-500 hover:text-red-400 text-sm font-bold flex items-center gap-2 px-3 py-3 rounded-xl border border-transparent hover:border-red-500/20 hover:bg-red-500/10 transition-colors whitespace-nowrap"
                       >
-                          <Ban size={16} /> Deactivate
+                          <Ban size={16} /> {t('members.form.deactivate.buttonLabel')}
                       </button>
                   )
               ) : <div />}
@@ -511,7 +509,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ isOpen, onClose, onSubmit, init
                 disabled={!canSubmit}
               >
                 {isActivationMode 
-                    ? "Activate Member" 
+                    ? t('members.form.activateBtn') 
                     : (initialData ? t('members.form.submitSave') : t('members.form.submitCreate'))
                 }
               </Button>

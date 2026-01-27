@@ -136,7 +136,7 @@ const ClockLayouts = () => {
                           <DeleteWithConfirmation 
                               onConfirm={() => handleDelete(clock.id)}
                               itemName={clock.name}
-                              title="Delete Layout?"
+                              title={t('clocks.deleteTitle')}
                               className="text-gray-600 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-[#222]"
                           />
                       </div>

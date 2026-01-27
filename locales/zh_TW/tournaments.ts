@@ -15,6 +15,61 @@ export default {
     "search": "搜尋賽事...",
     "status": "依狀態篩選"
   },
+  "statusOption": {
+    "scheduled": "已排程",
+    "registration": "開放報名",
+    "inProgress": "進行中",
+    "completed": "已結束",
+    "cancelled": "已取消"
+  },
+  "registrationStatus": {
+    "reserved": "預約",
+    "joined": "已加入",
+    "cancelled": "已取消",
+    "waitlist": "候補中"
+  },
+  "addPlayerModal": {
+    "title": "新增玩家",
+    "searchPlaceholder": "搜尋可用會員...",
+    "noResults": "找不到可用會員"
+  },
+  "buyinModal": {
+    "title": "費用明細",
+    "headers": {
+      "time": "時間",
+      "type": "類型",
+      "base": "基數",
+      "rebuy": "重購折扣",
+      "member": "會員折扣",
+      "voucher": "優惠券",
+      "campaign": "活動折扣",
+      "deposit": "預存扣款",
+      "net": "應付",
+      "paid": "已付"
+    },
+    "types": {
+      "buyIn": "買入",
+      "reBuy": "重入 / 加購"
+    },
+    "empty": "無交易記錄。請點擊下方「新增」。",
+    "addBtn": "新增",
+    "limitReached": "已達賽事上限 (最大 {{max}})",
+    "summary": {
+      "net": "總應付金額",
+      "deposit": "預存已扣",
+      "outstanding": "待支付",
+      "avail": "可用"
+    },
+    "save": "儲存變更"
+  },
+  "signatureModal": {
+    "title": "籌碼確認",
+    "confirmText": "本人 <bold>{{name}}</bold> 確認剩餘籌碼為 <bold>{{chips}}</bold>。",
+    "instruction": "請在下方簽名以驗證此金額。",
+    "placeholder": "在此簽名",
+    "clear": "清除簽名",
+    "confirm": "確認簽名"
+  },
   "table": {
     "status": "狀態",
     "date": "日期",
@@ -65,7 +120,17 @@ export default {
     "saveChanges": "儲存變更",
     "createTemplate": "建立範本",
     "create": "建立賽事",
-    "readOnly": "唯讀 ({status})"
+    "readOnly": "唯讀 ({status})",
+    "placeholders": {
+        "name": "例如：週六狂歡夜",
+        "templateName": "例如：每週深籌碼範本",
+        "description": "賽事詳情..."
+    },
+    "structureCard": {
+        "chips": "起始籌碼",
+        "blinds": "起始盲注",
+        "rebuys": "重購限制"
+    }
   },
   "detail": {
     "searchPlayers": "搜尋玩家...",

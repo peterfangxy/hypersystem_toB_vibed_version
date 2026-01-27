@@ -40,9 +40,15 @@ export default {
     "phone": "Phone",
     "clubId": "Club ID",
     "tier": "Tier",
+    "noTier": "No Tier",
     "status": "Status",
     "joined": "Joined",
     "verified": "Verified"
+  },
+  "statusOption": {
+    "pending": "Pending",
+    "activated": "Activated",
+    "deactivated": "Deactivated"
   },
   "form": {
     "titleEdit": "Edit Member",
@@ -60,7 +66,75 @@ export default {
     "tier": "Membership Tier",
     "accountStatus": "Account Status",
     "notes": "Notes",
+    "placeholders": {
+        "notes": "Optional..."
+    },
     "submitSave": "Save Changes",
-    "submitCreate": "Create Member"
+    "submitCreate": "Create Member",
+    "genderOptions": {
+        "male": "Male",
+        "female": "Female",
+        "other": "Other",
+        "preferNotToSay": "Prefer not to say"
+    },
+    "noTier": "No Tier Assigned",
+    "identity": {
+        "title": "Identity Verification",
+        "required": "(Required)",
+        "verified": "ID Verified",
+        "idNumber": "ID Number",
+        "passportNumber": "Passport Number",
+        "idPhotos": "ID Photos",
+        "frontId": "Front ID",
+        "backId": "Back ID",
+        "notVerified": "Not verified"
+    },
+    "deactivate": {
+        "title": "Confirm Deactivation",
+        "warning": "Deactivate Account?",
+        "message": "This will immediately restrict the member's access to tournaments and club facilities.\n\nTo confirm, please type YES below.",
+        "confirmPlaceholder": "YES",
+        "confirmBtn": "Confirm",
+        "cancelBtn": "Cancel",
+        "buttonLabel": "Deactivate",
+        "reactivateLabel": "Reactivate"
+    },
+    "activateBtn": "Activate Member"
+  },
+  "wallet": {
+    "title": "Wallet & Financials",
+    "winnings": "Winnings",
+    "deposits": "Deposits",
+    "withdrawn": "Withdrawn",
+    "available": "Available",
+    "activityLog": "Activity Log",
+    "deposit": "Deposit",
+    "withdraw": "Withdraw",
+    "amount": "Amount",
+    "method": "Method",
+    "note": "Note",
+    "optional": "Optional...",
+    "confirmDeposit": "Confirm Deposit",
+    "confirmWithdrawal": "Confirm Withdrawal",
+    "success": "Transaction Complete",
+    "successMsg": {
+        "deposit": "Successfully deposited ${{amount}}",
+        "withdraw": "Successfully withdrew ${{amount}}"
+    },
+    "methods": {
+        "cash": "Cash",
+        "bankTransfer": "Bank Transfer",
+        "crypto": "Crypto"
+    },
+    "history": {
+        "deposit": "Deposit",
+        "withdrawal": "Withdrawal",
+        "win": "Win",
+        "buyIn": "Buy-in"
+    },
+    "emptyHistory": "No transaction history found.",
+    "back": "Back",
+    "fundsDeposited": "Deposit Funds",
+    "fundsWithdrawn": "Withdraw Funds"
   }
 };

@@ -17,12 +17,13 @@ import {
   PlusCircle,
   PiggyBank
 } from 'lucide-react';
-import { Member, MemberFinancials, PaymentMethod } from '../types';
+import { Member, MemberFinancials, PaymentMethod, FinancialTransaction } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
 import { Modal } from './ui/Modal';
 import NumberInput from './ui/NumberInput';
 import Button from './ui/Button';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface MemberWalletModalProps {
   isOpen: boolean;
@@ -33,6 +34,7 @@ interface MemberWalletModalProps {
 type WalletView = 'dashboard' | 'withdraw' | 'deposit';
 
 const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, member }) => {
+  const { t } = useLanguage();
   const [view, setView] = useState<WalletView>('dashboard');
   const [financials, setFinancials] = useState<MemberFinancials | null>(null);
   
@@ -76,10 +78,10 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
 
     if (type === 'withdraw') {
         DataService.addWithdrawal(member.id, val, method, note);
-        setSuccessMessage(`Successfully withdrew $${val.toLocaleString()}`);
+        setSuccessMessage(t('members.wallet.successMsg.withdraw', { amount: val.toLocaleString() }));
     } else {
         DataService.addDeposit(member.id, val, method, note);
-        setSuccessMessage(`Successfully deposited $${val.toLocaleString()}`);
+        setSuccessMessage(t('members.wallet.successMsg.deposit', { amount: val.toLocaleString() }));
     }
     
     loadFinancials();
@@ -92,6 +94,25 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
     }, 1200);
   };
 
+  const getTxDescription = (tx: FinancialTransaction) => {
+      if (tx.type === 'Deposit') {
+          const methodKey = tx.method ? tx.method.charAt(0).toLowerCase() + tx.method.slice(1).replace(/\s/g, '') : 'cash';
+          const methodLabel = t(`members.wallet.methods.${methodKey}`) || tx.method;
+          return `${t('members.wallet.history.deposit')} (${methodLabel})`;
+      }
+      if (tx.type === 'Withdrawal') {
+          const methodKey = tx.method ? tx.method.charAt(0).toLowerCase() + tx.method.slice(1).replace(/\s/g, '') : 'cash';
+          const methodLabel = t(`members.wallet.methods.${methodKey}`) || tx.method;
+          return `${t('members.wallet.history.withdrawal')} (${methodLabel})`;
+      }
+      
+      let desc = tx.description;
+      if (desc.startsWith('Win:')) desc = desc.replace('Win:', t('members.wallet.history.win') + ':');
+      if (desc.startsWith('Buy-in:')) desc = desc.replace('Buy-in:', t('members.wallet.history.buyIn') + ':');
+      
+      return desc;
+  };
+
   const Header = () => (
       <div className="flex items-center gap-3">
           <img 
@@ -101,7 +122,7 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
           />
           <div>
               <h2 className="text-lg font-bold text-white leading-tight">{member.fullName}</h2>
-              <p className="text-xs text-gray-500 uppercase tracking-wider font-bold">Wallet & Financials</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider font-bold">{t('members.wallet.title')}</p>
           </div>
       </div>
   );
@@ -119,21 +140,21 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
             <div className="p-4 grid grid-cols-4 gap-3 bg-[#111] border-b border-[#222]">
                 <div className="bg-[#1A1A1A] px-3 py-3 rounded-xl border border-[#333]">
                     <div className="text-gray-500 text-[10px] font-bold uppercase mb-0.5 flex items-center gap-1.5 whitespace-nowrap">
-                        <ArrowUpRight size={12} className="text-brand-green"/> Winnings
+                        <ArrowUpRight size={12} className="text-brand-green"/> {t('members.wallet.winnings')}
                     </div>
                     <div className="text-base font-bold text-white">${financials.totalWinnings.toLocaleString()}</div>
                 </div>
 
                 <div className="bg-[#1A1A1A] px-3 py-3 rounded-xl border border-[#333]">
                     <div className="text-gray-500 text-[10px] font-bold uppercase mb-0.5 flex items-center gap-1.5 whitespace-nowrap">
-                        <PlusCircle size={12} className="text-blue-400"/> Deposits
+                        <PlusCircle size={12} className="text-blue-400"/> {t('members.wallet.deposits')}
                     </div>
                     <div className="text-base font-bold text-white">${financials.totalDeposited.toLocaleString()}</div>
                 </div>
                 
                 <div className="bg-[#1A1A1A] px-3 py-3 rounded-xl border border-[#333]">
                     <div className="text-gray-500 text-[10px] font-bold uppercase mb-0.5 flex items-center gap-1.5 whitespace-nowrap">
-                        <ArrowDownLeft size={12} className="text-orange-400"/> Withdrawn
+                        <ArrowDownLeft size={12} className="text-orange-400"/> {t('members.wallet.withdrawn')}
                     </div>
                     <div className="text-base font-bold text-gray-300">${financials.totalWithdrawn.toLocaleString()}</div>
                 </div>
@@ -141,7 +162,7 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
                 <div className="bg-gradient-to-br from-brand-green/20 to-brand-green/5 px-3 py-3 rounded-xl border border-brand-green/30 relative overflow-hidden">
                     <div className="relative z-10">
                         <div className="text-brand-green text-[10px] font-bold uppercase mb-0.5 flex items-center gap-1.5 whitespace-nowrap">
-                            <Coins size={12} /> Available
+                            <Coins size={12} /> {t('members.wallet.available')}
                         </div>
                         <div className="text-lg font-bold text-white">${financials.balance.toLocaleString()}</div>
                     </div>
@@ -156,7 +177,7 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
                 <div className="flex flex-col h-full animate-in slide-in-from-left-4 duration-300">
                     <div className="px-4 py-3 flex justify-between items-center border-b border-[#222] bg-[#1A1A1A]/50">
                         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                            <History size={14} /> Activity Log
+                            <History size={14} /> {t('members.wallet.activityLog')}
                         </h3>
                         <div className="flex gap-2">
                              <Button 
@@ -166,7 +187,7 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
                                 icon={PiggyBank}
                                 className="text-blue-400"
                             >
-                                Deposit
+                                {t('members.wallet.deposit')}
                             </Button>
                             <Button 
                                 size="sm"
@@ -175,7 +196,7 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
                                 disabled={financials.balance <= 0}
                                 icon={Banknote}
                             >
-                                Withdraw
+                                {t('members.wallet.withdraw')}
                             </Button>
                         </div>
                     </div>
@@ -184,7 +205,7 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
                         {financials.transactions.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-full text-gray-600 pb-10">
                                 <History size={32} className="mb-2 opacity-20" />
-                                <p className="text-sm">No transaction history found.</p>
+                                <p className="text-sm">{t('members.wallet.emptyHistory')}</p>
                             </div>
                         ) : (
                             <div className="space-y-2">
@@ -203,7 +224,7 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
                                                 {tx.type === 'Withdrawal' && <ArrowDownLeft size={14} />}
                                             </div>
                                             <div>
-                                                <div className="font-bold text-white text-xs">{tx.description}</div>
+                                                <div className="font-bold text-white text-xs">{getTxDescription(tx)}</div>
                                                 <div className="text-[10px] text-gray-500">
                                                     {new Date(tx.date).toLocaleDateString(undefined, {month:'short', day:'numeric'})} • {new Date(tx.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                                                 </div>
@@ -231,12 +252,12 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
                             {view === 'withdraw' ? (
                                 <>
                                     <Banknote size={20} className="text-orange-500"/>
-                                    Withdraw Funds
+                                    {t('members.wallet.fundsWithdrawn')}
                                 </>
                             ) : (
                                 <>
                                     <PiggyBank size={20} className="text-blue-500"/>
-                                    Deposit Funds
+                                    {t('members.wallet.fundsDeposited')}
                                 </>
                             )}
                          </h3>
@@ -246,7 +267,7 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
                             onClick={() => setView('dashboard')}
                             icon={ArrowLeft}
                         >
-                            Back
+                            {t('members.wallet.back')}
                         </Button>
                     </div>
 
@@ -255,7 +276,7 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
                         {!successMessage ? (
                             <form onSubmit={(e) => handleTransaction(e, view)} className="space-y-5">
                                 <div className="space-y-1">
-                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Amount</label>
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('members.wallet.amount')}</label>
                                     <div className="relative">
                                         <NumberInput
                                             value={amount}
@@ -280,22 +301,22 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
                                         )}
                                     </div>
                                     <div className="flex justify-between px-1">
-                                        <p className="text-[10px] text-gray-500">Available: ${financials.balance.toLocaleString()}</p>
+                                        <p className="text-[10px] text-gray-500">{t('members.wallet.available')}: ${financials.balance.toLocaleString()}</p>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
-                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Method</label>
+                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('members.wallet.method')}</label>
                                         <div className="relative">
                                             <select
                                                 value={method}
                                                 onChange={(e) => setMethod(e.target.value as PaymentMethod)}
                                                 className={`w-full ${THEME.input} rounded-xl pl-3 pr-8 py-2.5 text-sm outline-none appearance-none cursor-pointer`}
                                             >
-                                                <option value="Cash">Cash</option>
-                                                <option value="Bank Transfer">Bank Transfer</option>
-                                                <option value="Crypto">Crypto</option>
+                                                <option value="Cash">{t('members.wallet.methods.cash')}</option>
+                                                <option value="Bank Transfer">{t('members.wallet.methods.bankTransfer')}</option>
+                                                <option value="Crypto">{t('members.wallet.methods.crypto')}</option>
                                             </select>
                                             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
                                                 {method === 'Cash' && <Banknote size={14} />}
@@ -305,13 +326,13 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
                                         </div>
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Note</label>
+                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('members.wallet.note')}</label>
                                         <input 
                                             type="text"
                                             value={note}
                                             onChange={(e) => setNote(e.target.value)}
                                             className={`w-full ${THEME.input} rounded-xl px-3 py-2.5 text-sm outline-none`}
-                                            placeholder="Optional..."
+                                            placeholder={t('members.wallet.optional')}
                                         />
                                     </div>
                                 </div>
@@ -324,7 +345,7 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
                                         size="lg"
                                         className={view === 'withdraw' ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20' : 'bg-blue-500 hover:bg-blue-600 text-white shadow-blue-500/20'}
                                     >
-                                        Confirm {view === 'withdraw' ? 'Withdrawal' : 'Deposit'}
+                                        {view === 'withdraw' ? t('members.wallet.confirmWithdrawal') : t('members.wallet.confirmDeposit')}
                                     </Button>
                                 </div>
                             </form>
@@ -333,7 +354,7 @@ const MemberWalletModal: React.FC<MemberWalletModalProps> = ({ isOpen, onClose, 
                                 <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-white mb-4 shadow-lg shadow-green-500/30">
                                     <Check size={32} strokeWidth={3} />
                                 </div>
-                                <h3 className="text-xl font-bold text-white mb-1">Transaction Complete</h3>
+                                <h3 className="text-xl font-bold text-white mb-1">{t('members.wallet.success')}</h3>
                                 <p className="text-brand-green font-medium text-sm">{successMessage}</p>
                             </div>
                         )}

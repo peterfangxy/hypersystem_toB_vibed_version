@@ -174,7 +174,7 @@ const BlindsStructureList = () => {
                      <DeleteWithConfirmation 
                          onConfirm={() => handleStructDelete(s.id)}
                          itemName={s.name}
-                         title="Delete Structure?"
+                         title={t('structures.blindsTable.deleteTitle')}
                      />
                  </div>
             )

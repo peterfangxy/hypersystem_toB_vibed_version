@@ -1,7 +1,10 @@
+
 import React, { useState } from 'react';
 import { Trash2, AlertTriangle } from 'lucide-react';
+import { Trans } from 'react-i18next';
 import { Modal } from './Modal';
 import Button from './Button';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface DeleteWithConfirmationProps {
     onConfirm: () => void;
@@ -15,13 +18,14 @@ interface DeleteWithConfirmationProps {
 
 const DeleteWithConfirmation: React.FC<DeleteWithConfirmationProps> = ({
     onConfirm,
-    title = "Confirm Deletion",
+    title,
     description,
     itemName,
     trigger,
     className,
     disabled = false
 }) => {
+    const { t } = useLanguage();
     const [isOpen, setIsOpen] = useState(false);
 
     const handleConfirm = (e: React.MouseEvent) => {
@@ -41,11 +45,7 @@ const DeleteWithConfirmation: React.FC<DeleteWithConfirmationProps> = ({
         setIsOpen(false);
     };
 
-    const content = description || (
-        <>
-            Are you sure you want to delete <span className="text-white font-bold">{itemName || 'this item'}</span>? This action cannot be undone.
-        </>
-    );
+    const modalTitle = title || t('common.deleteConfirm.title');
 
     return (
         <>
@@ -53,7 +53,7 @@ const DeleteWithConfirmation: React.FC<DeleteWithConfirmationProps> = ({
                 onClick={handleOpen}
                 disabled={disabled}
                 className={className || "p-1.5 text-gray-500 hover:text-red-500 hover:bg-[#333] rounded-full transition-colors disabled:opacity-30 disabled:cursor-not-allowed"}
-                title="Delete"
+                title={t('common.delete')}
                 type="button"
             >
                 {trigger || <Trash2 size={16} />}
@@ -63,7 +63,7 @@ const DeleteWithConfirmation: React.FC<DeleteWithConfirmationProps> = ({
                 <Modal
                     isOpen={isOpen}
                     onClose={handleClose}
-                    title={title}
+                    title={modalTitle}
                     size="sm"
                     zIndex={60}
                 >
@@ -72,9 +72,15 @@ const DeleteWithConfirmation: React.FC<DeleteWithConfirmationProps> = ({
                             <AlertTriangle size={32} />
                         </div>
                         <div>
-                            <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
+                            <h3 className="text-xl font-bold text-white mb-2">{modalTitle}</h3>
                             <p className="text-gray-400 text-sm leading-relaxed">
-                                {content}
+                                {description || (
+                                    <Trans
+                                        i18nKey="common.deleteConfirm.message"
+                                        values={{ name: itemName || 'this item' }}
+                                        components={{ bold: <span className="text-white font-bold" /> }}
+                                    />
+                                )}
                             </p>
                         </div>
                         <div className="flex gap-3">
@@ -83,14 +89,14 @@ const DeleteWithConfirmation: React.FC<DeleteWithConfirmationProps> = ({
                                 onClick={handleClose}
                                 fullWidth
                             >
-                                No, Keep It
+                                {t('common.deleteConfirm.cancel')}
                             </Button>
                             <Button
                                 variant="danger"
                                 onClick={handleConfirm}
                                 fullWidth
                             >
-                                Yes, Delete
+                                {t('common.deleteConfirm.confirm')}
                             </Button>
                         </div>
                     </div>

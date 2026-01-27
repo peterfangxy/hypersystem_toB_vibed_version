@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
@@ -101,7 +102,7 @@ const TablesView = () => {
                 <DeleteWithConfirmation 
                     onConfirm={() => handleDelete(table.id)}
                     itemName={table.name}
-                    title="Delete Table?"
+                    title={t('tables.deleteTitle')}
                     className="p-2 text-gray-400 hover:text-red-500 hover:bg-[#333] rounded-full transition-colors"
                 />
               </div>

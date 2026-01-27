@@ -111,12 +111,23 @@ const TournamentList: React.FC<TournamentListProps> = ({
         }
     };
 
+    const getStatusLabel = (status: string) => {
+        switch(status) {
+            case 'Scheduled': return t('tournaments.statusOption.scheduled');
+            case 'Registration': return t('tournaments.statusOption.registration');
+            case 'In Progress': return t('tournaments.statusOption.inProgress');
+            case 'Completed': return t('tournaments.statusOption.completed');
+            case 'Cancelled': return t('tournaments.statusOption.cancelled');
+            default: return status;
+        }
+    };
+
     const statusOptions = [
-        { label: 'Scheduled', value: 'Scheduled', color: '#3b82f6' },
-        { label: 'Registration', value: 'Registration', color: '#22c55e' },
-        { label: 'In Progress', value: 'In Progress', color: '#eab308' },
-        { label: 'Completed', value: 'Completed', color: '#9ca3af' },
-        { label: 'Cancelled', value: 'Cancelled', color: '#ef4444' }
+        { label: t('tournaments.statusOption.scheduled'), value: 'Scheduled', color: '#3b82f6' },
+        { label: t('tournaments.statusOption.registration'), value: 'Registration', color: '#22c55e' },
+        { label: t('tournaments.statusOption.inProgress'), value: 'In Progress', color: '#eab308' },
+        { label: t('tournaments.statusOption.completed'), value: 'Completed', color: '#9ca3af' },
+        { label: t('tournaments.statusOption.cancelled'), value: 'Cancelled', color: '#ef4444' }
     ];
 
     const columns: Column<Tournament>[] = useMemo(() => [
@@ -130,7 +141,7 @@ const TournamentList: React.FC<TournamentListProps> = ({
             className: 'pl-4 w-[130px]',
             render: (t) => (
                 <StatusBadge variant={getStatusVariant(t.status)} className="min-w-[100px] text-center">
-                    {t.status}
+                    {getStatusLabel(t.status || '')}
                 </StatusBadge>
             )
         },

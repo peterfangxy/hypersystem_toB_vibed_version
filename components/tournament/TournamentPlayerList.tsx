@@ -111,7 +111,7 @@ const TournamentPlayerList: React.FC<TournamentPlayerListProps> = ({
                         variant={getStatusVariant(reg.status)}
                         className="w-24"
                       >
-                        {reg.status}
+                        {t(`tournaments.registrationStatus.${reg.status.toLowerCase()}`)}
                       </StatusBadge>
                     </td>
 
@@ -150,7 +150,7 @@ const TournamentPlayerList: React.FC<TournamentPlayerListProps> = ({
                             </div>
                         ) : (
                             <span className="text-gray-600 text-xs italic">
-                                {reg.status === 'Reserved' ? 'On Waitlist' : '---'}
+                                {reg.status === 'Reserved' ? t('tournaments.registrationStatus.waitlist') : '---'}
                             </span>
                         )}
                     </td>

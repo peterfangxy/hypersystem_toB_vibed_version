@@ -54,7 +54,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
         const startType = initialType || 'Custom';
         const defaultAlloc: PayoutAllocation = {
             id: crypto.randomUUID(),
-            name: 'Split 1',
+            name: `${t('structures.payoutForm.defaultSplitName')} 1`,
             percent: 100,
             type: startType,
             color: COLORS[0],
@@ -64,7 +64,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
         setSelectedAllocId(defaultAlloc.id);
       }
     }
-  }, [isOpen, initialData, initialType]);
+  }, [isOpen, initialData, initialType, t]);
 
   // Derived State
   const selectedAllocation = allocations.find(a => a.id === selectedAllocId);
@@ -74,16 +74,16 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
   // Validation Logic
   useEffect(() => {
       let error: string | null = null;
-      if (!name) error = "Name is required";
-      else if (!isTotalValid) error = `Total: ${Math.round(totalPercent)}% (Must be 100%)`;
+      if (!name) error = t('structures.payoutForm.validation.nameRequired');
+      else if (!isTotalValid) error = t('structures.payoutForm.validation.totalMustBe100', { total: Math.round(totalPercent) });
       else {
           // Check internal rules of all Custom/ICM allocations
           for (const alloc of allocations) {
               if ((alloc.type === 'Custom' || alloc.type === 'ICM') && alloc.rules) {
                   const res = validatePayoutRules(alloc.rules, t);
                   if (!res.isValid) {
-                      // Removed colon to avoid double colons (e.g. "Bonus Total: ...")
-                      error = `${alloc.name} ${res.error}`;
+                      // Use composite translation key to handle separators properly in different languages
+                      error = t('structures.payoutForm.validation.allocationError', { name: alloc.name, error: res.error });
                       break;
                   }
               }
@@ -99,7 +99,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
       const remaining = Math.max(0, 100 - totalPercent);
       const newAlloc: PayoutAllocation = {
           id: crypto.randomUUID(),
-          name: `Split ${allocations.length + 1}`,
+          name: `${t('structures.payoutForm.defaultSplitName')} ${allocations.length + 1}`,
           percent: remaining,
           type: 'Custom',
           color: COLORS[allocations.length % COLORS.length],
@@ -205,7 +205,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
 
   const validateImport = (data: any): string | null => {
       if (!data.allocations || !Array.isArray(data.allocations)) {
-          return "Invalid format: missing 'allocations' array.";
+          return t('structures.payoutForm.validation.invalidFormat');
       }
       return null;
   };
@@ -213,7 +213,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
   const modalHeaderTitle = (
       <div className="flex items-center justify-between w-full">
           <span className="text-xl font-bold text-white">
-            {initialData ? 'Edit Payout Model' : 'New Payout Model'}
+            {initialData ? t('structures.payoutForm.editTitle') : t('structures.payoutForm.createTitle')}
           </span>
           
           <div className="flex items-center gap-4">
@@ -227,7 +227,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
                 ) : (
                     <div className="flex items-center gap-2 text-green-500 text-xs font-bold bg-green-500/10 px-3 py-1.5 rounded-lg border border-green-500/20">
                         <CheckCircle2 size={14} />
-                        Valid
+                        {t('structures.payoutForm.validation.valid')}
                     </div>
                 )}
              </div>
@@ -238,7 +238,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
                     type="button"
                     onClick={handleOpenImport} 
                     className="p-1.5 text-gray-400 hover:text-white hover:bg-[#333] rounded-md transition-colors" 
-                    title="Import JSON"
+                    title={t('structures.payoutForm.importJson')}
                 >
                     <Upload size={14} />
                 </button>
@@ -247,7 +247,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
                     type="button"
                     onClick={handleOpenExport} 
                     className="p-1.5 text-gray-400 hover:text-white hover:bg-[#333] rounded-md transition-colors" 
-                    title="Export JSON"
+                    title={t('structures.payoutForm.exportJson')}
                 >
                     <Download size={14} />
                 </button>
@@ -290,7 +290,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
                                 value={name}
                                 onChange={e => setName(e.target.value)}
                                 className={`w-full bg-[#111] border border-[#333] rounded-lg px-3 py-1.5 text-white font-bold outline-none focus:border-brand-green transition-colors`}
-                                placeholder="e.g. Standard Top 15%"
+                                placeholder={t('structures.payoutForm.placeholders.name')}
                             />
                         </div>
                         <div className="space-y-1 flex-1">
@@ -300,7 +300,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
                                 value={description}
                                 onChange={e => setDescription(e.target.value)}
                                 className={`w-full bg-[#111] border border-[#333] rounded-lg px-3 py-1.5 text-gray-300 text-sm outline-none focus:border-brand-green/50 transition-colors`}
-                                placeholder="Description..."
+                                placeholder={t('structures.payoutForm.placeholders.description')}
                             />
                         </div>
                     </div>
@@ -323,14 +323,14 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
                     {/* Left: Allocation List */}
                     <div className="w-72 bg-[#1A1A1A] border-r border-[#222] flex flex-col p-3 shrink-0">
                         <div className="flex justify-between items-center mb-3 px-1">
-                            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Splits</h3>
+                            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('structures.payoutForm.splits')}</h3>
                             <button 
                                 type="button"
                                 onClick={handleAddAllocation}
                                 disabled={allocations.length >= 5}
                                 className="text-[10px] font-bold text-brand-green bg-[#222] px-2 py-1 rounded border border-[#333] hover:border-brand-green flex items-center gap-1 transition-all disabled:opacity-50"
                             >
-                                <Plus size={12} /> Add
+                                <Plus size={12} /> {t('structures.payoutForm.addSplit')}
                             </button>
                         </div>
                         
@@ -361,7 +361,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
 
                                     <div className="flex-1 min-w-0">
                                         <div className="text-[10px] font-bold uppercase tracking-wider opacity-70 mb-0.5">
-                                            {alloc.type === 'Custom' ? 'Direct' : alloc.type}
+                                            {alloc.type === 'Custom' ? t('structures.payoutForm.direct') : alloc.type}
                                         </div>
                                         <div className="text-sm font-bold truncate">
                                             {alloc.name}
@@ -393,7 +393,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
                                         {/* Name Input */}
                                         <div className="flex-1">
                                             <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                                                <Pencil size={12} /> Allocation Name
+                                                <Pencil size={12} /> {t('structures.payoutForm.allocationName')}
                                             </label>
                                             <input 
                                                 type="text" 
@@ -409,28 +409,28 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
                                             {/* Method Switcher */}
                                             <div>
                                                 <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">
-                                                    Method
+                                                    {t('structures.payoutForm.method')}
                                                 </label>
                                                 <div className="flex bg-[#111] p-1 rounded-lg border border-[#333]">
-                                                    {['Custom', 'ICM', 'ChipEV'].map(t => (
+                                                    {['Custom', 'ICM', 'ChipEV'].map(payoutType => (
                                                         <button 
-                                                            key={t}
+                                                            key={payoutType}
                                                             type="button"
                                                             onClick={() => {
                                                                 // Initialize rules if switching to Matrix-based types
-                                                                const updates: Partial<PayoutAllocation> = { type: t as PayoutType };
-                                                                if ((t === 'Custom' || t === 'ICM') && (!selectedAllocation.rules || selectedAllocation.rules.length === 0)) {
+                                                                const updates: Partial<PayoutAllocation> = { type: payoutType as PayoutType };
+                                                                if ((payoutType === 'Custom' || payoutType === 'ICM') && (!selectedAllocation.rules || selectedAllocation.rules.length === 0)) {
                                                                     updates.rules = [{ minPlayers: 0, maxPlayers: 99999, placesPaid: 3, percentages: [50, 30, 20] }];
                                                                 }
                                                                 updateAllocation(selectedAllocation.id, updates);
                                                             }}
                                                             className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
-                                                                selectedAllocation.type === t
+                                                                selectedAllocation.type === payoutType
                                                                 ? 'bg-brand-green/20 text-brand-green shadow-sm'
                                                                 : 'text-gray-500 hover:text-white hover:bg-[#222]'
                                                             }`}
                                                         >
-                                                            {t === 'Custom' ? 'Direct' : t}
+                                                            {payoutType === 'Custom' ? t('structures.payoutForm.direct') : payoutType}
                                                         </button>
                                                     ))}
                                                 </div>
@@ -440,7 +440,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
                                             {(selectedAllocation.type === 'Custom' || selectedAllocation.type === 'ICM') && activeRule && (
                                                 <div>
                                                     <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">
-                                                        Places Paid
+                                                        {t('structures.payoutForm.placesPaid')}
                                                     </label>
                                                     <div className="w-24">
                                                         <NumberInput 
@@ -467,7 +467,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
                                         <div>
                                             {activeRule.placesPaid > 50 ? (
                                                 <div className="text-sm text-gray-500 italic py-10 text-center border border-dashed border-[#333] rounded-xl">
-                                                    Distribution configuration hidden for &gt; 50 places to maintain performance.
+                                                    {t('structures.payoutForm.hiddenConfig')}
                                                 </div>
                                             ) : (
                                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -496,10 +496,9 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
                                         <div className="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-50 pb-20">
                                             <Cpu size={48} />
                                             <div className="max-w-sm">
-                                                <h4 className="text-lg font-bold text-white mb-2">Chip EV Engine</h4>
+                                                <h4 className="text-lg font-bold text-white mb-2">{t('structures.payoutForm.chipEvTitle')}</h4>
                                                 <p className="text-sm text-gray-400">
-                                                    Payouts for this portion ({selectedAllocation.percent}%) are calculated based on raw chip percentage. 
-                                                    <br/>(e.g. 50% of chips = 50% of this split)
+                                                    {t('structures.payoutForm.chipEvDesc', { percent: selectedAllocation.percent })}
                                                 </p>
                                             </div>
                                         </div>
@@ -508,7 +507,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
                             </div>
                         ) : (
                             <div className="flex items-center justify-center h-full text-gray-500">
-                                Select a split to configure
+                                {t('structures.payoutForm.selectSplitPrompt')}
                             </div>
                         )}
                     </div>
@@ -524,7 +523,7 @@ const PayoutModelForm: React.FC<PayoutModelFormProps> = ({ isOpen, onClose, onSu
             exportData={ioMode === 'export' ? exportData : undefined}
             onImport={handleImportData}
             validate={validateImport}
-            title={ioMode === 'export' ? "Export Payout Model" : "Import Payout Model"}
+            title={ioMode === 'export' ? t('structures.payoutForm.exportTitle') : t('structures.payoutForm.importTitle')}
         />
     </>
   );

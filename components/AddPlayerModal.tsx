@@ -5,6 +5,7 @@ import { Member } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
 import { Modal } from './ui/Modal';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface AddPlayerModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ const UserPlusIcon = ({ size, className }: { size: number, className?: string })
 );
 
 const AddPlayerModal: React.FC<AddPlayerModalProps> = ({ isOpen, onClose, onAdd, existingMemberIds }) => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [members, setMembers] = useState<Member[]>([]);
 
@@ -50,7 +52,7 @@ const AddPlayerModal: React.FC<AddPlayerModalProps> = ({ isOpen, onClose, onAdd,
       title={
         <div className="flex items-center gap-2">
             <UserPlusIcon size={20} className="text-brand-green"/>
-            Add Player
+            {t('tournaments.addPlayerModal.title')}
         </div>
       }
     >
@@ -60,7 +62,7 @@ const AddPlayerModal: React.FC<AddPlayerModalProps> = ({ isOpen, onClose, onAdd,
              <input 
                 autoFocus
                 type="text"
-                placeholder="Search available members..."
+                placeholder={t('tournaments.addPlayerModal.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={`w-full ${THEME.input} rounded-xl pl-10 pr-4 py-3 text-sm outline-none shadow-inner`}
@@ -93,7 +95,7 @@ const AddPlayerModal: React.FC<AddPlayerModalProps> = ({ isOpen, onClose, onAdd,
           {availableMembers.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 text-gray-500">
                <Users size={32} className="opacity-20 mb-2" />
-               <p className="text-sm">No available members found</p>
+               <p className="text-sm">{t('tournaments.addPlayerModal.noResults')}</p>
             </div>
           )}
         </div>

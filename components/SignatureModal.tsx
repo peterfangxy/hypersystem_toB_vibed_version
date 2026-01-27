@@ -1,9 +1,11 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { PenTool, CheckCircle, RotateCcw } from 'lucide-react';
+import { Trans } from 'react-i18next';
 import { Modal } from './ui/Modal';
 import Button from './ui/Button';
 import { THEME } from '../theme';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface SignatureModalProps {
   isOpen: boolean;
@@ -20,6 +22,7 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
   playerName, 
   chipCount 
 }) => {
+  const { t } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
@@ -118,7 +121,7 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Final Chips Confirmation"
+      title={t('tournaments.signatureModal.title')}
       size="md"
     >
       <div className="p-6 space-y-6">
@@ -127,10 +130,14 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
                   <PenTool size={32} />
               </div>
               <p className="text-lg text-white leading-relaxed">
-                  I, <span className="font-bold text-brand-green">{playerName}</span>, confirm that I have <span className="font-bold text-brand-green">{chipCount.toLocaleString()}</span> chips remaining.
+                  <Trans
+                    i18nKey="tournaments.signatureModal.confirmText"
+                    values={{ name: playerName, chips: chipCount.toLocaleString() }}
+                    components={{ bold: <span className="font-bold text-brand-green" /> }}
+                  />
               </p>
               <p className="text-xs text-gray-500">
-                  Please sign below to verify this amount.
+                  {t('tournaments.signatureModal.instruction')}
               </p>
           </div>
 
@@ -149,13 +156,13 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
                   />
                   {!hasSignature && (
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
-                          <span className="text-4xl font-serif text-gray-400 italic">Sign Here</span>
+                          <span className="text-4xl font-serif text-gray-400 italic">{t('tournaments.signatureModal.placeholder')}</span>
                       </div>
                   )}
                   <button 
                       onClick={clearCanvas}
                       className="absolute top-2 right-2 p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-colors shadow-sm"
-                      title="Clear Signature"
+                      title={t('tournaments.signatureModal.clear')}
                   >
                       <RotateCcw size={16} />
                   </button>
@@ -168,7 +175,7 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
                   onClick={onClose} 
                   fullWidth
               >
-                  Cancel
+                  {t('common.cancel')}
               </Button>
               <Button 
                   variant="primary" 
@@ -177,7 +184,7 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
                   fullWidth
                   icon={CheckCircle}
               >
-                  Confirm Signature
+                  {t('tournaments.signatureModal.confirm')}
               </Button>
           </div>
       </div>

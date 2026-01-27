@@ -4,7 +4,8 @@ export default {
   "subtitle": "Configure blind levels and payout structures.",
   "btn": {
     "createStructure": "New Structure",
-    "createMatrix": "New Matrix"
+    "createMatrix": "New Matrix",
+    "createModel": "New Model"
   },
   "tabs": {
     "blinds": "Blind Structures",
@@ -18,18 +19,22 @@ export default {
     "blinds": "Starting Blinds",
     "levels": "Levels",
     "rebuys": "Rebuys",
-    "length": "Est. Length"
+    "length": "Est. Length",
+    "deleteTitle": "Delete Structure?"
   },
   "payouts": {
     "algorithms": "Algorithms",
     "matrices": "Custom Matrices",
+    "deleteTitle": "Delete Payout Model?",
     "table": {
       "name": "Name",
+      "splits": "Splits",
       "rules": "Rules",
       "range": "Player Range",
       "ranges": "Ranges",
       "noRules": "No rules defined",
-      "empty": "No custom payout matrices defined."
+      "empty": "No custom payout matrices defined.",
+      "emptySplits": "Empty"
     }
   },
   "form": {
@@ -54,7 +59,10 @@ export default {
       "addBreak": "Add Break"
     },
     "save": "Save Structure",
-    "create": "Create Structure"
+    "create": "Create Structure",
+    "placeholders": {
+        "name": "e.g. Turbo Deepstack"
+    }
   },
   "payoutForm": {
     "editTitle": "Edit Payout Model",
@@ -74,9 +82,32 @@ export default {
       "minMax": "Min players cannot be greater than Max players",
       "descending": "Payouts must be in descending order",
       "overlap": "Ranges overlap",
-      "gap": "Gap between ranges"
+      "gap": "Gap between ranges",
+      "nameRequired": "Name is required",
+      "totalMustBe100": "Total: {{total}}% (Must be 100%)",
+      "invalidFormat": "Invalid format: missing 'allocations' array.",
+      "allocationError": "{{name}} - {{error}}"
     },
     "save": "Save Model",
-    "create": "Create Model"
+    "create": "Create Model",
+    "importJson": "Import JSON",
+    "exportJson": "Export JSON",
+    "exportTitle": "Export Payout Model",
+    "importTitle": "Import Payout Model",
+    "splits": "Splits",
+    "addSplit": "Add",
+    "direct": "Direct",
+    "selectSplitPrompt": "Select a split to configure",
+    "allocationName": "Allocation Name",
+    "method": "Method",
+    "placesPaid": "Places Paid",
+    "chipEvTitle": "Chip EV Engine",
+    "chipEvDesc": "Payouts for this portion ({{percent}}%) are calculated based on raw chip percentage.",
+    "hiddenConfig": "Distribution configuration hidden for > 50 places to maintain performance.",
+    "defaultSplitName": "Split",
+    "placeholders": {
+        "name": "e.g. Standard Top 15%",
+        "description": "Description..."
+    }
   }
 };

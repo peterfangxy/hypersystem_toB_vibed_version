@@ -80,5 +80,6 @@ export default {
     "shape_circle": "圓形",
     "shape_triangle": "三角形",
     "image": "圖片"
-  }
+  },
+  "deleteTitle": "刪除版面？"
 };

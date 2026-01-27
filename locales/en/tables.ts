@@ -9,6 +9,7 @@ export default {
   "id": "ID",
   "turnOff": "Turn Off",
   "turnOn": "Turn On",
+  "deleteTitle": "Delete Table?",
   "form": {
     "titleEdit": "Edit Table",
     "titleNew": "Create New Table",

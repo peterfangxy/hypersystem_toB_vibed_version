@@ -14,6 +14,7 @@ import { THEME } from '../theme';
 import { Modal } from './ui/Modal';
 import NumberInput from './ui/NumberInput';
 import StatusBadge from './ui/StatusBadge';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export interface EnrichedRegistration extends TournamentRegistration {
     member?: Member;
@@ -31,6 +32,7 @@ interface BuyinMgmtModalProps {
 }
 
 export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose, registration, tournament, onSave }) => {
+    const { t } = useLanguage();
     const [transactions, setTransactions] = useState<TournamentTransaction[]>([]);
     const [walletBalance, setWalletBalance] = useState<number>(0);
     const [initialAllocatedDeposit, setInitialAllocatedDeposit] = useState<number>(0);
@@ -132,7 +134,7 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={`${registration.member?.fullName || 'Player'} - Payment Breakdown`}
+            title={`${registration.member?.fullName || 'Player'} - ${t('tournaments.buyinModal.title')}`}
             size="4xl"
             zIndex={70}
         >
@@ -142,16 +144,16 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                         {/* Sticky Grid Header - Matches StructureForm Style */}
                         <div className={`sticky top-0 z-10 ${gridClass} p-2 bg-[#111] border-b border-[#222] text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 shadow-sm`}>
                             <div className="text-center pl-2">#</div>
-                            <div className="text-center">Time</div>
-                            <div className="text-center">Type</div>
-                            <div className="text-center">Base</div>
-                            <div className="text-center">Rebuy</div>
-                            <div className="text-center">Member</div>
-                            <div className="text-center">Voucher</div>
-                            <div className="text-center">Campaign</div>
-                            <div className="text-center">Deposit Pay</div>
-                            <div className="text-center">Net</div>
-                            <div className="text-center">Paid</div>
+                            <div className="text-center">{t('tournaments.buyinModal.headers.time')}</div>
+                            <div className="text-center">{t('tournaments.buyinModal.headers.type')}</div>
+                            <div className="text-center">{t('tournaments.buyinModal.headers.base')}</div>
+                            <div className="text-center">{t('tournaments.buyinModal.headers.rebuy')}</div>
+                            <div className="text-center">{t('tournaments.buyinModal.headers.member')}</div>
+                            <div className="text-center">{t('tournaments.buyinModal.headers.voucher')}</div>
+                            <div className="text-center">{t('tournaments.buyinModal.headers.campaign')}</div>
+                            <div className="text-center">{t('tournaments.buyinModal.headers.deposit')}</div>
+                            <div className="text-center">{t('tournaments.buyinModal.headers.net')}</div>
+                            <div className="text-center">{t('tournaments.buyinModal.headers.paid')}</div>
                             <div className="text-center"></div>
                         </div>
 
@@ -159,7 +161,7 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                         <div className="space-y-1">
                             {transactions.length === 0 ? (
                                 <div className="p-10 text-center text-gray-500 border border-dashed border-[#222] rounded-xl bg-[#1A1A1A]/30">
-                                    No transactions recorded. Click "Add" below.
+                                    {t('tournaments.buyinModal.empty')}
                                 </div>
                             ) : (
                                 transactions.map((tx, idx) => {
@@ -180,7 +182,7 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                                                     variant={tx.type === 'BuyIn' ? 'info' : 'warning'} 
                                                     size="sm"
                                                 >
-                                                    {tx.type === 'BuyIn' ? 'Buy-in' : 'Re-buy'}
+                                                    {tx.type === 'BuyIn' ? t('tournaments.buyinModal.types.buyIn') : t('tournaments.buyinModal.types.reBuy')}
                                                 </StatusBadge>
                                             </div>
                                             
@@ -263,12 +265,12 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                         }`}
                     >
                         <Plus size={16} className={canAdd ? "text-brand-green" : "text-gray-600"} />
-                        Add {transactions.length === 0 ? 'Buy-In' : 'Re-buy / Add-on'}
+                        {t('tournaments.buyinModal.addBtn')} {transactions.length === 0 ? t('tournaments.buyinModal.types.buyIn') : t('tournaments.buyinModal.types.reBuy')}
                     </button>
                     {!canAdd && (
                         <span className="text-xs text-red-400 font-medium bg-red-900/10 px-3 py-1 rounded-full border border-red-900/20 flex items-center gap-2">
                             <AlertCircle size={12} />
-                            Tournament Limit Reached (Max {maxBuyIns})
+                            {t('tournaments.buyinModal.limitReached', { max: maxBuyIns })}
                         </span>
                     )}
                 </div>
@@ -276,12 +278,12 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                 <div className="p-6 border-t border-[#222] bg-[#171717] flex justify-between items-center shrink-0">
                     <div className="flex gap-8">
                         <div>
-                            <span className="text-gray-500 text-xs font-bold uppercase block mb-1">Total Net Payable</span>
+                            <span className="text-gray-500 text-xs font-bold uppercase block mb-1">{t('tournaments.buyinModal.summary.net')}</span>
                             <span className="text-xl font-bold text-white font-mono">${totalNetPayable.toLocaleString()}</span>
                         </div>
                         <div>
                             <span className="text-gray-500 text-xs font-bold uppercase block mb-1 flex items-center gap-1.5">
-                                Total Deposit Paid
+                                {t('tournaments.buyinModal.summary.deposit')}
                                 {isOverBalance && <AlertCircle size={14} className="text-red-500" />}
                             </span>
                             <span className={`text-xl font-bold font-mono ${isOverBalance ? 'text-red-500' : 'text-brand-green'}`}>
@@ -289,11 +291,11 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                             </span>
                             <div className="text-[10px] text-gray-500 flex items-center gap-1.5 mt-1">
                                 <Wallet size={12} />
-                                Avail: ${effectiveAvailableFunds.toLocaleString()}
+                                {t('tournaments.buyinModal.summary.avail')}: ${effectiveAvailableFunds.toLocaleString()}
                             </div>
                         </div>
                         <div className="pl-8 border-l border-[#333]">
-                            <span className="text-gray-500 text-xs font-bold uppercase block mb-1">Outstanding</span>
+                            <span className="text-gray-500 text-xs font-bold uppercase block mb-1">{t('tournaments.buyinModal.summary.outstanding')}</span>
                             <span className="text-2xl font-bold text-white font-mono">${totalCashOutstanding.toLocaleString()}</span>
                         </div>
                     </div>
@@ -308,7 +310,7 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                         title={isOverBalance ? "Insufficient wallet balance" : ""}
                     >
                         <Save size={20} />
-                        Save Changes
+                        {t('tournaments.buyinModal.save')}
                     </button>
                 </div>
             </form>

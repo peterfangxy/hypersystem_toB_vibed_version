@@ -8,5 +8,23 @@ export default {
   "processing": "Processing...",
   "close": "Close",
   "manage": "Manage",
-  "noData": "No data available"
+  "noData": "No data available",
+  "io": {
+    "importTitle": "Import Configuration",
+    "exportTitle": "Export Configuration",
+    "copyHelp": "Copy this JSON to save your configuration or share it with others.",
+    "importHelp": "Paste a valid JSON configuration below to load it.",
+    "placeholder": "Paste JSON here...",
+    "copy": "Copy to Clipboard",
+    "copied": "Copied!",
+    "import": "Import",
+    "errorSerialize": "Failed to serialize data.",
+    "errorParse": "Invalid JSON format"
+  },
+  "deleteConfirm": {
+    "title": "Confirm Deletion",
+    "message": "Are you sure you want to delete <bold>{{name}}</bold>? This action cannot be undone.",
+    "confirm": "Yes, Delete",
+    "cancel": "No, Keep It"
+  }
 };

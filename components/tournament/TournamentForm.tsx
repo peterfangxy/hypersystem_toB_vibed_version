@@ -377,7 +377,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                     value={formData.name}
                     onChange={e => setFormData({...formData, name: e.target.value})}
                     className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none transition-all placeholder:text-gray-600 disabled:opacity-60 disabled:cursor-not-allowed`}
-                    placeholder={isTemplateMode ? "e.g. Weekly Deepstack Template" : "e.g. Saturday Night Fever"}
+                    placeholder={isTemplateMode ? t('tournaments.form.placeholders.templateName') : t('tournaments.form.placeholders.name')}
                   />
                 </div>
                 
@@ -428,11 +428,11 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                                 onChange={e => setFormData({...formData, status: e.target.value as TournamentStatus})}
                                 className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed`}
                             >
-                                <option value="Scheduled">Scheduled</option>
-                                <option value="Registration">Registration</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Completed">Completed</option>
-                                <option value="Cancelled">Cancelled</option>
+                                <option value="Scheduled">{t('tournaments.statusOption.scheduled')}</option>
+                                <option value="Registration">{t('tournaments.statusOption.registration')}</option>
+                                <option value="In Progress">{t('tournaments.statusOption.inProgress')}</option>
+                                <option value="Completed">{t('tournaments.statusOption.completed')}</option>
+                                <option value="Cancelled">{t('tournaments.statusOption.cancelled')}</option>
                             </select>
                         </div>
                     )}
@@ -445,7 +445,7 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                         value={formData.description}
                         onChange={e => setFormData({...formData, description: e.target.value})}
                         className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none resize-none disabled:opacity-60 disabled:cursor-not-allowed`}
-                        placeholder="Event details..."
+                        placeholder={t('tournaments.form.placeholders.description')}
                     />
                 </div>
             </div>
@@ -477,15 +477,15 @@ const TournamentForm: React.FC<TournamentFormProps> = ({ isOpen, onClose, onSubm
                         {selectedStruct && (
                             <div className="bg-[#1A1A1A] border border-[#333] rounded-xl p-3 flex flex-col justify-between text-xs animate-in fade-in slide-in-from-top-2 gap-2">
                                 <div className="flex justify-between">
-                                    <span className="text-gray-400">Chips:</span>
+                                    <span className="text-gray-400">{t('tournaments.form.structureCard.chips')}:</span>
                                     <span className="font-mono text-brand-green">{selectedStruct.startingChips.toLocaleString()}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-gray-400">Blinds:</span>
+                                    <span className="text-gray-400">{t('tournaments.form.structureCard.blinds')}:</span>
                                     <span className="text-white">{level1 ? `${level1.smallBlind}/${level1.bigBlind}` : 'N/A'}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-gray-400">Rebuys:</span>
+                                    <span className="text-gray-400">{t('tournaments.form.structureCard.rebuys')}:</span>
                                     <span className="text-white">{selectedStruct.rebuyLimit === 0 ? 'Freezeout' : `${selectedStruct.rebuyLimit} Limit`}</span>
                                 </div>
                             </div>

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Copy, Upload, Check, AlertCircle } from 'lucide-react';
 import { Modal } from './Modal';
 import { THEME } from '../../theme';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface JsonIOModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ export const JsonIOModal: React.FC<JsonIOModalProps> = ({
   validate,
   title
 }) => {
+  const { t } = useLanguage();
   const [jsonContent, setJsonContent] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
@@ -35,13 +37,13 @@ export const JsonIOModal: React.FC<JsonIOModalProps> = ({
         try {
           setJsonContent(JSON.stringify(exportData, null, 2));
         } catch (e) {
-          setError('Failed to serialize data.');
+          setError(t('common.io.errorSerialize'));
         }
       } else {
         setJsonContent('');
       }
     }
-  }, [isOpen, mode, exportData]);
+  }, [isOpen, mode, exportData, t]);
 
   const handleCopy = async () => {
     try {
@@ -71,11 +73,11 @@ export const JsonIOModal: React.FC<JsonIOModalProps> = ({
         onClose();
       }
     } catch (e) {
-      setError((e as Error).message || 'Invalid JSON format');
+      setError((e as Error).message || t('common.io.errorParse'));
     }
   };
 
-  const defaultTitle = title || (mode === 'export' ? "Export Configuration" : "Import Configuration");
+  const defaultTitle = title || (mode === 'export' ? t('common.io.exportTitle') : t('common.io.importTitle'));
 
   return (
     <Modal
@@ -88,12 +90,12 @@ export const JsonIOModal: React.FC<JsonIOModalProps> = ({
       <div className="p-6 flex flex-col h-[500px]">
         {mode === 'export' && (
             <div className="mb-4 text-sm text-gray-400">
-                Copy this JSON to save your configuration or share it with others.
+                {t('common.io.copyHelp')}
             </div>
         )}
         {mode === 'import' && (
             <div className="mb-4 text-sm text-gray-400">
-                Paste a valid JSON configuration below to load it.
+                {t('common.io.importHelp')}
             </div>
         )}
         
@@ -102,7 +104,7 @@ export const JsonIOModal: React.FC<JsonIOModalProps> = ({
             onChange={(e) => { setJsonContent(e.target.value); setError(null); }}
             readOnly={mode === 'export'}
             className={`flex-1 bg-[#111] border rounded-xl p-4 font-mono text-xs text-gray-300 outline-none resize-none mb-4 ${error ? 'border-red-500' : 'border-[#333] focus:border-brand-green'}`}
-            placeholder={mode === 'import' ? 'Paste JSON here...' : ''}
+            placeholder={mode === 'import' ? t('common.io.placeholder') : ''}
         />
 
         {error && (
@@ -118,7 +120,7 @@ export const JsonIOModal: React.FC<JsonIOModalProps> = ({
                 onClick={onClose}
                 className="px-4 py-2 rounded-xl text-sm font-bold text-gray-400 hover:text-white hover:bg-[#222] transition-colors"
             >
-                Cancel
+                {t('common.cancel')}
             </button>
             
             {mode === 'export' ? (
@@ -128,7 +130,7 @@ export const JsonIOModal: React.FC<JsonIOModalProps> = ({
                     className={`px-6 py-2 rounded-xl font-bold flex items-center gap-2 transition-all ${copySuccess ? 'bg-green-500 text-white' : THEME.buttonPrimary}`}
                 >
                     {copySuccess ? <Check size={18} /> : <Copy size={18} />}
-                    {copySuccess ? "Copied!" : "Copy to Clipboard"}
+                    {copySuccess ? t('common.io.copied') : t('common.io.copy')}
                 </button>
             ) : (
                 <button 
@@ -136,7 +138,7 @@ export const JsonIOModal: React.FC<JsonIOModalProps> = ({
                     onClick={handleImport}
                     className={`${THEME.buttonPrimary} px-6 py-2 rounded-xl font-bold flex items-center gap-2`}
                 >
-                    <Upload size={18} /> Import
+                    <Upload size={18} /> {t('common.io.import')}
                 </button>
             )}
         </div>

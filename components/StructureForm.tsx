@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Save, 
@@ -169,7 +170,7 @@ const StructureForm: React.FC<StructureFormProps> = ({ isOpen, onClose, onSubmit
                             value={name}
                             onChange={e => setName(e.target.value)}
                             className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none`}
-                            placeholder="e.g. Turbo Deepstack"
+                            placeholder={t('structures.form.placeholders.name')}
                         />
                      </div>
                  </div>

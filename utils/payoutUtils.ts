@@ -10,7 +10,7 @@ export interface PayoutResult {
 /**
  * Validates a set of payout rules for UI feedback.
  */
-export const validatePayoutRules = (rules: PayoutRule[], t: (key: string) => string): { isValid: boolean; error: string | null } => {
+export const validatePayoutRules = (rules: PayoutRule[], t: (key: string, options?: any) => string): { isValid: boolean; error: string | null } => {
     if (!rules || rules.length === 0) {
         return { isValid: true, error: null };
     }
@@ -19,7 +19,10 @@ export const validatePayoutRules = (rules: PayoutRule[], t: (key: string) => str
     for (const rule of rules) {
         const sum = rule.percentages.reduce((a, b) => a + b, 0);
         if (Math.abs(sum - 100) > 0.1) {
-            return { isValid: false, error: `Total: ${Math.round(sum)}% (Must be 100%)` };
+            return { 
+                isValid: false, 
+                error: t('structures.payoutForm.validation.totalMustBe100', { total: Math.round(sum) })
+            };
         }
     }
 
