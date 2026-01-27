@@ -235,8 +235,9 @@ export const calculatePayoutDistribution = (
         });
     }
 
-    // Round to 2 decimal places to avoid float errors (e.g. 33.333333%)
-    return totals.map(p => Math.round(p * 100) / 100);
+    // Round to 4 decimal places to minimize equity drift before currency conversion
+    // e.g. 33.3333% instead of 33.33%
+    return totals.map(p => Math.round(p * 10000) / 10000);
 };
 
 /**
@@ -246,9 +247,12 @@ export const calculatePayoutDistribution = (
  * 
  * @param rawAmounts The calculated exact winning amounts
  * @param roundingUnit The integer unit to round to (e.g. 100)
+ * @param targetTotal (Optional) Force the final sum to equal this amount. Default is sum(rawAmounts).
  */
-export const smoothPayouts = (rawAmounts: number[], roundingUnit: number = 1): number[] => {
-    const totalPrizePool = rawAmounts.reduce((sum, val) => sum + val, 0);
+export const smoothPayouts = (rawAmounts: number[], roundingUnit: number = 100, targetTotal?: number): number[] => {
+    // If targetTotal is provided, use it. Otherwise sum the raw amounts.
+    // Using targetTotal is preferred to avoid floating point summation drift.
+    const totalPrizePool = targetTotal !== undefined ? targetTotal : rawAmounts.reduce((sum, val) => sum + val, 0);
 
     // 1. Round individual amounts to nearest unit
     let roundedAmounts = rawAmounts.map(amount => {
@@ -300,8 +304,9 @@ export const calculatePayouts = (
     // 1. Calculate raw amounts based on percentages
     const rawAmounts = percentages.map(pct => totalPrizePool * (pct / 100));
 
-    // 2. Smooth amounts (Defaulting to 1 for integer precision, but prepared for 50/100 support)
-    const smoothedAmounts = smoothPayouts(rawAmounts, 1);
+    // 2. Smooth amounts (Defaulting to 100 for integer precision)
+    // Pass totalPrizePool as targetTotal to ensure exact sum matches input
+    const smoothedAmounts = smoothPayouts(rawAmounts, 100, totalPrizePool);
 
     return smoothedAmounts.map((amount, index) => ({
         rank: index + 1, // Note: If ICM, this is really "Player Index + 1"
