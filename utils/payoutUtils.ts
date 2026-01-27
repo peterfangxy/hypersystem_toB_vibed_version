@@ -240,6 +240,53 @@ export const calculatePayoutDistribution = (
 };
 
 /**
+ * Utility: Smooths out payout values to nearest rounding unit (e.g. 1, 10, 100).
+ * Adjusts the last paid player to absorb any rounding differences to ensure
+ * the total matches the original prize pool exactly.
+ * 
+ * @param rawAmounts The calculated exact winning amounts
+ * @param roundingUnit The integer unit to round to (e.g. 100)
+ */
+export const smoothPayouts = (rawAmounts: number[], roundingUnit: number = 1): number[] => {
+    const totalPrizePool = rawAmounts.reduce((sum, val) => sum + val, 0);
+
+    // 1. Round individual amounts to nearest unit
+    let roundedAmounts = rawAmounts.map(amount => {
+        if (roundingUnit <= 0) return amount;
+        return Math.round(amount / roundingUnit) * roundingUnit;
+    });
+
+    // 2. Calculate discrepancy vs original total
+    const currentRoundedTotal = roundedAmounts.reduce((sum, val) => sum + val, 0);
+    const diff = totalPrizePool - currentRoundedTotal;
+
+    // 3. Reconcile difference
+    // If rounded total is LESS than original, diff is POSITIVE. Add to last player.
+    // If rounded total is MORE than original, diff is NEGATIVE. Subtract from last player.
+    if (diff !== 0) {
+        // Find the index of the last player who is getting paid (non-zero rounded amount)
+        let targetIndex = -1;
+        for (let i = roundedAmounts.length - 1; i >= 0; i--) {
+            if (roundedAmounts[i] > 0) {
+                targetIndex = i;
+                break;
+            }
+        }
+
+        // Fallback: If no one has money (e.g. small pool, large rounding unit), assign to 1st place
+        if (targetIndex === -1 && roundedAmounts.length > 0) {
+            targetIndex = 0;
+        }
+
+        if (targetIndex !== -1) {
+            roundedAmounts[targetIndex] += diff;
+        }
+    }
+
+    return roundedAmounts;
+};
+
+/**
  * Calculates the exact currency amounts.
  */
 export const calculatePayouts = (
@@ -250,28 +297,15 @@ export const calculatePayouts = (
 ): PayoutResult[] => {
     const percentages = calculatePayoutDistribution(structure, playerCount, chipCounts);
     
-    // 1. Calculate base amounts with rounding
-    const results = percentages.map((pct, index) => {
-        const rawAmount = totalPrizePool * (pct / 100);
-        // Use round instead of floor to handle floating point epsilons (e.g. 3849.999 -> 3850)
-        const amount = Math.round(rawAmount); 
-        
-        return {
-            rank: index + 1, // Note: If ICM, this is really "Player Index + 1"
-            percentage: pct,
-            amount: amount
-        };
-    });
+    // 1. Calculate raw amounts based on percentages
+    const rawAmounts = percentages.map(pct => totalPrizePool * (pct / 100));
 
-    // 2. Reconcile Remainder
-    // Summing rounded numbers may result in total > pool or total < pool.
-    const currentSum = results.reduce((sum, item) => sum + item.amount, 0);
-    const diff = totalPrizePool - currentSum;
+    // 2. Smooth amounts (Defaulting to 1 for integer precision, but prepared for 50/100 support)
+    const smoothedAmounts = smoothPayouts(rawAmounts, 1);
 
-    if (diff !== 0 && results.length > 0) {
-        // Adjust 1st place (or Player 1) to absorb the difference (cents/dollars)
-        results[0].amount += diff;
-    }
-
-    return results;
+    return smoothedAmounts.map((amount, index) => ({
+        rank: index + 1, // Note: If ICM, this is really "Player Index + 1"
+        percentage: percentages[index], // Maintain original theoretical percentage
+        amount: amount
+    }));
 };

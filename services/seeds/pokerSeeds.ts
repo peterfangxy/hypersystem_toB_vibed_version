@@ -223,9 +223,7 @@ export const SEED_PAYOUTS: PayoutStructure[] = [
                 type: 'ICM',
                 color: '#3b82f6',
                 rules: [
-                    { minPlayers: 2, maxPlayers: 8, placesPaid: 2, percentages: [65, 35] },
-                    { minPlayers: 9, maxPlayers: 20, placesPaid: 3, percentages: [50, 30, 20] },
-                    { minPlayers: 21, maxPlayers: 999, placesPaid: 15, percentages: [30, 20, 14, 10, 8, 6, 5, 4, 3] }, // Simplified
+                    { minPlayers: 2, maxPlayers: 8, placesPaid: 1, percentages: [100] }
                 ]
             },
             {
@@ -235,7 +233,7 @@ export const SEED_PAYOUTS: PayoutStructure[] = [
                 type: 'Custom',
                 color: '#eab308',
                 rules: [
-                    { minPlayers: 2, maxPlayers: 1000, placesPaid: 1, percentages: [100] }
+                    { minPlayers: 2, maxPlayers: 1000, placesPaid: 3, percentages: [50,30,20] }
                 ]
             }
         ]
