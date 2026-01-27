@@ -252,13 +252,15 @@ const MembersList = () => {
               />
             </div>
             
+            {/* 
             <button 
                 onClick={openCreate}
                 className={`${THEME.buttonPrimary} px-6 py-2.5 rounded-xl font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 whitespace-nowrap`}
             >
                 <Plus size={20} strokeWidth={2.5} />
                 {t('members.createBtn')}
-            </button>
+            </button> 
+            */}
           </ControlBar>
 
           <Table 

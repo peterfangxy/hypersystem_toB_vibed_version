@@ -5,11 +5,11 @@ import {
   Copy
 } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
-import { Tournament, TournamentStructure, PayoutStructure } from '../../types';
-import * as DataService from '../../services/dataService';
-import TournamentForm from '../../components/tournament/TournamentForm';
-import { useLanguage } from '../../contexts/LanguageContext';
-import { PageHeader, TabContainer } from '../../components/ui/PageLayout';
+import { Tournament, TournamentStructure, PayoutStructure } from '../types';
+import * as DataService from '../services/dataService';
+import TournamentForm from '../components/tournament/TournamentForm';
+import { useLanguage } from '../contexts/LanguageContext';
+import { PageHeader, TabContainer } from '../components/ui/PageLayout';
 import TournamentList from './tournaments/TournamentList';
 import TemplateList from './tournaments/TemplateList';
 

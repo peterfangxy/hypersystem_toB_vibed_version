@@ -1,9 +1,27 @@
 
-import { Member, TierDefinition } from '../../types';
+import { Member, TierDefinition, MemberStatus } from '../../types';
 import { SEED_MEMBERS } from '../mockData';
 import { supabase, isSupabaseAvailable } from '../supabaseClient';
 import { getLocalData, setLocalData, MEMBERS_KEY, TIERS_KEY } from './storage';
-import type { Database } from '../../types/supabase';
+import type { Database } from '../../supabaseSchema';
+
+// --- Helpers ---
+
+// Map DB Enums (snake_case) to UI Status (Title Case)
+const mapStatus = (dbStatus: string | null): MemberStatus => {
+    switch (dbStatus) {
+        case 'activated': return 'Activated';
+        case 'pending_approval': return 'Pending Approval';
+        case 'deactivated': return 'Deactivated';
+        default: return 'Pending Approval';
+    }
+};
+
+// Map DB Tier (lowercase) to UI Tier (Title Case)
+const mapTier = (dbTier: string | null): string => {
+    if (!dbTier) return '';
+    return dbTier.charAt(0).toUpperCase() + dbTier.slice(1);
+};
 
 // --- Members ---
 
@@ -22,37 +40,65 @@ export const fetchMembers = async (): Promise<Member[]> => {
     if (isSupabaseAvailable() && supabase) {
         try {
             console.log('Fetching members from Supabase...');
-            const { data, error } = await supabase.from('members').select('*');
+            
+            // Query 'club_member' and join with the 'member' table to get profile details
+            const { data, error } = await supabase
+                .from('club_member')
+                .select(`
+                    *,
+                    member:member_id (
+                        id,
+                        full_name,
+                        email,
+                        mobile_phone,
+                        id_url,
+                        id_number
+                    )
+                `);
             
             if (error) {
                 console.error("Supabase Error:", error.message);
-                return getMembers(); // Fallback
+                return getMembers(); // Fallback to local
             }
 
             if (data && data.length > 0) {
                 // Map DB columns to Member model
-                const mappedMembers: Member[] = data.map((row: any) => ({
-                    id: row.id,
-                    fullName: row.full_name || row.fullName || 'Unknown',
-                    nickname: '', // Not in default DB schema yet
-                    email: row.email || '',
-                    phone: row.phone || '',
-                    club_id: row.club_id || '',
-                    status: (row.status as any) || 'Pending Approval',
-                    tier: row.tier || '',
-                    joinDate: row.join_date || row.created_at || new Date().toISOString(),
-                    avatarUrl: row.avatar_url || '',
-                    notes: row.notes || '',
-                    // Client-side defaults for fields not currently in DB
-                    age: 21,
-                    gender: 'Prefer not to say',
-                    birthDate: '',
-                    isIdVerified: false,
-                    idNumber: '',
-                    passportNumber: '',
-                    idPhotoFrontUrl: '',
-                    idPhotoBackUrl: ''
-                }));
+                const mappedMembers: Member[] = data.map((row: any) => {
+                    const profile = row.member;
+                    
+                    return {
+                        // Use string conversion for IDs as frontend uses strings
+                        id: String(profile?.id || row.member_id),
+                        fullName: profile?.full_name || 'Unknown',
+                        nickname: row.nickname || '',
+                        email: profile?.email || '',
+                        phone: profile?.mobile_phone || '',
+                        club_id: row.club_member_code || '',
+                        
+                        // Map Enums
+                        status: mapStatus(row.member_status),
+                        tier: mapTier(row.membership_level),
+                        
+                        // Dates
+                        join_date: row.joined_date || row.created_at || new Date().toISOString(), // DB field
+                        joinDate: row.joined_date || row.created_at || new Date().toISOString(), // UI field
+                        
+                        // Images
+                        avatarUrl: row.avatar_url || '',
+                        idPhotoFrontUrl: profile?.id_url || '',
+                        
+                        notes: row.notes || '',
+                        
+                        // Client-side defaults for fields not strictly in this join view
+                        age: 21, // Calculate from date_of_birth if available
+                        gender: 'Prefer not to say',
+                        birthDate: '',
+                        isIdVerified: row.kyc_status === 'verified',
+                        idNumber: profile?.id_number || '',
+                        passportNumber: '',
+                        idPhotoBackUrl: ''
+                    };
+                });
                 
                 // Update local cache with fresh data
                 setLocalData(MEMBERS_KEY, mappedMembers);
@@ -79,27 +125,30 @@ export const saveMember = async (member: Member): Promise<void> => {
   // 2. Persist to Supabase
   if (isSupabaseAvailable() && supabase) {
       try {
-          const memberData: Database['public']['Tables']['members']['Insert'] = {
-              id: member.id,
+          // Note: Full upsert requires writing to 'member' then 'club_member'.
+          // This simplified version attempts to update the 'member' identity table.
+          // For a full implementation, you would need a stored procedure or multiple calls.
+          
+          // Attempt to map UI Member to DB row (Partial)
+          const memberPayload = {
               full_name: member.fullName,
               email: member.email,
-              phone: member.phone || null,
-              club_id: member.club_id || null,
-              status: member.status,
-              tier: member.tier || null,
-              join_date: member.joinDate || null,
-              avatar_url: member.avatarUrl || null,
+              mobile_phone: member.phone || null,
               notes: member.notes || null,
           };
 
-          // Cast to any to avoid TypeScript overload mismatch with Supabase definitions
-          const { error } = await supabase.from('members').upsert(memberData as any);
-
-          if (error) {
-              console.error("Supabase Save Error:", error.message);
+          // We assume 'id' is a number in DB, but string in frontend. 
+          // If ID is a UUID string from frontend (new member), this might fail against an Int8 column
+          // unless the DB is set up to auto-increment and we omit ID on insert.
+          
+          const numericId = parseInt(member.id);
+          
+          if (!isNaN(numericId)) {
+             await supabase.from('member').update(memberPayload).eq('id', numericId);
           } else {
-              console.log("Member saved to Supabase");
+             console.warn("Skipping Supabase write: ID is not numeric (likely a local-only new member).");
           }
+
       } catch (err) {
           console.error("Supabase Save Exception:", err);
       }

@@ -1,9 +1,9 @@
 
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from '../types/supabase';
+import type { Database } from '../supabaseSchema';
 
 // Environment variables or Hardcoded for specific environment
-// Note: In production, these should be process.env vars, but we are using the provided credentials directly.
+// Note: Ensure process.env.SERVICE_SUPABASE_URL and SERVICE_SUPABASE_KEY are set in your build environment.
 const supabaseUrl = process.env.SERVICE_SUPABASE_URL || 'https://nxzdhptspqwuzhgfsxmu.supabase.co';
 const supabaseKey = process.env.SERVICE_SUPABASE_KEY || 'sb_publishable_O_LihLc-dnnJTmdSEoZNrQ_RJEf6ay7';
 
