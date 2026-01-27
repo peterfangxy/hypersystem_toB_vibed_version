@@ -24,6 +24,19 @@ export default {
   "btn": {
     "new": "New Layout"
   },
+  "list": {
+    "openClock": "Open Clock",
+    "status": {
+      "live": "LIVE",
+      "registration": "REGISTRATION",
+      "error": "ERROR",
+      "idle": "IDLE"
+    },
+    "tbd": "TBD",
+    "players": "Players",
+    "prizePool": "Prize Pool",
+    "conflict": "Conflict Detected"
+  },
   "card": {
     "activeWidgets": "Active Widgets"
   },

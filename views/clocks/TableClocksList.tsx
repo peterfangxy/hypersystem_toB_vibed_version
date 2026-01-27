@@ -90,7 +90,7 @@ const TableClocksList = () => {
                                         <div className="flex items-center gap-2 mt-1">
                                             <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-red-500 animate-pulse' : (isError ? 'bg-orange-500 animate-pulse' : 'bg-gray-600')}`} />
                                             <span className={`text-xs font-bold uppercase tracking-wider ${isActive ? 'text-red-500' : (isError ? 'text-orange-500' : 'text-gray-500')}`}>
-                                                {isActive ? 'LIVE' : (isError ? 'ERROR' : 'IDLE')}
+                                                {isActive ? t('clocks.list.status.live') : (isError ? t('clocks.list.status.error') : t('clocks.list.status.idle'))}
                                             </span>
                                         </div>
                                     </div>
@@ -103,7 +103,7 @@ const TableClocksList = () => {
                                     {isError ? (
                                         <>
                                             <AlertTriangle size={24} className="text-red-500 mb-2" />
-                                            <span className="text-red-400 font-bold text-sm">Conflict Detected</span>
+                                            <span className="text-red-400 font-bold text-sm">{t('clocks.list.conflict')}</span>
                                         </>
                                     ) : isActive ? (
                                         <>
@@ -122,7 +122,7 @@ const TableClocksList = () => {
                                     onClick={() => handleOpenTableClock(table.id)}
                                     className={`mt-auto w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${THEME.buttonPrimary}`}
                                 >
-                                    <Maximize2 size={18} /> Open Clock
+                                    <Maximize2 size={18} /> {t('clocks.list.openClock')}
                                 </button>
                             </div>
                         );

@@ -86,7 +86,8 @@ export default {
     "empty": "No tournaments found",
     "createFirst": "Create your first tournament",
     "emptyTemplates": "No templates found",
-    "createFirstTemplate": "Create your first template"
+    "createFirstTemplate": "Create your first template",
+    "deleteTemplateTitle": "Delete Template?"
   },
   "form": {
     "titleEdit": "Edit Tournament",

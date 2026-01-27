@@ -78,7 +78,7 @@ const TournamentClocksList = () => {
                                       <div className="flex items-center gap-2 mb-1">
                                           <span className={`w-2 h-2 rounded-full animate-pulse ${isLive ? 'bg-red-500' : 'bg-blue-500'}`}></span>
                                           <span className={`text-xs font-bold ${isLive ? 'text-red-500' : 'text-blue-500'}`}>
-                                            {isLive ? 'LIVE' : 'REGISTRATION'}
+                                            {isLive ? t('clocks.list.status.live') : t('clocks.list.status.registration')}
                                           </span>
                                       </div>
                                       <h3 className="text-xl font-bold text-white truncate" title={tournament.name}>{tournament.name}</h3>
@@ -91,22 +91,22 @@ const TournamentClocksList = () => {
                               <div className="flex items-center gap-4 text-gray-400 text-xs mb-4 bg-[#1A1A1A] p-2 rounded-lg border border-[#222]">
                                   <div className="flex items-center gap-1.5">
                                       <Calendar size={14} />
-                                      {tournament.startDate ? new Date(tournament.startDate).toLocaleDateString() : 'TBD'}
+                                      {tournament.startDate ? new Date(tournament.startDate).toLocaleDateString() : t('clocks.list.tbd')}
                                   </div>
                                   <div className="flex items-center gap-1.5">
                                       <Clock size={14} />
-                                      {tournament.startTime || 'TBD'}
+                                      {tournament.startTime || t('clocks.list.tbd')}
                                   </div>
                               </div>
 
                               <div className="flex items-center gap-4 text-gray-500 text-sm mb-6">
                                   <div className="flex items-center gap-1.5">
                                       <Users size={14} />
-                                      {activePlayers} Players
+                                      {activePlayers} {t('clocks.list.players')}
                                   </div>
                                   <div className="flex items-center gap-1.5">
                                       <Coins size={14} />
-                                      ${prizePool.toLocaleString()} Prize Pool
+                                      ${prizePool.toLocaleString()} {t('clocks.list.prizePool')}
                                   </div>
                               </div>
 
@@ -114,7 +114,7 @@ const TournamentClocksList = () => {
                                 onClick={() => handleOpenClock(tournament)}
                                 className={`mt-auto w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${THEME.buttonPrimary}`}
                               >
-                                  <Maximize2 size={18} /> Open Clock
+                                  <Maximize2 size={18} /> {t('clocks.list.openClock')}
                               </button>
                           </div>
                       );

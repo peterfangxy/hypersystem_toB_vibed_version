@@ -24,6 +24,19 @@ export default {
   "btn": {
     "new": "新增版面"
   },
+  "list": {
+    "openClock": "開啟計時器",
+    "status": {
+      "live": "進行中",
+      "registration": "報名中",
+      "error": "錯誤",
+      "idle": "閒置"
+    },
+    "tbd": "待定",
+    "players": "位玩家",
+    "prizePool": "總獎池",
+    "conflict": "衝突偵測"
+  },
   "card": {
     "activeWidgets": "活躍組件"
   },
