@@ -51,11 +51,15 @@ const TierForm: React.FC<TierFormProps> = ({ isOpen, onClose, onSubmit, initialD
     onClose();
   };
 
+  const modalTitle = isNew 
+    ? t('members.tierForm.newTitle') 
+    : t('members.tierForm.editTitle', { name: initialData?.name });
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isNew ? "New Tier" : `Edit Tier: ${initialData?.name}`}
+      title={modalTitle}
       size="md"
     >
       <form onSubmit={handleSubmit} className="p-6 space-y-6">
@@ -85,18 +89,18 @@ const TierForm: React.FC<TierFormProps> = ({ isOpen, onClose, onSubmit, initialD
         <div className="space-y-4">
             <div className="grid grid-cols-4 gap-4">
                 <div className="col-span-3 space-y-1">
-                    <label className="text-sm font-medium text-gray-300">Display Name</label>
+                    <label className="text-sm font-medium text-gray-300">{t('members.tierForm.name')}</label>
                     <input 
                         required
                         type="text" 
                         value={formData.name}
                         onChange={e => setFormData({...formData, name: e.target.value})}
                         className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none`}
-                        placeholder="e.g. Diamond Elite"
+                        placeholder={t('members.tierForm.placeholders.name')}
                     />
                 </div>
                 <div className="col-span-1 space-y-1">
-                    <label className="text-sm font-medium text-gray-300 flex items-center gap-1"><Palette size={14}/> Color</label>
+                    <label className="text-sm font-medium text-gray-300 flex items-center gap-1"><Palette size={14}/> {t('members.tierForm.color')}</label>
                     <div className="flex items-center gap-2 h-[46px] bg-[#1A1A1A] rounded-xl border border-[#333] px-2">
                         <input 
                             type="color" 
@@ -109,24 +113,24 @@ const TierForm: React.FC<TierFormProps> = ({ isOpen, onClose, onSubmit, initialD
             </div>
 
             <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Requirements</label>
+                <label className="text-sm font-medium text-gray-300">{t('members.tierForm.requirements')}</label>
                 <input 
                     type="text" 
                     value={formData.requirements}
                     onChange={e => setFormData({...formData, requirements: e.target.value})}
                     className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none placeholder:text-gray-600`}
-                    placeholder="e.g. 5,000 Points per year"
+                    placeholder={t('members.tierForm.placeholders.requirements')}
                 />
             </div>
 
             <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300 flex items-center gap-2"><ScrollText size={14} className="text-brand-green"/> Tier Benefits (Staff Notes)</label>
+                <label className="text-sm font-medium text-gray-300 flex items-center gap-2"><ScrollText size={14} className="text-brand-green"/> {t('members.tierForm.benefits')}</label>
                 <textarea 
                     rows={6}
                     value={formData.benefits}
                     onChange={e => setFormData({...formData, benefits: e.target.value})}
                     className={`w-full ${THEME.input} rounded-xl px-4 py-3 outline-none resize-none leading-relaxed`}
-                    placeholder="- Free entry to weekly tournament&#10;- Priority waitlist access&#10;- 20% discount on F&B"
+                    placeholder={t('members.tierForm.placeholders.benefits')}
                 />
             </div>
         </div>
@@ -137,7 +141,7 @@ const TierForm: React.FC<TierFormProps> = ({ isOpen, onClose, onSubmit, initialD
             fullWidth
             size="lg"
           >
-            Save Tier
+            {t('members.tierForm.save')}
           </Button>
         </div>
       </form>

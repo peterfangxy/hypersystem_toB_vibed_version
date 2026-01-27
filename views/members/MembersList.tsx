@@ -188,7 +188,7 @@ const MembersList = () => {
       },
       {
           key: 'isIdVerified',
-          label: 'Verified',
+          label: t('members.table.verified'),
           sortable: true,
           filterable: true,
           filterType: 'multi-select',

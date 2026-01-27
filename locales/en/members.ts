@@ -11,7 +11,28 @@ export default {
   },
   "settings": {
     "comingSoon": "Coming Soon",
-    "comingSoonDesc": "Advanced membership configuration and tier management features are under development."
+    "comingSoonDesc": "Advanced membership configuration and tier management features are under development.",
+    "addTier": "Add Tier",
+    "tierCard": {
+      "requirements": "Requirements",
+      "benefits": "Benefits",
+      "noBenefits": "No benefits listed.",
+      "deleteConfirm": "Are you sure you want to delete this tier? Existing members may need to be reassigned."
+    }
+  },
+  "tierForm": {
+    "newTitle": "New Tier",
+    "editTitle": "Edit Tier: {{name}}",
+    "name": "Display Name",
+    "color": "Color",
+    "requirements": "Requirements",
+    "benefits": "Tier Benefits (Staff Notes)",
+    "save": "Save Tier",
+    "placeholders": {
+        "name": "e.g. Diamond Elite",
+        "requirements": "e.g. 5,000 Points per year",
+        "benefits": "- Free entry to weekly tournament\n- Priority waitlist access\n- 20% discount on F&B"
+    }
   },
   "table": {
     "member": "Member",
@@ -20,7 +41,8 @@ export default {
     "clubId": "Club ID",
     "tier": "Tier",
     "status": "Status",
-    "joined": "Joined"
+    "joined": "Joined",
+    "verified": "Verified"
   },
   "form": {
     "titleEdit": "Edit Member",

@@ -37,5 +37,34 @@ export default {
   "export": {
     "comingSoon": "即將推出",
     "comingSoonDesc": "進階報表與 CSV 匯出功能正在開發中。"
+  },
+  "reports": {
+    "members": {
+      "title": "會員名冊與分析",
+      "desc": "匯出會員詳細資料，包括加入日期、等級、未結餘額和勝率。"
+    },
+    "transactions": {
+      "title": "財務帳本",
+      "desc": "所有存款、提款和錢包調整的詳細記錄。"
+    },
+    "tournaments": {
+      "title": "賽事歷史",
+      "desc": "已舉辦賽事的列表，包括玩家人數、獎池和狀態。"
+    },
+    "revenue": {
+      "title": "買入與營收",
+      "desc": "所有賽事中收取的買入、重購和費用的詳細清單。"
+    },
+    "configureFilters": "請在下方設定匯出篩選條件。產生的檔案將是與 Excel 和 Google Sheets 相容的 .CSV 格式。",
+    "exportData": "匯出資料",
+    "dateJoined": "加入日期 (選填)",
+    "membershipTiers": "會員等級",
+    "transactionDate": "交易日期範圍",
+    "transactionType": "類型",
+    "allTransactions": "所有交易",
+    "depositsOnly": "僅存款",
+    "withdrawalsOnly": "僅提款",
+    "eventDate": "賽事日期範圍",
+    "success": "匯出成功產生！(模擬)"
   }
 };

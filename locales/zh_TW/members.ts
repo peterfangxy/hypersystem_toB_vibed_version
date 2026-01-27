@@ -11,7 +11,28 @@ export default {
   },
   "settings": {
     "comingSoon": "即將推出",
-    "comingSoonDesc": "進階會員配置與等級管理功能正在開發中。"
+    "comingSoonDesc": "進階會員配置與等級管理功能正在開發中。",
+    "addTier": "新增等級",
+    "tierCard": {
+      "requirements": "資格要求",
+      "benefits": "權益福利",
+      "noBenefits": "未列出福利。",
+      "deleteConfirm": "確定要刪除此等級嗎？現有會員可能需要重新分配。"
+    }
+  },
+  "tierForm": {
+    "newTitle": "新增等級",
+    "editTitle": "編輯等級: {{name}}",
+    "name": "顯示名稱",
+    "color": "顏色",
+    "requirements": "資格要求",
+    "benefits": "等級權益 (員工備註)",
+    "save": "儲存等級",
+    "placeholders": {
+        "name": "例如：鑽石精英",
+        "requirements": "例如：每年 5,000 點",
+        "benefits": "- 每週賽事免費入場\n- 優先候補資格\n- 餐飲 8 折優惠"
+    }
   },
   "table": {
     "member": "會員",
@@ -20,7 +41,8 @@ export default {
     "clubId": "會員 ID",
     "tier": "等級",
     "status": "狀態",
-    "joined": "加入日期"
+    "joined": "加入日期",
+    "verified": "驗證"
   },
   "form": {
     "titleEdit": "編輯會員",

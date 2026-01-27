@@ -41,7 +41,7 @@ const MembershipSettings = () => {
     };
 
     const handleDelete = (id: string) => {
-        if(window.confirm("Are you sure you want to delete this tier? Existing members may need to be reassigned.")) {
+        if(window.confirm(t('members.settings.tierCard.deleteConfirm'))) {
             DataService.deleteTierDefinition(id);
             loadTiers();
         }
@@ -76,7 +76,7 @@ const MembershipSettings = () => {
                   className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 whitespace-nowrap`}
               >
                   <Plus size={20} strokeWidth={2.5} />
-                  Add Tier
+                  {t('members.settings.addTier')}
               </button>
             </div>
 
@@ -125,12 +125,12 @@ const MembershipSettings = () => {
                             {/* Body */}
                             <div className="p-5 flex-1 flex flex-col gap-4">
                                 <div>
-                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Requirements</span>
+                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">{t('members.settings.tierCard.requirements')}</span>
                                     <p className="text-sm font-medium text-gray-200">{tier.requirements || 'None'}</p>
                                 </div>
                                 
                                 <div className="flex-1">
-                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Benefits</span>
+                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">{t('members.settings.tierCard.benefits')}</span>
                                     {tier.benefits ? (
                                         <ul className="text-xs text-gray-400 space-y-1 leading-relaxed">
                                             {tier.benefits.split('\n').map((line, i) => (
@@ -141,7 +141,7 @@ const MembershipSettings = () => {
                                             ))}
                                         </ul>
                                     ) : (
-                                        <span className="text-xs text-gray-600 italic">No benefits listed.</span>
+                                        <span className="text-xs text-gray-600 italic">{t('members.settings.tierCard.noBenefits')}</span>
                                     )}
                                 </div>
                             </div>
@@ -153,7 +153,7 @@ const MembershipSettings = () => {
                                     <button 
                                         onClick={() => handleEdit(tier)}
                                         className="p-2 hover:bg-[#222] rounded-lg text-gray-400 hover:text-white transition-colors"
-                                        title="Edit Tier"
+                                        title={t('common.edit')}
                                     >
                                         <Edit2 size={16} />
                                     </button>
@@ -161,7 +161,7 @@ const MembershipSettings = () => {
                                         <button 
                                             onClick={() => handleDelete(tier.id)}
                                             className="p-2 hover:bg-red-900/20 rounded-lg text-gray-600 hover:text-red-500 transition-colors"
-                                            title="Delete Tier"
+                                            title={t('common.delete')}
                                         >
                                             <Trash2 size={16} />
                                         </button>
@@ -180,7 +180,7 @@ const MembershipSettings = () => {
                     <div className="w-12 h-12 rounded-full bg-[#1A1A1A] flex items-center justify-center mb-4">
                         <Plus size={24} />
                     </div>
-                    <span className="font-bold">Add New Tier</span>
+                    <span className="font-bold">{t('members.settings.addTier')}</span>
                 </button>
             </div>
 

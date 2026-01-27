@@ -37,5 +37,34 @@ export default {
   "export": {
     "comingSoon": "Coming Soon",
     "comingSoonDesc": "Advanced reporting and CSV export features are under development."
+  },
+  "reports": {
+    "members": {
+      "title": "Member Roster & Analysis",
+      "desc": "Export member details including join dates, tiers, outstanding balances, and win rates."
+    },
+    "transactions": {
+      "title": "Financial Ledger",
+      "desc": "Detailed log of all deposits, withdrawals, and wallet adjustments."
+    },
+    "tournaments": {
+      "title": "Tournament History",
+      "desc": "List of hosted tournaments including player counts, prize pools, and status."
+    },
+    "revenue": {
+      "title": "Buy-ins & Revenue",
+      "desc": "Itemized list of buy-ins, rebuys, and fees collected across all events."
+    },
+    "configureFilters": "Configure your export filters below. The resulting file will be a .CSV compatible with Excel and Google Sheets.",
+    "exportData": "Export Data",
+    "dateJoined": "Date Joined (Optional)",
+    "membershipTiers": "Membership Tiers",
+    "transactionDate": "Transaction Date Range",
+    "transactionType": "Type",
+    "allTransactions": "All Transactions",
+    "depositsOnly": "Deposits Only",
+    "withdrawalsOnly": "Withdrawals Only",
+    "eventDate": "Event Date Range",
+    "success": "Export generated successfully! (Simulation)"
   }
 };
