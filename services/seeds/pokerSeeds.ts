@@ -336,18 +336,22 @@ const generateMockTournaments = (): Tournament[] => {
     // 3. Generate 2 In-Progress "Test" Tournaments (Live)
     // Dynamic Time Calculation for "Now"
     const now = new Date();
-    // Helper to format time HH:mm 24h format
-    const formatTime = (d: Date) => d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false});
     
-    const startTimeHyper = new Date(now.getTime() - 15 * 60000); // 15 mins ago
-    const startTimeBreaks = new Date(now.getTime() - 45 * 60000); // 45 mins ago
+    // Explicitly format as HH:mm (24h) to avoid locale issues
+    const formatTime = (d: Date) => {
+        const h = String(d.getHours()).padStart(2, '0');
+        const m = String(d.getMinutes()).padStart(2, '0');
+        return `${h}:${m}`;
+    };
+    
+    const currentTimeStr = formatTime(now);
 
     // Tournament A: Hyper Turbo Test (ChipEV)
     list.push({
         id: 'live-test-hyper',
         name: '測試：ChipEV 計算',
         startDate: getLocalDate(0), // Today
-        startTime: formatTime(startTimeHyper), 
+        startTime: currentTimeStr, 
         estimatedDurationMinutes: 60,
         buyIn: 1000,
         fee: 0,
@@ -372,7 +376,7 @@ const generateMockTournaments = (): Tournament[] => {
         id: 'live-test-breaks',
         name: '現場測試：休息時間邏輯',
         startDate: getLocalDate(0), // Today
-        startTime: formatTime(startTimeBreaks),
+        startTime: currentTimeStr,
         estimatedDurationMinutes: 120,
         buyIn: 3000,
         fee: 400,
@@ -397,7 +401,7 @@ const generateMockTournaments = (): Tournament[] => {
         id: 'live-test-breaks-split',
         name: '測試：1分鐘 + 休息 (混合獎勵)',
         startDate: getLocalDate(0), // Today
-        startTime: formatTime(startTimeBreaks),
+        startTime: currentTimeStr,
         estimatedDurationMinutes: 120,
         buyIn: 3000,
         fee: 400,
