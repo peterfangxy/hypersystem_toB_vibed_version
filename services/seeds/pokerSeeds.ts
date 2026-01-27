@@ -10,7 +10,8 @@ const getLocalDate = (daysToAdd: number = 0): string => {
     return `${year}-${month}-${day}`;
 };
 
-export const SEED_TABLES: PokerTable[] = [
+// --- BACKUP ENGLISH DATA ---
+export const SEED_TABLES_EN: PokerTable[] = [
   { id: 't1', name: 'Table 1 (Feature)', capacity: 9, status: 'Active', notes: 'RFID Equipped' },
   { id: 't2', name: 'Table 2', capacity: 9, status: 'Active' },
   { id: 't3', name: 'Table 3', capacity: 9, status: 'Active' },
@@ -18,10 +19,28 @@ export const SEED_TABLES: PokerTable[] = [
   { id: 't5', name: 'Table 5 (High Roller)', capacity: 6, status: 'Inactive', notes: 'Private Room' },
 ];
 
+export const TEMPLATES_EN = [
+    { name: 'Daily Turbo', buyIn: 50, fee: 10, struct: 'struct_turbo', payout: 'algo_1', chips: 20000, duration: 240 },
+    { name: 'Deepstack Weekend', buyIn: 150, fee: 25, struct: 'struct_deep', payout: 'algo_icm', chips: 50000, duration: 480 },
+    { name: 'Bounty Hunter', buyIn: 80, fee: 20, struct: 'struct_turbo', payout: 'algo_1', chips: 15000, duration: 240 },
+    { name: 'PLO Pot Limit', buyIn: 100, fee: 15, struct: 'struct_deep', payout: 'algo_1', chips: 25000, duration: 360 },
+    { name: 'Freezeout', buyIn: 200, fee: 30, struct: 'struct_deep', payout: 'algo_1', chips: 30000, duration: 420 },
+];
+
+// --- ACTIVE CHINESE DATA ---
+
+export const SEED_TABLES: PokerTable[] = [
+  { id: 't1', name: '1號桌 (直播桌)', capacity: 9, status: 'Active', notes: '配備 RFID 讀取器' },
+  { id: 't2', name: '2號桌', capacity: 9, status: 'Active' },
+  { id: 't3', name: '3號桌', capacity: 9, status: 'Active' },
+  { id: 't4', name: '4號桌', capacity: 9, status: 'Active' },
+  { id: 't5', name: '5號桌 (高額區)', capacity: 6, status: 'Inactive', notes: 'VIP 私人包廂' },
+];
+
 export const SEED_STRUCTURES: TournamentStructure[] = [
     {
         id: 'struct_turbo',
-        name: 'Turbo Daily (BB Ante)',
+        name: '每日快速賽 (BB Ante)',
         startingChips: 20000,
         rebuyLimit: 1,
         lastRebuyLevel: 6,
@@ -40,7 +59,7 @@ export const SEED_STRUCTURES: TournamentStructure[] = [
     },
     {
         id: 'struct_deep',
-        name: 'Deepstack Weekend',
+        name: '週末深籌碼賽',
         startingChips: 50000,
         rebuyLimit: 0,
         lastRebuyLevel: 8,
@@ -58,7 +77,7 @@ export const SEED_STRUCTURES: TournamentStructure[] = [
     },
     {
         id: 'struct_test_1min',
-        name: 'TEST: Hyper Turbo (1min)',
+        name: '測試：超高速 (1分鐘)',
         startingChips: 5000,
         rebuyLimit: 1,
         lastRebuyLevel: 3,
@@ -94,7 +113,7 @@ export const SEED_STRUCTURES: TournamentStructure[] = [
     },
     {
         id: 'struct_test_breaks',
-        name: 'TEST: 1min Level + Break',
+        name: '測試：1分鐘盲注 + 休息',
         startingChips: 10000,
         rebuyLimit: 0,
         lastRebuyLevel: 0,
@@ -142,7 +161,7 @@ export const SEED_STRUCTURES: TournamentStructure[] = [
     },
     {
         id: 'struct_pko',
-        name: 'Progressive KO',
+        name: 'Progressive KO (PKO)',
         startingChips: 25000,
         rebuyLimit: 1,
         lastRebuyLevel: 8,
@@ -159,13 +178,13 @@ export const SEED_STRUCTURES: TournamentStructure[] = [
 export const SEED_PAYOUTS: PayoutStructure[] = [
     { 
         id: 'algo_1', 
-        name: 'Standard Fixed (15%)', 
-        description: 'Pays top 15% of the field. System Default.', 
+        name: '標準固定比例 (15%)', 
+        description: '支付前 15% 的玩家。系統預設。', 
         isSystemDefault: true,
         allocations: [
             {
                 id: 'alloc_1',
-                name: 'Main Prize Pool',
+                name: '主獎池',
                 percent: 100,
                 type: 'Custom',
                 color: '#06C167',
@@ -179,13 +198,13 @@ export const SEED_PAYOUTS: PayoutStructure[] = [
     },
     { 
         id: 'algo_icm', 
-        name: 'ICM (Winner Takes All)', 
-        description: 'Calculates equity based on stack sizes.', 
+        name: 'ICM (獨立籌碼模型)', 
+        description: '根據籌碼量計算權益。適用於決賽桌協議。', 
         isSystemDefault: true,
         allocations: [
             {
                 id: 'alloc_icm_main',
-                name: 'Main Prize Pool',
+                name: '主獎池',
                 percent: 100,
                 type: 'ICM',
                 color: '#a855f7',
@@ -197,13 +216,13 @@ export const SEED_PAYOUTS: PayoutStructure[] = [
     },
     {
         id: 'algo_chipev',
-        name: 'Chip Chop (Chip EV)',
-        description: 'Payouts directly proportional to stack size.',
+        name: 'Chip EV (按籌碼比例)',
+        description: '獎金直接按籌碼比例分配。',
         isSystemDefault: true,
         allocations: [
             {
                 id: 'alloc_chipev_main',
-                name: 'Main Pot',
+                name: '主池',
                 percent: 100,
                 type: 'ChipEV',
                 color: '#f97316',
@@ -213,12 +232,12 @@ export const SEED_PAYOUTS: PayoutStructure[] = [
     },
     {
         id: 'custom_split_1',
-        name: '95% ICM + 5% High Hand',
-        description: 'Splits pool: 95% distributed by ICM, 5% reserved for High Hand (Winner Take All)',
+        name: '95% ICM + 5% 高手獎',
+        description: '獎池分配：95% 依 ICM 分配，5% 保留給高手獎（贏家全拿）',
         allocations: [
             {
                 id: 'alloc_split_1_main',
-                name: 'Main Pool (ICM)',
+                name: '主獎池 (ICM)',
                 percent: 95,
                 type: 'ICM',
                 color: '#3b82f6',
@@ -228,7 +247,7 @@ export const SEED_PAYOUTS: PayoutStructure[] = [
             },
             {
                 id: 'alloc_split_1_hh',
-                name: 'High Hand Promo',
+                name: '高手獎勵',
                 percent: 5,
                 type: 'Custom',
                 color: '#eab308',
@@ -243,11 +262,11 @@ export const SEED_PAYOUTS: PayoutStructure[] = [
 // --- TOURNAMENT GENERATION LOGIC ---
 
 const TEMPLATES = [
-    { name: 'Daily Turbo', buyIn: 50, fee: 10, struct: 'struct_turbo', payout: 'algo_1', chips: 20000, duration: 240 },
-    { name: 'Deepstack Weekend', buyIn: 150, fee: 25, struct: 'struct_deep', payout: 'algo_icm', chips: 50000, duration: 480 },
-    { name: 'Bounty Hunter', buyIn: 80, fee: 20, struct: 'struct_turbo', payout: 'algo_1', chips: 15000, duration: 240 },
-    { name: 'PLO Pot Limit', buyIn: 100, fee: 15, struct: 'struct_deep', payout: 'algo_1', chips: 25000, duration: 360 },
-    { name: 'Freezeout', buyIn: 200, fee: 30, struct: 'struct_deep', payout: 'algo_1', chips: 30000, duration: 420 },
+    { name: '每日快速賽', buyIn: 50, fee: 10, struct: 'struct_turbo', payout: 'algo_1', chips: 20000, duration: 240 },
+    { name: '週末深籌碼賽', buyIn: 150, fee: 25, struct: 'struct_deep', payout: 'algo_icm', chips: 50000, duration: 480 },
+    { name: '賞金獵人賽', buyIn: 80, fee: 20, struct: 'struct_turbo', payout: 'algo_1', chips: 15000, duration: 240 },
+    { name: 'PLO 底池限注', buyIn: 100, fee: 15, struct: 'struct_deep', payout: 'algo_1', chips: 25000, duration: 360 },
+    { name: '凍結賽 (Freezeout)', buyIn: 200, fee: 30, struct: 'struct_deep', payout: 'algo_1', chips: 30000, duration: 420 },
 ];
 
 const generateMockTournaments = (): Tournament[] => {
@@ -280,7 +299,7 @@ const generateMockTournaments = (): Tournament[] => {
             payoutStructureId: template.payout,
             clockConfigId: 'default_clock',
             status: 'Completed',
-            description: `Historical event data for ${template.name}`,
+            description: `${template.name} 的歷史賽事數據`,
             tableIds: ['t1', 't2', 't3']
         });
     }
@@ -291,7 +310,7 @@ const generateMockTournaments = (): Tournament[] => {
         const daysForward = idx === 0 ? 1 : idx === 1 ? 3 : 7;
         list.push({
             id: `sch-evt-${idx}`,
-            name: `Upcoming: ${tpl.name}`,
+            name: `即將開始：${tpl.name}`,
             startDate: getLocalDate(daysForward),
             startTime: '18:00',
             estimatedDurationMinutes: tpl.duration,
@@ -309,7 +328,7 @@ const generateMockTournaments = (): Tournament[] => {
             payoutStructureId: tpl.payout,
             clockConfigId: 'default_clock',
             status: 'Scheduled',
-            description: 'Register now for this upcoming event.',
+            description: '現在開放報名！',
             tableIds: ['t1', 't2']
         });
     });
@@ -326,7 +345,7 @@ const generateMockTournaments = (): Tournament[] => {
     // Tournament A: Hyper Turbo Test (ChipEV)
     list.push({
         id: 'live-test-hyper',
-        name: 'TEST: ChipEV Calc',
+        name: '測試：ChipEV 計算',
         startDate: getLocalDate(0), // Today
         startTime: formatTime(startTimeHyper), 
         estimatedDurationMinutes: 60,
@@ -337,21 +356,21 @@ const generateMockTournaments = (): Tournament[] => {
         startingBlinds: '100/200',
         blindLevelMinutes: 1,
         blindIncreasePercent: 50,
-        rebuyLimit: 3, // Changed from 99
-        lastRebuyLevel: 6, // Changed from 99
+        rebuyLimit: 3, 
+        lastRebuyLevel: 6,
         payoutModel: PayoutModel.CHIP_EV,
         structureId: 'struct_test_1min',
         payoutStructureId: 'algo_chipev',
         clockConfigId: 'default_clock',
         status: 'In Progress',
-        description: 'Test Environment: ChipEV calculation verification.',
+        description: '測試環境：ChipEV 計算驗證。',
         tableIds: ['t1']
     });
 
     // Tournament B: Break Test
     list.push({
         id: 'live-test-breaks',
-        name: 'LIVE TEST: Breaks Logic',
+        name: '現場測試：休息時間邏輯',
         startDate: getLocalDate(0), // Today
         startTime: formatTime(startTimeBreaks),
         estimatedDurationMinutes: 120,
@@ -369,14 +388,14 @@ const generateMockTournaments = (): Tournament[] => {
         payoutStructureId: 'algo_icm',
         clockConfigId: 'clock_light',
         status: 'In Progress',
-        description: 'Test Environment: Alternating levels and breaks.',
+        description: '測試環境：交替級別與休息時間。',
         tableIds: ['t2', 't3']
     });
 
     // Tournament C: Split Payout Test
     list.push({
         id: 'live-test-breaks-split',
-        name: 'TEST: 1min + Break (Split Payout)',
+        name: '測試：1分鐘 + 休息 (混合獎勵)',
         startDate: getLocalDate(0), // Today
         startTime: formatTime(startTimeBreaks),
         estimatedDurationMinutes: 120,
@@ -394,7 +413,7 @@ const generateMockTournaments = (): Tournament[] => {
         payoutStructureId: 'custom_split_1', // Split Payout
         clockConfigId: 'clock_light',
         status: 'In Progress',
-        description: 'Test Environment: Split Payout (95% ICM / 5% High Hand).',
+        description: '測試環境：混合獎勵 (95% ICM / 5% 高手獎)。',
         tableIds: ['t4']
     });
 
@@ -406,7 +425,7 @@ export const SEED_TOURNAMENTS: Tournament[] = generateMockTournaments();
 export const SEED_TEMPLATES: Tournament[] = [
     {
         id: 'temp_daily',
-        name: 'Daily $50 Rebuy',
+        name: '每日 $50 重購賽',
         isTemplate: true,
         estimatedDurationMinutes: 180,
         buyIn: 50,
@@ -422,11 +441,11 @@ export const SEED_TEMPLATES: Tournament[] = [
         structureId: 'struct_turbo',
         payoutStructureId: 'algo_1',
         clockConfigId: 'default_clock',
-        description: 'Standard weekday tournament structure.'
+        description: '平日標準賽事結構。'
     },
     {
         id: 'temp_sat',
-        name: 'Monthly Satellite',
+        name: '每月衛星賽',
         isTemplate: true,
         estimatedDurationMinutes: 240,
         buyIn: 120,
@@ -442,6 +461,6 @@ export const SEED_TEMPLATES: Tournament[] = [
         structureId: 'struct_deep',
         payoutStructureId: 'custom_split_1',
         clockConfigId: 'default_clock',
-        description: 'Satellite to the monthly main event. Top 20% win seats.'
+        description: '每月主賽事的衛星賽。前 20% 贏得席位。'
     }
 ];

@@ -9,8 +9,8 @@ export const getTeamMembers = (): TeamMember[] => {
     if (!team || team.length === 0) {
         return [{
             id: 'owner',
-            fullName: 'Club Owner',
-            nickname: 'Owner', // Changed from Boss
+            fullName: '俱樂部擁有者',
+            nickname: '老闆', 
             email: 'owner@club.com',
             role: 'Admin',
             status: 'Active',
