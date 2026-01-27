@@ -5,6 +5,7 @@ import {
   Users, 
   Palette, 
   Check, 
+  ShieldCheck
 } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink } from 'react-router-dom';
 import { ClubSettings, TeamMember } from '../types';
@@ -16,6 +17,7 @@ import { PageHeader, TabContainer } from '../components/ui/PageLayout';
 import GeneralSettings from './settings/GeneralSettings';
 import TeamSettings from './settings/TeamSettings';
 import ThemeSettings from './settings/ThemeSettings';
+import AuditLogsTab from './settings/AuditLogsTab';
 
 const SettingsView = () => {
   const { t } = useLanguage();
@@ -168,14 +170,36 @@ const SettingsView = () => {
                 </>
              )}
         </NavLink>
+
+        <NavLink
+          to="audit-logs"
+          className={({isActive}) => `pb-2.5 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
+            isActive 
+              ? 'text-white' 
+              : 'text-gray-500 hover:text-gray-300'
+          }`}
+        >
+             {({isActive}) => (
+                <>
+                    <div className="flex items-center gap-2">
+                        <ShieldCheck size={18} />
+                        Audit Logs
+                    </div>
+                    {isActive && (
+                        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />
+                    )}
+                </>
+             )}
+        </NavLink>
       </TabContainer>
 
       {/* Content Area */}
-      <div className="flex-1 pb-10">
+      <div className="flex-1 pb-10 min-h-0 relative flex flex-col">
           <Routes>
               <Route path="general" element={<GeneralSettings settings={settings} setSettings={setSettings} onSave={handleSaveSettings} />} />
               <Route path="team" element={<TeamSettings team={team} onInvite={() => setIsInviteModalOpen(true)} onRemove={handleRemoveUser} onOpenConfig={() => setIsConfigModalOpen(true)} />} />
               <Route path="appearance" element={<ThemeSettings settings={settings} onThemeChange={handleThemeChange} onReset={handleResetTheme} onSave={handleSaveSettings} />} />
+              <Route path="audit-logs" element={<AuditLogsTab />} />
               <Route index element={<Navigate to="general" replace />} />
           </Routes>
       </div>

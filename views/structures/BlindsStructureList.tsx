@@ -9,7 +9,6 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { Table, Column } from '../../components/ui/Table';
 import { useTableData } from '../../hooks/useTableData';
 import DeleteWithConfirmation from '../../components/ui/DeleteWithConfirmation';
-import { PageHeader } from '../../components/ui/PageLayout';
 
 const BlindsStructureList = () => {
     const { t } = useLanguage();
@@ -194,26 +193,25 @@ const BlindsStructureList = () => {
               </button>
             </div>
 
-            <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden shadow-xl flex-1 min-h-0 mb-3 animate-in fade-in slide-in-from-bottom-2`}>
-                <Table 
-                    data={filteredStructures}
-                    columns={blindColumns}
-                    keyExtractor={(s) => s.id}
-                    sortConfig={structSortConfig}
-                    onSort={handleStructSort}
-                    emptyState={
-                        <div className="flex flex-col items-center justify-center py-8">
-                            <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mx-auto mb-4 border border-[#333]">
-                                <Layers size={32} className="opacity-50" />
-                            </div>
-                            <h3 className="text-lg font-medium mb-2">{t('structures.blindsTable.empty')}</h3>
-                            <button onClick={openStructCreate} className="text-brand-green hover:underline">
-                                {t('structures.blindsTable.createFirst')}
-                            </button>
+            <Table 
+                data={filteredStructures}
+                columns={blindColumns}
+                keyExtractor={(s) => s.id}
+                sortConfig={structSortConfig}
+                onSort={handleStructSort}
+                className="animate-in fade-in slide-in-from-bottom-2"
+                emptyState={
+                    <div className="flex flex-col items-center justify-center py-8">
+                        <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mx-auto mb-4 border border-[#333]">
+                            <Layers size={32} className="opacity-50" />
                         </div>
-                    }
-                />
-            </div>
+                        <h3 className="text-lg font-medium mb-2">{t('structures.blindsTable.empty')}</h3>
+                        <button onClick={openStructCreate} className="text-brand-green hover:underline">
+                            {t('structures.blindsTable.createFirst')}
+                        </button>
+                    </div>
+                }
+            />
 
             <StructureForm 
                 isOpen={isStructFormOpen}

@@ -232,6 +232,19 @@ export interface MemberFinancials {
   transactions: FinancialTransaction[];
 }
 
+// --- Audit Logs ---
+
+export interface AuditLog {
+  id: string;
+  timestamp: string;
+  userName: string;
+  userRole: string;
+  action: string;
+  targetType: string;
+  targetName: string | null;
+  details: string | null;
+}
+
 // --- Settings & Access ---
 
 export type AccessRole = string; 

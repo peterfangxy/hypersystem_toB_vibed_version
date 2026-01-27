@@ -9,3 +9,4 @@ export * from './data/registrations';
 export * from './data/financials';
 export * from './data/team';
 export * from './data/clocks';
+export * from './data/auditLogs';

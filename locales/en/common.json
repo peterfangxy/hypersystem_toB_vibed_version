@@ -1,0 +1,12 @@
+
+{
+  "actions": "Actions",
+  "edit": "Edit",
+  "delete": "Delete",
+  "cancel": "Cancel",
+  "save": "Save",
+  "processing": "Processing...",
+  "close": "Close",
+  "manage": "Manage",
+  "noData": "No data available"
+}

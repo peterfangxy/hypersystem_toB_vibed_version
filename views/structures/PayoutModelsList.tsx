@@ -124,21 +124,19 @@ const PayoutModelsList = () => {
             </button>
         </div>
 
-        <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden shadow-xl flex-1 min-h-0 mb-3 animate-in fade-in slide-in-from-bottom-2 flex flex-col`}>
-             <Table 
-                data={filteredPayouts}
-                columns={columns}
-                keyExtractor={(p) => p.id}
-                sortConfig={sortConfig}
-                onSort={handleSort}
-                className="mb-0"
-                emptyState={
-                    <div className="text-center py-10 text-gray-600">
-                        {t('structures.payouts.table.empty')}
-                    </div>
-                }
-             />
-         </div>
+        <Table 
+            data={filteredPayouts}
+            columns={columns}
+            keyExtractor={(p) => p.id}
+            sortConfig={sortConfig}
+            onSort={handleSort}
+            className="mb-0 animate-in fade-in slide-in-from-bottom-2"
+            emptyState={
+                <div className="text-center py-10 text-gray-600">
+                    {t('structures.payouts.table.empty')}
+                </div>
+            }
+        />
 
          <PayoutModelForm
             isOpen={isFormOpen}

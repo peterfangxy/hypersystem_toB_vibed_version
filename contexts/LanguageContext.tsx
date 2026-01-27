@@ -1,36 +1,32 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { translations } from '../i18n/translations';
+import React, { createContext, useContext, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 type Language = 'en' | 'zh';
 
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
+  t: (key: string, options?: any) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('en');
+  const { t, i18n } = useTranslation();
 
-  const t = (path: string) => {
-    const keys = path.split('.');
-    let current: any = translations[language];
-    for (const key of keys) {
-      if (current[key] === undefined) {
-        // Fallback to English if translation missing
-        let fallback: any = translations['en'];
-        for (const k of keys) {
-             fallback = fallback?.[k];
-        }
-        return fallback || path;
-      }
-      current = current[key];
+  const setLanguage = (lang: Language) => {
+    // Check if i18n is defined and has changeLanguage method
+    if (i18n && typeof i18n.changeLanguage === 'function') {
+        i18n.changeLanguage(lang);
+    } else {
+        console.error("i18n instance is missing or invalid in LanguageProvider");
     }
-    return current;
   };
+
+  // Ensure i18n.language is defined before checking startsWith
+  const currentLang = i18n?.language || 'en';
+  const language = (currentLang === 'zh' || currentLang.startsWith('zh-')) ? 'zh' : 'en';
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>

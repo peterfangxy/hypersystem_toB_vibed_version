@@ -1,0 +1,82 @@
+
+{
+  "title": "Structures & Payouts",
+  "subtitle": "Configure blind levels and payout structures.",
+  "btn": {
+    "createStructure": "New Structure",
+    "createMatrix": "New Matrix"
+  },
+  "tabs": {
+    "blinds": "Blind Structures",
+    "payouts": "Payout Models"
+  },
+  "blindsTable": {
+    "empty": "No structures defined",
+    "createFirst": "Create your first blind structure",
+    "name": "Name",
+    "chips": "Starting Chips",
+    "blinds": "Starting Blinds",
+    "levels": "Levels",
+    "rebuys": "Rebuys",
+    "length": "Est. Length"
+  },
+  "payouts": {
+    "algorithms": "Algorithms",
+    "matrices": "Custom Matrices",
+    "table": {
+      "name": "Name",
+      "rules": "Rules",
+      "range": "Player Range",
+      "ranges": "Ranges",
+      "noRules": "No rules defined",
+      "empty": "No custom payout matrices defined."
+    }
+  },
+  "form": {
+    "editTitle": "Edit Structure",
+    "createTitle": "Create Structure",
+    "name": "Structure Name",
+    "chips": "Chips",
+    "startChips": "Starting Chips",
+    "rebuys": "Rebuys",
+    "rebuyLimit": "Rebuy Limit",
+    "freezeout": "0 = Freezeout",
+    "lastRebuyLevel": "Last Rebuy Level",
+    "estLength": "EST. LENGTH",
+    "schedule": {
+      "headerSeq": "#",
+      "headerDur": "Duration (min)",
+      "headerSmall": "Small Blind",
+      "headerBig": "Big Blind",
+      "headerAnte": "Ante",
+      "headerActions": "Actions",
+      "addLevel": "Add Level",
+      "addBreak": "Add Break"
+    },
+    "save": "Save Structure",
+    "create": "Create Structure"
+  },
+  "payoutForm": {
+    "editTitle": "Edit Payout Model",
+    "createTitle": "Create Payout Model",
+    "name": "Model Name",
+    "desc": "Description",
+    "rules": "Payout Rules",
+    "addRange": "Add Range",
+    "rangeLabel": "PLAYER RANGE (MIN - MAX)",
+    "placesLabel": "PLACES PAID",
+    "distributionLabel": "DISTRIBUTION %",
+    "total": "Total",
+    "noRules": "No rules added yet. Click 'Add Range' to start.",
+    "validation": {
+      "valid": "Structure Valid",
+      "sum": "Percentages must sum to 100%",
+      "minMax": "Min players cannot be greater than Max players",
+      "descending": "Payouts must be in descending order",
+      "overlap": "Ranges overlap",
+      "gap": "Gap between ranges"
+    },
+    "save": "Save Model",
+    "create": "Create Model"
+  }
+}
