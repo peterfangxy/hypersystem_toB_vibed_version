@@ -163,7 +163,7 @@ const MembersList = () => {
           filterable: true,
           filterType: 'multi-select',
           filterOptions: tierOptions,
-          className: 'text-sm font-bold',
+          className: 'text-sm font-bold text-center',
           render: (member) => {
               const info = getTierDisplay(member.tier);
               return <span style={{ color: info.color }}>{info.name}</span>;

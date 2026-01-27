@@ -39,7 +39,7 @@ export default {
     "email": "Email",
     "phone": "電話",
     "clubId": "會員 ID",
-    "tier": "等級",
+    "tier": "會員等級",
     "noTier": "無",
     "status": "狀態",
     "joined": "加入日期",

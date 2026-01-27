@@ -1,9 +1,13 @@
-
 import { Member, TierDefinition, MemberStatus } from '../../types';
 import { SEED_MEMBERS } from '../mockData';
 import { supabase, isSupabaseAvailable } from '../supabaseClient';
 import { getLocalData, setLocalData, MEMBERS_KEY, TIERS_KEY } from './storage';
 import type { Database } from '../../supabaseSchema';
+
+// --- CONFIGURATION ---
+// Set this to true to force using local mock data (bypass Supabase)
+// Useful for demos or when backend is WIP.
+export const USE_MOCK_DATA = true;
 
 // --- Helpers ---
 
@@ -37,7 +41,7 @@ export const getMembers = (): Member[] => {
 
 // Asynchronous Fetch (Supabase Priority)
 export const fetchMembers = async (): Promise<Member[]> => {
-    if (isSupabaseAvailable() && supabase) {
+    if (!USE_MOCK_DATA && isSupabaseAvailable() && supabase) {
         try {
             console.log('Fetching members from Supabase...');
             
@@ -107,6 +111,8 @@ export const fetchMembers = async (): Promise<Member[]> => {
         } catch (e) {
             console.error("Fetch Exception:", e);
         }
+    } else {
+        console.log("Supabase fetch skipped (Mock Data Mode or Supabase Unavailable)");
     }
     // Fallback to local storage if Supabase is not configured or fails
     return new Promise((resolve) => {
@@ -123,7 +129,7 @@ export const saveMember = async (member: Member): Promise<void> => {
   setLocalData(MEMBERS_KEY, members);
   
   // 2. Persist to Supabase
-  if (isSupabaseAvailable() && supabase) {
+  if (!USE_MOCK_DATA && isSupabaseAvailable() && supabase) {
       try {
           // Note: Full upsert requires writing to 'member' then 'club_member'.
           // This simplified version attempts to update the 'member' identity table.
@@ -157,11 +163,11 @@ export const saveMember = async (member: Member): Promise<void> => {
 
 // --- Membership Tiers ---
 const DEFAULT_TIERS: TierDefinition[] = [
-    { id: 'Diamond', name: 'Diamond', color: '#22d3ee', order: 1, requirements: '10,000 Points', benefits: 'Access to private room\nFree food & drinks\nPriority waitlist' },
-    { id: 'Platinum', name: 'Platinum', color: '#cbd5e1', order: 2, requirements: '5,000 Points', benefits: 'Free drinks\n2x Points multiplier' },
-    { id: 'Gold', name: 'Gold', color: '#eab308', order: 3, requirements: '1,000 Points', benefits: '1.5x Points multiplier' },
-    { id: 'Silver', name: 'Silver', color: '#9ca3af', order: 4, requirements: '500 Points', benefits: 'Standard earning rate' },
-    { id: 'Bronze', name: 'Bronze', color: '#c2410c', order: 5, requirements: 'Sign up', benefits: 'Basic membership' },
+    { id: 'Diamond', name: '鑽石', color: '#22d3ee', order: 1, requirements: '10,000 積分', benefits: '私人包廂使用權\n免費餐飲\n優先候補' },
+    { id: 'Platinum', name: '白銀', color: '#cbd5e1', order: 2, requirements: '5,000 積分', benefits: '免費飲料\n2倍積分累積' },
+    { id: 'Gold', name: '金', color: '#eab308', order: 3, requirements: '1,000 積分', benefits: '1.5倍積分累積' },
+    { id: 'Silver', name: '銀', color: '#9ca3af', order: 4, requirements: '500 積分', benefits: '標準積分累積' },
+    { id: 'Bronze', name: '銅', color: '#c2410c', order: 5, requirements: '註冊即可', benefits: '基本會員權益' },
 ];
 
 export const getTierDefinitions = (): TierDefinition[] => {

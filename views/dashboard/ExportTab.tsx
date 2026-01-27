@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   Wallet, 
@@ -14,7 +14,8 @@ import { THEME } from '../../theme';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Modal } from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
-import { MembershipTier } from '../../types';
+import * as DataService from '../../services/dataService';
+import { TierDefinition } from '../../types';
 
 type ReportType = 'members' | 'transactions' | 'tournaments' | 'revenue';
 
@@ -48,6 +49,13 @@ const ExportTab = () => {
     const [dateTo, setDateTo] = useState(new Date().toISOString().split('T')[0]);
     const [selectedTiers, setSelectedTiers] = useState<string[]>([]);
     const [transactionType, setTransactionType] = useState<string>('all');
+    
+    // Data States
+    const [tiers, setTiers] = useState<TierDefinition[]>([]);
+
+    useEffect(() => {
+        setTiers(DataService.getTierDefinitions());
+    }, []);
 
     const handleExport = async () => {
         setIsExporting(true);
@@ -58,11 +66,11 @@ const ExportTab = () => {
         alert(t('performance.reports.success'));
     };
 
-    const toggleTier = (tier: string) => {
-        if (selectedTiers.includes(tier)) {
-            setSelectedTiers(selectedTiers.filter(t => t !== tier));
+    const toggleTier = (tierId: string) => {
+        if (selectedTiers.includes(tierId)) {
+            setSelectedTiers(selectedTiers.filter(t => t !== tierId));
         } else {
-            setSelectedTiers([...selectedTiers, tier]);
+            setSelectedTiers([...selectedTiers, tierId]);
         }
     };
 
@@ -82,18 +90,18 @@ const ExportTab = () => {
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('performance.reports.membershipTiers')}</label>
                             <div className="grid grid-cols-2 gap-2">
-                                {Object.values(MembershipTier).map(tier => (
+                                {tiers.map(tier => (
                                     <div 
-                                        key={tier}
-                                        onClick={() => toggleTier(tier)}
+                                        key={tier.id}
+                                        onClick={() => toggleTier(tier.id)}
                                         className={`p-2 rounded-lg border cursor-pointer text-sm font-medium flex items-center justify-between transition-all ${
-                                            selectedTiers.includes(tier) 
+                                            selectedTiers.includes(tier.id) 
                                             ? 'bg-brand-green/20 border-brand-green text-white' 
                                             : 'bg-[#1A1A1A] border-[#333] text-gray-400 hover:border-gray-500'
                                         }`}
                                     >
-                                        {tier}
-                                        {selectedTiers.includes(tier) && <CheckCircle2 size={14} className="text-brand-green"/>}
+                                        <span style={{ color: selectedTiers.includes(tier.id) ? 'white' : tier.color }}>{tier.name}</span>
+                                        {selectedTiers.includes(tier.id) && <CheckCircle2 size={14} className="text-brand-green"/>}
                                     </div>
                                 ))}
                             </div>
