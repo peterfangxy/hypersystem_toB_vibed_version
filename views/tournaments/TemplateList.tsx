@@ -2,19 +2,25 @@
 import React, { useMemo } from 'react';
 import { 
   Edit2, 
-  Copy
+  Copy,
+  Plus,
+  Search
 } from 'lucide-react';
 import { Tournament, TournamentStructure, PayoutStructure } from '../../types';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { THEME } from '../../theme';
 import { Table, Column } from '../../components/ui/Table';
 import { useTableData } from '../../hooks/useTableData';
 import DeleteWithConfirmation from '../../components/ui/DeleteWithConfirmation';
+import { ControlBar } from '../../components/ui/PageLayout';
 
 interface TemplateListProps {
     templates: Tournament[];
     structures: TournamentStructure[];
     payouts: PayoutStructure[];
     searchQuery: string;
+    onSearchChange: (query: string) => void;
+    onCreate: () => void;
     onEdit: (t: Tournament) => void;
     onDelete: (id: string) => void;
 }
@@ -24,6 +30,8 @@ const TemplateList: React.FC<TemplateListProps> = ({
     structures,
     payouts,
     searchQuery,
+    onSearchChange,
+    onCreate,
     onEdit,
     onDelete
 }) => {
@@ -136,21 +144,46 @@ const TemplateList: React.FC<TemplateListProps> = ({
     ], [t, structures, payouts]);
 
     return (
-        <Table 
-            data={filteredTemplates}
-            columns={columns}
-            keyExtractor={(t) => t.id}
-            sortConfig={sortConfig}
-            onSort={handleSort}
-            emptyState={
-                <div className="flex flex-col items-center justify-center py-8">
-                    <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mx-auto mb-4 border border-[#333]">
-                        <Copy size={32} className="opacity-50" />
-                    </div>
-                    <h3 className="text-lg font-medium mb-2">{t('tournaments.table.emptyTemplates')}</h3>
+        <>
+            <div className="absolute top-0 right-0 -mt-20"> 
+               <button 
+                  onClick={onCreate}
+                  className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 whitespace-nowrap`}
+              >
+                  <Plus size={20} strokeWidth={2.5} />
+                  {t('tournaments.btn.createTemplate')}
+              </button>
+            </div>
+
+            <ControlBar>
+                <div className="relative flex-1">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                    <input 
+                        type="text"
+                        placeholder={t('tournaments.filter.searchTemplates')}
+                        value={searchQuery}
+                        onChange={(e) => onSearchChange(e.target.value)}
+                        className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-2.5 text-white placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none transition-all`}
+                    />
                 </div>
-            }
-        />
+            </ControlBar>
+
+            <Table 
+                data={filteredTemplates}
+                columns={columns}
+                keyExtractor={(t) => t.id}
+                sortConfig={sortConfig}
+                onSort={handleSort}
+                emptyState={
+                    <div className="flex flex-col items-center justify-center py-8">
+                        <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mx-auto mb-4 border border-[#333]">
+                            <Copy size={32} className="opacity-50" />
+                        </div>
+                        <h3 className="text-lg font-medium mb-2">{t('tournaments.table.emptyTemplates')}</h3>
+                    </div>
+                }
+            />
+        </>
     );
 };
 

@@ -5,76 +5,67 @@ This document outlines technical debt, architectural improvements, and future op
 
 ## 🔴 High Priority (Stability & Architecture)
 
-### 1. Decouple Financial Logic & Centralize Math
+### 1. Full Supabase Integration
 **Problem:** 
-Financial calculations (Net Payable, Discounts, Wallet deduction logic) are currently duplicated between `BuyinMgmtModal.tsx` and `useTournamentLogic.ts` / `TournamentPlayerList.tsx`. This violates DRY and risks financial discrepancies.
+Currently, only `services/data/members.ts` has Supabase integration. Other modules (`tournaments`, `financials`, `tables`) rely solely on `localStorage`.
+**Solution:**
+*   Create Supabase tables for `tournaments`, `registrations`, `transactions`, etc.
+*   Update `services/data/*.ts` files to implement the async fetch/save pattern used in `members.ts`.
+*   Ensure RLS (Row Level Security) policies are set up in Supabase.
+
+### 2. Decouple Financial Logic & Centralize Math
+**Problem:** 
+Financial calculations (Net Payable, Discounts, Wallet deduction logic) are currently duplicated between `BuyinMgmtModal.tsx` and `useTournamentLogic.ts`.
 **Solution:**
 *   Create `utils/financeUtils.ts`.
 *   Extract core functions: `calculateTransactionNet(tx)`, `calculateRegistrationTotal(reg)`, `validateWalletBalance(amount, wallet)`.
-*   Ensure the "Outstanding Balance" calculated in the list view uses the exact same function as the modal.
 
-### 2. Refactor Synchronous Data Layer
+### 3. Refactor Synchronous Data Layer (Async UI)
 **Problem:** 
-`DataService.ts` relies on synchronous `localStorage` calls. This blocks the main thread during large reads/writes and makes migrating to a real backend (API/DB) difficult, as all UI components expect immediate return values.
+UI components often expect synchronous returns from `DataService`. As we move to Supabase, data fetching becomes async.
 **Solution:**
 *   Refactor `DataService` methods to return `Promise<T>`.
-*   Implement a `useQuery` / `useMutation` pattern (or use TanStack Query) in the UI components to handle loading states and async data fetching.
-*   *Migration Path:* Update `DataService` to return Promises that resolve immediately (mocking async), then refactor UI components one by one.
-
-### DONE 
-### 3. Split Monolithic `types.ts`
-**Problem:** 
-`types.ts` has grown to 300+ lines containing Domain Models, UI Types, Enums, and Utility types. It creates circular dependencies and makes the codebase hard to navigate.
-**Solution:**
-*   Create `types/` directory.
-*   `types/models.ts`: Core entities (Member, Tournament, Table).
-*   `types/enums.ts`: Enums (MembershipTier, PayoutModel).
-*   `types/ui.ts`: UI-specific types (ClockField, Theme).
-*   `types/api.ts`: Service response wrappers.
+*   Implement `react-query` (TanStack Query) to handle caching, loading states, and background updates, replacing the current `useEffect` + `useState` fetching pattern.
 
 ## 🟡 Medium Priority (Maintenance & DX)
 
 ### 4. Optimize Clock Rendering
 **Problem:** 
-`ClockRunner` (in `ClocksView`) uses a `setInterval` that triggers state updates, which causes `ClockDisplay` to re-render the entire DOM tree every second. While React is fast, complex layouts with many widgets causes unnecessary layout thrashing.
+`ClockRunner` triggers state updates every second, causing `ClockDisplay` to re-render the entire DOM tree.
 **Solution:**
 *   Memoize `ClockDisplay` components.
 *   Separate "static" widgets (shapes, images, text labels) from "dynamic" widgets (timer, blinds).
-*   Render static widgets once, and only update dynamic widgets via refs or a localized context.
 
 ### 5. Form State Management
 **Problem:** 
-Forms (`TournamentForm`, `MemberForm`, `StructureForm`) use native `useState` with large objects. Validation logic is manual and interspersed with UI code.
+Forms (`TournamentForm`, `MemberForm`) use native `useState`.
 **Solution:**
-*   Adopt `react-hook-form` for state management.
-*   Integrate `zod` for schema definition and validation.
-*   This will standardize validation error handling and reduce boilerplate.
+*   Adopt `react-hook-form` + `zod` for schema definition and validation.
 
-### DONE
-### 6. Payout Validation & Calculation Utility
-**Problem:** 
-Complex validation logic for Custom Payout Matrices (gaps, overlaps, sum-to-100) resides inside the UI component `PayoutModelForm.tsx`, and payout calculation logic is inside `tournamentService.ts`.
-**Solution:**
-*   Extracted validation logic to `utils/payoutUtils.ts` (validatePayoutRules).
-*   Extracted calculation logic to `utils/payoutUtils.ts` (calculatePayoutDistribution).
-
-## 🟢 Low Priority (Polish & Features)
-
-### 7. Lazy Loading Routes
-**Problem:** 
-All views are imported eagerly in `App.tsx`. As the bundle grows, initial load time will increase.
-**Solution:**
-*   Use `React.lazy()` and `Suspense` for top-level views (`DashboardView`, `MembersView`, etc.).
-
-### 8. Internationalization Optimization
+### 6. Internationalization Optimization
 **Problem:** 
 `translations.ts` is a single large object loaded instantly.
 **Solution:**
 *   Split translations into separate JSON files (`en.json`, `zh.json`).
-*   Load languages asynchronously via `LanguageContext`.
+*   Load languages asynchronously.
 
-### 9. Theme Context Performance
+## 🟢 Low Priority (Polish & Features)
+
+### 7. Testing Suite
 **Problem:** 
-Theme application currently writes directly to `document.documentElement.style`.
+No automated tests exist.
 **Solution:**
-*   While effective, moving this to a dedicated `ThemeProvider` that uses a CSS-in-JS solution or structured CSS variables via a class (e.g., `theme-dark`, `theme-custom`) might be more robust for future "Dark/Light" mode toggles beyond just color swapping.
+*   Setup **Vitest** for unit testing utility logic (`payoutUtils`, `financeUtils`).
+*   Setup **React Testing Library** for critical components (`TournamentForm`, `ClockRunner`).
+
+### 8. Lazy Loading Routes
+**Problem:** 
+All views are imported eagerly in `App.tsx`.
+**Solution:**
+*   Use `React.lazy()` and `Suspense` for top-level views.
+
+## ✅ Completed Items
+
+*   **Split Monolithic `types.ts`**: Refactored into `types/models.ts`, `types/ui.ts`, etc.
+*   **Payout Validation & Calculation Utility**: Extracted complex math to `utils/payoutUtils.ts`.
+*   **Modular Data Service**: Split `dataService.ts` into domain-specific sub-modules.

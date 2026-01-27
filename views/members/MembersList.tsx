@@ -46,12 +46,17 @@ const MembersList = () => {
   });
 
   useEffect(() => {
-    setMembers(DataService.getMembers());
+    const loadMembers = async () => {
+        const data = await DataService.fetchMembers();
+        setMembers(data);
+    };
+    loadMembers();
     setTierDefinitions(DataService.getTierDefinitions());
   }, []);
 
-  const handleCreateOrUpdate = (member: Member) => {
-    DataService.saveMember(member);
+  const handleCreateOrUpdate = async (member: Member) => {
+    await DataService.saveMember(member);
+    // Refresh list locally for now (even if save went to LS only, the UI should update)
     setMembers(DataService.getMembers());
     setIsFormOpen(false);
     setEditingMember(undefined);

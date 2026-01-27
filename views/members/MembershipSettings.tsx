@@ -12,6 +12,7 @@ import { TierDefinition } from '../../types';
 import * as DataService from '../../services/dataService';
 import TierForm from '../../components/TierForm';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { THEME } from '../../theme';
 
 const MembershipSettings = () => {
     const { t } = useLanguage();
@@ -69,22 +70,17 @@ const MembershipSettings = () => {
 
     return (
         <div className="flex flex-col h-full animate-in fade-in slide-in-from-bottom-2 overflow-y-auto pb-8">
-            <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                        <Crown size={24} className="text-brand-green" /> Membership Tiers
-                    </h3>
-                    <p className="text-gray-400 text-sm mt-1">Define loyalty levels, visual badges, and benefits.</p>
-                </div>
-                <button 
-                    onClick={openCreate}
-                    className="px-4 py-2 bg-[#222] hover:bg-[#2A2A2A] text-brand-green border border-brand-green/20 rounded-xl font-bold flex items-center gap-2 transition-all"
-                >
-                    <Plus size={16} /> Add Tier
-                </button>
+            <div className="absolute top-0 right-0 -mt-20"> 
+               <button 
+                  onClick={openCreate}
+                  className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 whitespace-nowrap`}
+              >
+                  <Plus size={20} strokeWidth={2.5} />
+                  Add Tier
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pt-4">
                 {tiers.map((tier, index) => (
                     <div key={tier.id} className="group relative">
                         {/* Physical Card Look */}

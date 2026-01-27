@@ -1,18 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Plus, 
   Trophy, 
-  Search, 
   Copy
 } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
-import { Tournament, TournamentStructure, PayoutStructure } from '../types';
-import * as DataService from '../services/dataService';
-import { THEME } from '../theme';
-import TournamentForm from '../components/tournament/TournamentForm';
-import { useLanguage } from '../contexts/LanguageContext';
-import { PageHeader, TabContainer, ControlBar } from '../components/ui/PageLayout';
+import { Tournament, TournamentStructure, PayoutStructure } from '../../types';
+import * as DataService from '../../services/dataService';
+import TournamentForm from '../../components/tournament/TournamentForm';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { PageHeader, TabContainer } from '../../components/ui/PageLayout';
 import TournamentList from './tournaments/TournamentList';
 import TemplateList from './tournaments/TemplateList';
 
@@ -92,78 +89,56 @@ const TournamentsView = () => {
       <PageHeader
         title={t('tournaments.title')}
         subtitle={t('tournaments.subtitle')}
-        actions={
-            <button 
-                onClick={openCreate}
-                className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95`}
-            >
-                <Plus size={20} strokeWidth={2.5} />
-                {isTemplatesTab ? t('tournaments.btn.createTemplate') : t('tournaments.btn.createEvent')}
-            </button>
-        }
       />
 
        {/* Tabs Navigation */}
-      <TabContainer>
-        <NavLink
-          to="manage"
-          className={({isActive}) => `pb-2.5 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
-            isActive 
-              ? 'text-white' 
-              : 'text-gray-500 hover:text-gray-300'
-          }`}
-        >
-            {({isActive}) => (
-                <>
-                    <div className="flex items-center gap-2">
-                        <Trophy size={18} />
-                        {t('tournaments.tabs.manage')}
-                    </div>
-                    {isActive && (
-                        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />
-                    )}
-                </>
-            )}
-        </NavLink>
+      <div className="relative">
+        <TabContainer>
+            <NavLink
+            to="manage"
+            className={({isActive}) => `pb-2.5 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
+                isActive 
+                ? 'text-white' 
+                : 'text-gray-500 hover:text-gray-300'
+            }`}
+            >
+                {({isActive}) => (
+                    <>
+                        <div className="flex items-center gap-2">
+                            <Trophy size={18} />
+                            {t('tournaments.tabs.manage')}
+                        </div>
+                        {isActive && (
+                            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />
+                        )}
+                    </>
+                )}
+            </NavLink>
 
-        <NavLink
-          to="templates"
-          className={({isActive}) => `pb-2.5 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
-            isActive 
-              ? 'text-white' 
-              : 'text-gray-500 hover:text-gray-300'
-          }`}
-        >
-             {({isActive}) => (
-                <>
-                    <div className="flex items-center gap-2">
-                        <Copy size={18} />
-                        {t('tournaments.tabs.templates')}
-                    </div>
-                    {isActive && (
-                        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />
-                    )}
-                </>
-             )}
-        </NavLink>
-      </TabContainer>
+            <NavLink
+            to="templates"
+            className={({isActive}) => `pb-2.5 px-2 text-sm font-bold uppercase tracking-wider transition-all relative ${
+                isActive 
+                ? 'text-white' 
+                : 'text-gray-500 hover:text-gray-300'
+            }`}
+            >
+                {({isActive}) => (
+                    <>
+                        <div className="flex items-center gap-2">
+                            <Copy size={18} />
+                            {t('tournaments.tabs.templates')}
+                        </div>
+                        {isActive && (
+                            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green shadow-[0_0_10px_rgba(6,193,103,0.5)]" />
+                        )}
+                    </>
+                )}
+            </NavLink>
+        </TabContainer>
+      </div>
 
-      {/* Control Bar */}
-      <ControlBar>
-        {/* Search */}
-        <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-          <input 
-            type="text"
-            placeholder={isTemplatesTab ? t('tournaments.filter.searchTemplates') : t('tournaments.filter.search')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-2.5 text-white placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none transition-all`}
-          />
-        </div>
-      </ControlBar>
-
-      <div className="flex-1 min-h-0 flex flex-col">
+      <div className="flex-1 min-h-0 flex flex-col relative">
         <Routes>
             <Route path="manage" element={
                 <TournamentList 
@@ -172,6 +147,8 @@ const TournamentsView = () => {
                     payouts={payouts}
                     registrationCounts={registrationCounts}
                     searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    onCreate={openCreate}
                     onEdit={openEdit}
                     onRefresh={refreshData}
                 />
@@ -183,6 +160,8 @@ const TournamentsView = () => {
                     structures={structures}
                     payouts={payouts}
                     searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    onCreate={openCreate}
                     onEdit={openEdit}
                     onDelete={handleDeleteTemplate}
                 />

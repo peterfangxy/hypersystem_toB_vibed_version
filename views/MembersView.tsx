@@ -65,7 +65,7 @@ const MembersView = () => {
         </NavLink>
       </TabContainer>
 
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 relative">
           <Routes>
               <Route path="manage" element={<MembersList />} />
               <Route path="settings" element={<MembershipSettings />} />

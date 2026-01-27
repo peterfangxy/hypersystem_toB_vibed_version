@@ -8,15 +8,19 @@ import {
   ChevronUp, 
   DoorOpen,
   Play,
-  CheckCircle
+  CheckCircle,
+  Plus,
+  Search
 } from 'lucide-react';
 import { Tournament, TournamentStatus, TournamentStructure, PayoutStructure } from '../../types';
 import * as DataService from '../../services/dataService';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { THEME } from '../../theme';
 import StatusBadge, { StatusVariant } from '../../components/ui/StatusBadge';
 import { Table, Column } from '../../components/ui/Table';
 import { useTableData } from '../../hooks/useTableData';
 import TournamentDetailPanel from '../../components/tournament/TournamentDetailPanel';
+import { ControlBar } from '../../components/ui/PageLayout';
 
 interface TournamentListProps {
     tournaments: Tournament[];
@@ -24,6 +28,8 @@ interface TournamentListProps {
     payouts: PayoutStructure[];
     registrationCounts: Record<string, number>;
     searchQuery: string;
+    onSearchChange: (query: string) => void;
+    onCreate: () => void;
     onEdit: (t: Tournament) => void;
     onRefresh: () => void;
 }
@@ -34,6 +40,8 @@ const TournamentList: React.FC<TournamentListProps> = ({
     payouts,
     registrationCounts,
     searchQuery,
+    onSearchChange,
+    onCreate,
     onEdit,
     onRefresh
 }) => {
@@ -288,35 +296,59 @@ const TournamentList: React.FC<TournamentListProps> = ({
     ], [expandedTournamentId, registrationCounts, t, structures]);
 
     return (
-        <Table 
-            data={filteredTournaments}
-            columns={columns}
-            keyExtractor={(t) => t.id}
-            sortConfig={sortConfig}
-            onSort={handleSort}
-            filters={filters}
-            onFilter={handleFilter}
-            onRowClick={(t) => toggleExpand(t.id)}
-            rowId={(t) => `tournament-row-${t.id}`}
-            isRowExpanded={(t) => expandedTournamentId === t.id}
-            rowClassName={(t) => expandedTournamentId === t.id ? 'bg-[#222] sticky top-[34px] z-20 shadow-xl border-b-0' : ''}
-            renderExpandedRow={(t) => (
-                <TournamentDetailPanel 
-                    tournament={t} 
-                    onUpdate={onRefresh}
-                    onClose={() => setExpandedTournamentId(null)}
-                />
-            )}
-            emptyState={
-                <div className="flex flex-col items-center justify-center py-8">
-                    <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mx-auto mb-4 border border-[#333]">
-                        {/* Reusing Trophy icon here, could be anything */}
-                        <div className="opacity-50"><Edit2 size={32}/></div> 
-                    </div>
-                    <h3 className="text-lg font-medium mb-2">{t('tournaments.table.empty')}</h3>
+        <>
+            <div className="absolute top-0 right-0 -mt-20"> 
+               <button 
+                  onClick={onCreate}
+                  className={`${THEME.buttonPrimary} px-6 py-3 rounded-full font-semibold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 whitespace-nowrap`}
+              >
+                  <Plus size={20} strokeWidth={2.5} />
+                  {t('tournaments.btn.createEvent')}
+              </button>
+            </div>
+
+            <ControlBar>
+                <div className="relative flex-1">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                    <input 
+                        type="text"
+                        placeholder={t('tournaments.filter.search')}
+                        value={searchQuery}
+                        onChange={(e) => onSearchChange(e.target.value)}
+                        className={`w-full ${THEME.card} border ${THEME.border} rounded-xl pl-11 pr-4 py-2.5 text-white placeholder:text-gray-600 focus:ring-1 focus:ring-brand-green outline-none transition-all`}
+                    />
                 </div>
-            }
-        />
+            </ControlBar>
+
+            <Table 
+                data={filteredTournaments}
+                columns={columns}
+                keyExtractor={(t) => t.id}
+                sortConfig={sortConfig}
+                onSort={handleSort}
+                filters={filters}
+                onFilter={handleFilter}
+                onRowClick={(t) => toggleExpand(t.id)}
+                rowId={(t) => `tournament-row-${t.id}`}
+                isRowExpanded={(t) => expandedTournamentId === t.id}
+                rowClassName={(t) => expandedTournamentId === t.id ? 'bg-[#222] sticky top-[34px] z-20 shadow-xl border-b-0' : ''}
+                renderExpandedRow={(t) => (
+                    <TournamentDetailPanel 
+                        tournament={t} 
+                        onUpdate={onRefresh}
+                        onClose={() => setExpandedTournamentId(null)}
+                    />
+                )}
+                emptyState={
+                    <div className="flex flex-col items-center justify-center py-8">
+                        <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mx-auto mb-4 border border-[#333]">
+                            <div className="opacity-50"><Edit2 size={32}/></div> 
+                        </div>
+                        <h3 className="text-lg font-medium mb-2">{t('tournaments.table.empty')}</h3>
+                    </div>
+                }
+            />
+        </>
     );
 };
 
