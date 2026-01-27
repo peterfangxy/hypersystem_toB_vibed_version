@@ -5,7 +5,7 @@ import { I18nextProvider } from 'react-i18next';
 import { THEME } from './theme';
 import * as DataService from './services/dataService';
 import { LanguageProvider } from './contexts/LanguageContext';
-import i18n from './i18n/config';
+import i18n from './i18nConfig';
 
 import Sidebar from './components/Sidebar';
 import DashboardView from './views/DashboardView';
@@ -15,6 +15,7 @@ import TournamentsView from './views/TournamentsView';
 import StructuresView from './views/StructuresView';
 import SettingsView from './views/SettingsView';
 import ClocksView from './views/ClocksView';
+import AuditLogsView from './views/AuditLogsView';
 
 const App: React.FC = () => {
   useEffect(() => {
@@ -50,6 +51,7 @@ const App: React.FC = () => {
                   <Route path="/tournaments/*" element={<TournamentsView />} />
                   <Route path="/structures/*" element={<StructuresView />} />
                   <Route path="/clocks/*" element={<ClocksView />} />
+                  <Route path="/audit-logs" element={<AuditLogsView />} />
                   <Route path="/settings/*" element={<SettingsView />} />
                   <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Routes>

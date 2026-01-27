@@ -9,7 +9,8 @@ import {
   Sliders,
   Settings,
   MonitorPlay,
-  Languages
+  Languages,
+  ShieldCheck
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { THEME } from '../theme';
@@ -33,13 +34,14 @@ const Sidebar: React.FC = () => {
     { id: '/structures', label: t('sidebar.structures'), icon: Sliders },
     { id: '/tables', label: t('sidebar.tables'), icon: Armchair },
     { id: '/clocks', label: t('sidebar.clocks'), icon: MonitorPlay },
+    { id: '/audit-logs', label: t('sidebar.auditLogs'), icon: ShieldCheck },
     { id: '/settings', label: t('sidebar.settings'), icon: Settings },
   ];
 
   const isActive = (path: string) => location.pathname.startsWith(path);
 
   const toggleLanguage = () => {
-    setLanguage(language === 'en' ? 'zh' : 'en');
+    setLanguage(language === 'en' ? 'zh_TW' : 'en');
   };
 
   return (
@@ -74,7 +76,7 @@ const Sidebar: React.FC = () => {
             className="flex items-center gap-2 text-[9px] font-bold text-gray-500 hover:text-white transition-colors bg-[#222] px-2 py-1 rounded-lg w-full justify-center uppercase tracking-wider"
           >
               <Languages size={10} />
-              {language === 'en' ? 'English' : '中文'}
+              {language === 'en' ? 'English' : '繁體中文'}
           </button>
       </div>
 
@@ -84,7 +86,7 @@ const Sidebar: React.FC = () => {
             {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
          </div>
          <div className="text-[9px] font-bold text-gray-600 uppercase tracking-widest mt-0.5">
-            {currentTime.toLocaleDateString(language === 'en' ? undefined : 'zh-CN', { weekday: 'short', month: 'short', day: 'numeric'})}
+            {currentTime.toLocaleDateString(language === 'en' ? undefined : 'zh-TW', { weekday: 'short', month: 'short', day: 'numeric'})}
          </div>
       </div>
 

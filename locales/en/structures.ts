@@ -1,5 +1,5 @@
 
-{
+export default {
   "title": "Structures & Payouts",
   "subtitle": "Configure blind levels and payout structures.",
   "btn": {
@@ -79,4 +79,4 @@
     "save": "Save Model",
     "create": "Create Model"
   }
-}
+};

@@ -1,5 +1,5 @@
 
-{
+export default {
   "actions": "Actions",
   "edit": "Edit",
   "delete": "Delete",
@@ -9,4 +9,4 @@
   "close": "Close",
   "manage": "Manage",
   "noData": "No data available"
-}
+};

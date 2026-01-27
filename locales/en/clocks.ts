@@ -1,5 +1,5 @@
 
-{
+export default {
   "title": "Clocks",
   "subtitle": "Launch tournament clocks and monitor active tables.",
   "tabs": {
@@ -81,4 +81,4 @@
     "shape_triangle": "Triangle",
     "image": "Image"
   }
-}
+};

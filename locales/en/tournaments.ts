@@ -1,5 +1,5 @@
 
-{
+export default {
   "title": "Tournaments",
   "subtitle": "Manage your tournament schedule and templates.",
   "btn": {
@@ -89,4 +89,4 @@
     "discrepancy": "DISCREPANCY",
     "complete": "Complete Tournament"
   }
-}
+};

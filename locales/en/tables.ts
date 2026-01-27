@@ -1,5 +1,5 @@
 
-{
+export default {
   "title": "Table Management",
   "subtitle": "Overview of your poker tables and their status.",
   "addBtn": "Add Table",
@@ -19,4 +19,4 @@
     "submitSave": "Save Changes",
     "submitCreate": "Create Table"
   }
-}
+};

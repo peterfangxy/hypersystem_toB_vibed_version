@@ -4,8 +4,10 @@ import { Trophy, Info } from 'lucide-react';
 import { THEME } from '../../theme';
 import { AnalyticsService, TimeRange, DashboardKPIs, ChartDataPoint, RecentWinnerStats } from '../../services/analyticsService';
 import RevenueChart from '../../components/RevenueChart';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const DashboardOverview = () => {
+    const { t } = useLanguage();
     const [timeRange, setTimeRange] = useState<TimeRange>('7d');
     const [kpis, setKpis] = useState<DashboardKPIs>({
         revenue: 0,
@@ -51,7 +53,7 @@ const DashboardOverview = () => {
                             : 'text-gray-500 hover:text-white'
                         }`}
                     >
-                        Last 7 days
+                        {t('performance.timeRange.last7Days')}
                     </button>
                     <button 
                         onClick={() => setTimeRange('30d')}
@@ -61,7 +63,7 @@ const DashboardOverview = () => {
                             : 'text-gray-500 hover:text-white'
                         }`}
                     >
-                        Last 30 days
+                        {t('performance.timeRange.last30Days')}
                     </button>
                 </div>
             </div>
@@ -69,24 +71,24 @@ const DashboardOverview = () => {
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <KPICard 
-                    title="Sales (Revenue)" 
+                    title={t('performance.kpi.sales')} 
                     value={`$${kpis.revenue.toLocaleString()}`} 
-                    info="Total fees collected from buy-ins, rebuys, and add-ons."
+                    info={t('performance.kpi.salesInfo')}
                 />
                 <KPICard 
-                    title="Tournaments" 
+                    title={t('performance.kpi.tournaments')} 
                     value={kpis.tournamentsHosted.toString()} 
-                    info="Number of tournaments scheduled or completed in this period."
+                    info={t('performance.kpi.tournamentsInfo')}
                 />
                 <KPICard 
-                    title="Avg. Prize Pool" 
+                    title={t('performance.kpi.avgPrize')} 
                     value={`$${Math.round(kpis.avgPrizePool).toLocaleString()}`} 
-                    info="Average total prize pool per tournament."
+                    info={t('performance.kpi.avgPrizeInfo')}
                 />
                 <KPICard 
-                    title="Active Members" 
+                    title={t('performance.kpi.activeMembers')} 
                     value={kpis.activeMembers.toString()} 
-                    info="Unique players who registered for at least one event."
+                    info={t('performance.kpi.activeMembersInfo')}
                 />
             </div>
 
@@ -94,14 +96,16 @@ const DashboardOverview = () => {
             <div className="space-y-4">
                 <div className="flex justify-between items-center">
                     <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                        Sales by Day
+                        {t('performance.charts.salesByDay')}
                         <Info size={14} className="text-gray-600" />
                     </h3>
                 </div>
                 
                 <div className={`${THEME.card} border ${THEME.border} rounded-3xl p-6`}>
                     <div className="mb-6">
-                        <span className="text-xs text-gray-500 uppercase font-bold tracking-wider block mb-1">Total Sales ({timeRange === '7d' ? '7 Days' : '30 Days'})</span>
+                        <span className="text-xs text-gray-500 uppercase font-bold tracking-wider block mb-1">
+                            {t('performance.charts.totalSales')} ({timeRange === '7d' ? t('performance.timeRange.7Days') : t('performance.timeRange.30Days')})
+                        </span>
                         <div className="text-3xl font-bold text-white">${kpis.revenue.toLocaleString()}</div>
                     </div>
                     <RevenueChart data={chartData} height={200} />
@@ -110,21 +114,21 @@ const DashboardOverview = () => {
 
             {/* Recent Winners */}
             <div className="space-y-4">
-                <h3 className="text-lg font-bold text-white">Recent Champions</h3>
+                <h3 className="text-lg font-bold text-white">{t('performance.winners.title')}</h3>
                 <div className={`${THEME.card} border ${THEME.border} rounded-3xl overflow-hidden`}>
                     {recentWinners.length === 0 ? (
                         <div className="p-8 text-center text-gray-500">
-                            No recent winners recorded.
+                            {t('performance.winners.empty')}
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead className="bg-[#1A1A1A] text-xs uppercase text-gray-500 font-bold tracking-wider border-b border-[#262626]">
                                     <tr>
-                                        <th className="px-6 py-4">Tournament</th>
-                                        <th className="px-6 py-4">Winner</th>
-                                        <th className="px-6 py-4 text-right">Prize</th>
-                                        <th className="px-6 py-4 text-right">Date</th>
+                                        <th className="px-6 py-4">{t('performance.winners.tournament')}</th>
+                                        <th className="px-6 py-4">{t('performance.winners.winner')}</th>
+                                        <th className="px-6 py-4 text-right">{t('performance.winners.prize')}</th>
+                                        <th className="px-6 py-4 text-right">{t('performance.winners.date')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-[#262626]">

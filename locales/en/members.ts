@@ -1,5 +1,5 @@
 
-{
+export default {
   "title": "Member Directory",
   "subtitle": "Manage your club members and their status.",
   "createBtn": "New Member",
@@ -41,4 +41,4 @@
     "submitSave": "Save Changes",
     "submitCreate": "Create Member"
   }
-}
+};

@@ -1,5 +1,5 @@
 
-{
+export default {
   "title": "Club Settings",
   "subtitle": "Manage your club configuration and team access.",
   "saved": "Saved!",
@@ -53,4 +53,4 @@
     "previewSecondary": "Secondary Text",
     "save": "Save Theme"
   }
-}
+};
