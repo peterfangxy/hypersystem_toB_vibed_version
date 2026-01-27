@@ -264,6 +264,7 @@ export interface RoleDefinition {
 export interface TeamMember {
     id: string;
     fullName: string;
+    nickname?: string;
     email: string;
     role: AccessRole;
     status: 'Active' | 'Pending' | 'Deactivated';

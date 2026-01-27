@@ -23,7 +23,10 @@ const SettingsView = () => {
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [isSaved, setIsSaved] = useState(false);
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+  
+  // Team Modal State
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [editingTeamMember, setEditingTeamMember] = useState<TeamMember | undefined>(undefined);
 
   useEffect(() => {
     setTeam(DataService.getTeamMembers());
@@ -71,17 +74,38 @@ const SettingsView = () => {
   };
 
   // -- Team Logic --
-  const handleSendInvite = (email: string, role: string) => {
-      const newMember: TeamMember = {
-          id: crypto.randomUUID(),
-          fullName: email.split('@')[0], // Simple username assumption
-          email: email,
-          role: role,
-          status: 'Pending',
-          avatarUrl: ''
-      };
-      DataService.saveTeamMember(newMember);
+  const handleSaveTeamMember = (data: { email: string; role: string; nickname: string; id?: string }) => {
+      if (data.id) {
+          // Update existing
+          DataService.updateTeamMember(data.id, {
+              role: data.role,
+              nickname: data.nickname
+          });
+      } else {
+          // Create new
+          const newMember: TeamMember = {
+              id: crypto.randomUUID(),
+              fullName: data.nickname || data.email.split('@')[0], 
+              nickname: data.nickname,
+              email: data.email,
+              role: data.role,
+              status: 'Pending',
+              avatarUrl: ''
+          };
+          DataService.saveTeamMember(newMember);
+      }
       setTeam(DataService.getTeamMembers());
+      setEditingTeamMember(undefined);
+  };
+
+  const handleOpenInvite = () => {
+      setEditingTeamMember(undefined);
+      setIsInviteModalOpen(true);
+  };
+
+  const handleOpenEditMember = (member: TeamMember) => {
+      setEditingTeamMember(member);
+      setIsInviteModalOpen(true);
   };
 
   const handleRemoveUser = (id: string) => {
@@ -174,7 +198,15 @@ const SettingsView = () => {
       <div className="flex-1 pb-10 min-h-0 relative flex flex-col">
           <Routes>
               <Route path="general" element={<GeneralSettings settings={settings} setSettings={setSettings} onSave={handleSaveSettings} />} />
-              <Route path="team" element={<TeamSettings team={team} onInvite={() => setIsInviteModalOpen(true)} onRemove={handleRemoveUser} onOpenConfig={() => setIsConfigModalOpen(true)} />} />
+              <Route path="team" element={
+                  <TeamSettings 
+                      team={team} 
+                      onInvite={handleOpenInvite} 
+                      onRemove={handleRemoveUser} 
+                      onOpenConfig={() => setIsConfigModalOpen(true)}
+                      onEdit={handleOpenEditMember}
+                  />
+              } />
               <Route path="appearance" element={<ThemeSettings settings={settings} onThemeChange={handleThemeChange} onReset={handleResetTheme} onSave={handleSaveSettings} />} />
               <Route index element={<Navigate to="general" replace />} />
           </Routes>
@@ -188,7 +220,8 @@ const SettingsView = () => {
       <InviteMemberModal
         isOpen={isInviteModalOpen}
         onClose={() => setIsInviteModalOpen(false)}
-        onInvite={handleSendInvite}
+        onSubmit={handleSaveTeamMember}
+        initialData={editingTeamMember}
       />
     </div>
   );

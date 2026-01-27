@@ -86,7 +86,7 @@ const TablesView = () => {
                 <div className="flex items-center gap-2">
                     <span className={`w-2 h-2 rounded-full ${table.status === 'Active' ? 'bg-brand-green animate-pulse' : table.status === 'Archived' ? 'bg-red-500' : 'bg-gray-500'}`}></span>
                     <span className={`text-xs font-bold uppercase tracking-wider ${table.status === 'Active' ? 'text-brand-green' : table.status === 'Archived' ? 'text-red-500' : 'text-gray-500'}`}>
-                        {table.status}
+                        {t(`tables.statusOption.${table.status.toLowerCase()}`)}
                     </span>
                 </div>
               </div>

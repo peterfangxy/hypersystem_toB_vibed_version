@@ -1,6 +1,6 @@
 
 export default {
-  "title": "稽核日誌",
+  "title": "編輯記錄",
   "subtitle": "監控系統活動、安全事件與使用者操作。",
   "searchPlaceholder": "搜尋使用者、操作或詳細內容...",
   "table": {

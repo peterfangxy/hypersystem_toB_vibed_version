@@ -10,6 +10,11 @@ export default {
   "turnOff": "關閉",
   "turnOn": "開啟",
   "deleteTitle": "刪除牌桌？",
+  "statusOption": {
+    "active": "啟用中",
+    "inactive": "未啟用",
+    "archived": "已封存"
+  },
   "form": {
     "titleEdit": "編輯牌桌",
     "titleNew": "建立新牌桌",

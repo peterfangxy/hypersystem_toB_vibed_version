@@ -59,7 +59,7 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({ settings, setSettings
 
               <div className="space-y-1">
                   <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                      <LinkIcon size={14}/> Google Map Link
+                      <LinkIcon size={14}/> {t('settings.general.googleMaps')}
                   </label>
                   <input 
                       type="url"

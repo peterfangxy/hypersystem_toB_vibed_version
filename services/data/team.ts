@@ -10,8 +10,9 @@ export const getTeamMembers = (): TeamMember[] => {
         return [{
             id: 'owner',
             fullName: 'Club Owner',
+            nickname: 'Owner', // Changed from Boss
             email: 'owner@club.com',
-            role: 'Owner',
+            role: 'Admin',
             status: 'Active',
             avatarUrl: ''
         }];
@@ -25,6 +26,15 @@ export const saveTeamMember = (member: TeamMember): void => {
     if (idx >= 0) team[idx] = member;
     else team.push(member);
     setLocalData(TEAM_KEY, team);
+};
+
+export const updateTeamMember = (id: string, updates: Partial<TeamMember>): void => {
+    const team = getTeamMembers();
+    const idx = team.findIndex(t => t.id === id);
+    if (idx >= 0) {
+        team[idx] = { ...team[idx], ...updates };
+        setLocalData(TEAM_KEY, team);
+    }
 };
 
 export const deleteTeamMember = (id: string): void => {

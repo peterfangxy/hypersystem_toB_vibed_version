@@ -3,7 +3,7 @@
 WIP - complete export tab UI
 DONE redesign payout model (merge algo type with matrix type?)
 DONE - tournament completion to add member signing step
-- do translations
+DONE - do translations
 - update mock data to chinese
 - redesign deposit pay deduction UI in BuyinMgmtModal
 - consider merging tables & table clocks hmmm

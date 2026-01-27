@@ -21,25 +21,10 @@ export const SEED_ROLES: RoleDefinition[] = [
         }
     },
     {
-        id: 'role_operator',
-        name: 'Operator',
-        description: 'Can run tournaments and manage tables, but restricted from system settings.',
-        isSystem: false,
-        permissions: {
-            dashboard: 'view',
-            members: 'view', // Can see members but not edit profiles
-            tables: 'edit', // Can open/close tables
-            tournaments: 'edit', // Can run tournaments
-            structures: 'view', // Can see but not change structures
-            clocks: 'edit', // Can run clocks
-            settings: 'no_access'
-        }
-    },
-    {
         id: 'role_viewer',
         name: 'Viewer',
         description: 'Read-only access for staff to view live status.',
-        isSystem: false,
+        isSystem: true,
         permissions: {
             dashboard: 'view',
             members: 'no_access',

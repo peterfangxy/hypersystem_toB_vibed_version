@@ -10,6 +10,11 @@ export default {
   "turnOff": "Turn Off",
   "turnOn": "Turn On",
   "deleteTitle": "Delete Table?",
+  "statusOption": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "archived": "Archived"
+  },
   "form": {
     "titleEdit": "Edit Table",
     "titleNew": "Create New Table",

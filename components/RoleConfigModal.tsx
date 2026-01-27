@@ -4,34 +4,35 @@ import {
   Shield, 
   Plus, 
   Trash2, 
-  Save, 
+  CheckCircle2,
   Lock, 
   Eye, 
   EyeOff, 
-  Edit3,
-  CheckCircle2
+  Edit3
 } from 'lucide-react';
 import { Modal } from './ui/Modal';
 import { RoleDefinition, AppModule, PermissionLevel } from '../types';
 import * as DataService from '../services/dataService';
 import { THEME } from '../theme';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface RoleConfigModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const MODULES: { key: AppModule; label: string }[] = [
-    { key: 'dashboard', label: 'Dashboard' },
-    { key: 'members', label: 'Members' },
-    { key: 'tables', label: 'Tables' },
-    { key: 'tournaments', label: 'Tournaments' },
-    { key: 'structures', label: 'Structures' },
-    { key: 'clocks', label: 'Clocks' },
-    { key: 'settings', label: 'Settings' },
+const MODULES: AppModule[] = [
+    'dashboard',
+    'members',
+    'tables',
+    'tournaments',
+    'structures',
+    'clocks',
+    'settings'
 ];
 
 const RoleConfigModal: React.FC<RoleConfigModalProps> = ({ isOpen, onClose }) => {
+  const { t } = useLanguage();
   const [roles, setRoles] = useState<RoleDefinition[]>([]);
   const [selectedRole, setSelectedRole] = useState<RoleDefinition | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
@@ -58,7 +59,7 @@ const RoleConfigModal: React.FC<RoleConfigModalProps> = ({ isOpen, onClose }) =>
   const handleAddRole = () => {
       const newRole: RoleDefinition = {
           id: crypto.randomUUID(),
-          name: 'New Role',
+          name: t('settings.roleModal.addRole'), // Initial placeholder name
           description: '',
           isSystem: false,
           permissions: {
@@ -77,7 +78,7 @@ const RoleConfigModal: React.FC<RoleConfigModalProps> = ({ isOpen, onClose }) =>
   };
 
   const handleDeleteRole = (id: string) => {
-      if (window.confirm('Are you sure you want to delete this role?')) {
+      if (window.confirm(t('settings.roleModal.deleteRoleConfirm'))) {
           const updatedRoles = roles.filter(r => r.id !== id);
           setRoles(updatedRoles);
           setHasChanges(true);
@@ -124,6 +125,20 @@ const RoleConfigModal: React.FC<RoleConfigModalProps> = ({ isOpen, onClose }) =>
       onClose();
   };
 
+  // Helper to resolve localized name
+  const getRoleDisplayName = (role: RoleDefinition) => {
+      if (role.id === 'role_admin') return t('settings.roles.adminName');
+      if (role.id === 'role_viewer') return t('settings.roles.viewerName');
+      return role.name;
+  };
+
+  // Helper to resolve localized description
+  const getRoleDisplayDesc = (role: RoleDefinition) => {
+      if (role.id === 'role_admin') return t('settings.roles.adminDesc');
+      if (role.id === 'role_viewer') return t('settings.roles.viewerDesc');
+      return role.description;
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -131,7 +146,7 @@ const RoleConfigModal: React.FC<RoleConfigModalProps> = ({ isOpen, onClose }) =>
       title={
           <div className="flex items-center gap-2 text-lg">
               <Shield size={20} className="text-brand-green"/>
-              Access Configuration
+              {t('settings.roleModal.title')}
           </div>
       }
       size="xl"
@@ -144,7 +159,7 @@ const RoleConfigModal: React.FC<RoleConfigModalProps> = ({ isOpen, onClose }) =>
                       onClick={handleAddRole}
                       className="w-full py-2 bg-[#222] hover:bg-[#333] text-white border border-[#333] hover:border-gray-500 rounded-lg font-bold text-xs flex items-center justify-center gap-2 transition-all"
                   >
-                      <Plus size={14} /> Add Role
+                      <Plus size={14} /> {t('settings.roleModal.addRole')}
                   </button>
               </div>
               <div className="flex-1 overflow-y-auto p-2 space-y-1">
@@ -158,7 +173,7 @@ const RoleConfigModal: React.FC<RoleConfigModalProps> = ({ isOpen, onClose }) =>
                               : 'text-gray-400 hover:bg-[#222] border border-transparent'
                           }`}
                       >
-                          <span className="font-bold text-sm truncate">{role.name}</span>
+                          <span className="font-bold text-sm truncate">{getRoleDisplayName(role)}</span>
                           {role.isSystem && <Lock size={12} className="opacity-50 shrink-0" />}
                       </button>
                   ))}
@@ -173,23 +188,24 @@ const RoleConfigModal: React.FC<RoleConfigModalProps> = ({ isOpen, onClose }) =>
                       <div className="p-4 border-b border-[#222] flex justify-between items-start bg-[#151515]">
                           <div className="flex-1 mr-3 space-y-3 min-w-0">
                               <div>
-                                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Role Name</label>
+                                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">{t('settings.roleModal.roleName')}</label>
                                   <input 
                                       type="text" 
-                                      value={selectedRole.name}
+                                      value={getRoleDisplayName(selectedRole)}
                                       onChange={(e) => handleNameChange(e.target.value)}
                                       disabled={selectedRole.isSystem}
                                       className={`w-full bg-transparent text-lg font-bold outline-none ${selectedRole.isSystem ? 'text-gray-500 cursor-not-allowed' : 'text-white border-b border-gray-700 focus:border-brand-green'}`}
                                   />
                               </div>
                               <div>
-                                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Description</label>
+                                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">{t('settings.roleModal.description')}</label>
                                   <input 
                                       type="text" 
-                                      value={selectedRole.description || ''}
+                                      value={getRoleDisplayDesc(selectedRole) || ''}
                                       onChange={(e) => handleDescriptionChange(e.target.value)}
-                                      placeholder="Role description..."
-                                      className={`w-full bg-[#1A1A1A] rounded px-3 py-1.5 text-sm text-gray-300 outline-none border border-transparent focus:border-brand-green/50 placeholder:text-gray-600 transition-colors`}
+                                      disabled={selectedRole.isSystem}
+                                      placeholder={t('settings.roleModal.descriptionPlaceholder')}
+                                      className={`w-full bg-[#1A1A1A] rounded px-3 py-1.5 text-sm outline-none border border-transparent transition-colors ${selectedRole.isSystem ? 'text-gray-500 cursor-not-allowed' : 'text-gray-300 focus:border-brand-green/50'}`}
                                   />
                               </div>
                           </div>
@@ -197,7 +213,7 @@ const RoleConfigModal: React.FC<RoleConfigModalProps> = ({ isOpen, onClose }) =>
                               <button 
                                   onClick={() => handleDeleteRole(selectedRole.id)}
                                   className="p-2 text-gray-600 hover:text-red-500 hover:bg-[#222] rounded transition-colors"
-                                  title="Delete Role"
+                                  title={t('common.delete')}
                               >
                                   <Trash2 size={16} />
                               </button>
@@ -207,47 +223,47 @@ const RoleConfigModal: React.FC<RoleConfigModalProps> = ({ isOpen, onClose }) =>
                       {/* Permissions Table */}
                       <div className="flex-1 overflow-y-auto p-4">
                           <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-                              Module Access
+                              {t('settings.roleModal.moduleAccess')}
                           </h4>
                           <div className="space-y-1">
-                              {MODULES.map(module => (
-                                  <div key={module.key} className="flex items-center justify-between p-2 rounded-lg hover:bg-[#1A1A1A] border border-transparent hover:border-[#222] transition-colors gap-3">
-                                      <span className="text-sm font-medium text-gray-300 truncate flex-1">{module.label}</span>
+                              {MODULES.map(moduleKey => (
+                                  <div key={moduleKey} className="flex items-center justify-between p-2 rounded-lg hover:bg-[#1A1A1A] border border-transparent hover:border-[#222] transition-colors gap-3">
+                                      <span className="text-sm font-medium text-gray-300 truncate flex-1">{t(`sidebar.${moduleKey}`)}</span>
                                       
                                       <div className="flex bg-[#222] rounded-lg p-1 shrink-0">
                                           <button
-                                              onClick={() => handlePermissionChange(module.key, 'no_access')}
-                                              disabled={selectedRole.isSystem && selectedRole.id === 'role_admin'}
+                                              onClick={() => handlePermissionChange(moduleKey, 'no_access')}
+                                              disabled={selectedRole.isSystem}
                                               className={`px-3 py-1 rounded text-xs font-bold transition-colors flex items-center gap-1.5 ${
-                                                  selectedRole.permissions[module.key] === 'no_access'
+                                                  selectedRole.permissions[moduleKey] === 'no_access'
                                                   ? 'bg-[#333] text-gray-300 shadow-sm'
                                                   : 'text-gray-600 hover:text-gray-400'
-                                              }`}
-                                              title="No Access"
+                                              } ${selectedRole.isSystem ? 'cursor-not-allowed opacity-50' : ''}`}
+                                              title={t('settings.roleModal.noAccess')}
                                           >
                                               <EyeOff size={12} />
                                           </button>
                                           <button
-                                              onClick={() => handlePermissionChange(module.key, 'view')}
-                                              disabled={selectedRole.isSystem && selectedRole.id === 'role_admin'}
+                                              onClick={() => handlePermissionChange(moduleKey, 'view')}
+                                              disabled={selectedRole.isSystem}
                                               className={`px-3 py-1 rounded text-xs font-bold transition-colors flex items-center gap-1.5 ${
-                                                  selectedRole.permissions[module.key] === 'view'
+                                                  selectedRole.permissions[moduleKey] === 'view'
                                                   ? 'bg-blue-500/20 text-blue-400 shadow-sm'
                                                   : 'text-gray-600 hover:text-gray-400'
-                                              }`}
-                                              title="View Only"
+                                              } ${selectedRole.isSystem ? 'cursor-not-allowed opacity-50' : ''}`}
+                                              title={t('settings.roleModal.viewOnly')}
                                           >
                                               <Eye size={12} />
                                           </button>
                                           <button
-                                              onClick={() => handlePermissionChange(module.key, 'edit')}
-                                              disabled={selectedRole.isSystem && selectedRole.id === 'role_admin'}
+                                              onClick={() => handlePermissionChange(moduleKey, 'edit')}
+                                              disabled={selectedRole.isSystem}
                                               className={`px-3 py-1 rounded text-xs font-bold transition-colors flex items-center gap-1.5 ${
-                                                  selectedRole.permissions[module.key] === 'edit'
+                                                  selectedRole.permissions[moduleKey] === 'edit'
                                                   ? 'bg-brand-green/20 text-brand-green shadow-sm'
                                                   : 'text-gray-600 hover:text-gray-400'
-                                              }`}
-                                              title="Edit Access"
+                                              } ${selectedRole.isSystem ? 'cursor-not-allowed opacity-50' : ''}`}
+                                              title={t('settings.roleModal.editAccess')}
                                           >
                                               <Edit3 size={12} />
                                           </button>
@@ -259,7 +275,7 @@ const RoleConfigModal: React.FC<RoleConfigModalProps> = ({ isOpen, onClose }) =>
                   </>
               ) : (
                   <div className="flex-1 flex items-center justify-center text-gray-600 text-sm">
-                      Select a role to edit
+                      {t('settings.roleModal.selectRole')}
                   </div>
               )}
           </div>
@@ -271,13 +287,13 @@ const RoleConfigModal: React.FC<RoleConfigModalProps> = ({ isOpen, onClose }) =>
               onClick={onClose}
               className="px-4 py-2 rounded-xl text-sm font-bold text-gray-400 hover:text-white hover:bg-[#222] transition-colors"
           >
-              Cancel
+              {t('settings.roleModal.cancel')}
           </button>
           <button 
               onClick={handleSave}
               className={`${THEME.buttonPrimary} px-6 py-2 rounded-xl text-sm font-bold flex items-center gap-2`}
           >
-              <CheckCircle2 size={16} /> Save
+              <CheckCircle2 size={16} /> {t('settings.roleModal.save')}
           </button>
       </div>
     </Modal>
