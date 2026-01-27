@@ -196,6 +196,22 @@ export const SEED_PAYOUTS: PayoutStructure[] = [
         ]
     },
     {
+        id: 'algo_chipev',
+        name: 'Chip Chop (Chip EV)',
+        description: 'Payouts directly proportional to stack size.',
+        isSystemDefault: true,
+        allocations: [
+            {
+                id: 'alloc_chipev_main',
+                name: 'Main Pot',
+                percent: 100,
+                type: 'ChipEV',
+                color: '#f97316',
+                rules: []
+            }
+        ]
+    },
+    {
         id: 'custom_split_1',
         name: '95% ICM + 5% High Hand',
         description: 'Splits pool: 95% distributed by ICM, 5% reserved for High Hand (Winner Take All)',
@@ -207,7 +223,9 @@ export const SEED_PAYOUTS: PayoutStructure[] = [
                 type: 'ICM',
                 color: '#3b82f6',
                 rules: [
-                    { minPlayers: 2, maxPlayers: 99, placesPaid: 1, percentages: [100] }
+                    { minPlayers: 2, maxPlayers: 8, placesPaid: 2, percentages: [65, 35] },
+                    { minPlayers: 9, maxPlayers: 20, placesPaid: 3, percentages: [50, 30, 20] },
+                    { minPlayers: 21, maxPlayers: 999, placesPaid: 15, percentages: [30, 20, 14, 10, 8, 6, 5, 4, 3] }, // Simplified
                 ]
             },
             {
@@ -217,7 +235,7 @@ export const SEED_PAYOUTS: PayoutStructure[] = [
                 type: 'Custom',
                 color: '#eab308',
                 rules: [
-                    { minPlayers: 2, maxPlayers: 1000, placesPaid: 3, percentages: [50, 30, 20] }
+                    { minPlayers: 2, maxPlayers: 1000, placesPaid: 1, percentages: [100] }
                 ]
             }
         ]
@@ -307,17 +325,17 @@ const generateMockTournaments = (): Tournament[] => {
     const startTimeHyper = new Date(now.getTime() - 15 * 60000); // 15 mins ago
     const startTimeBreaks = new Date(now.getTime() - 45 * 60000); // 45 mins ago
 
-    // Tournament A: Hyper Turbo Test
+    // Tournament A: Hyper Turbo Test (ChipEV)
     list.push({
         id: 'live-test-hyper',
-        name: 'LIVE TEST: Hyper Turbo',
+        name: 'TEST: ChipEV Calc',
         startDate: getLocalDate(0), // Today
         startTime: formatTime(startTimeHyper), 
         estimatedDurationMinutes: 60,
         buyIn: 1000,
         fee: 0,
-        maxPlayers: 9,
-        startingChips: 5000,
+        maxPlayers: 10,
+        startingChips: 10000, // 10 Players * 10k = 100k Total
         startingBlinds: '100/200',
         blindLevelMinutes: 1,
         blindIncreasePercent: 50,
@@ -325,10 +343,10 @@ const generateMockTournaments = (): Tournament[] => {
         lastRebuyLevel: 6, // Changed from 99
         payoutModel: PayoutModel.CHIP_EV,
         structureId: 'struct_test_1min',
-        payoutStructureId: 'algo_1',
+        payoutStructureId: 'algo_chipev',
         clockConfigId: 'default_clock',
         status: 'In Progress',
-        description: 'Test Environment: 1 minute levels to test clock transitions.',
+        description: 'Test Environment: ChipEV calculation verification.',
         tableIds: ['t1']
     });
 

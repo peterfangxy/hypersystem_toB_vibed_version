@@ -4,6 +4,7 @@ import { SEED_MEMBERS } from './memberSeeds';
 import { SEED_TOURNAMENTS } from './pokerSeeds';
 
 const TEST_CHIPS_OUT = [17390, 12640, 11240, 9150, 8470, 7860, 3250];
+const TEST_CHIPS_EV = [40000, 20000, 10000, 10000, 5000, 5000, 5000, 5000, 0, 0]; // Sum 100k
 
 const generateRegistrations = (): TournamentRegistration[] => {
     const registrations: TournamentRegistration[] = [];
@@ -22,6 +23,9 @@ const generateRegistrations = (): TournamentRegistration[] => {
         // Specific Override for the Breaks Test Case
         if (tournament.id === 'live-test-breaks' || tournament.id === 'live-test-breaks-split') {
             playerCount = TEST_CHIPS_OUT.length;
+        }
+        if (tournament.id === 'live-test-hyper') {
+            playerCount = TEST_CHIPS_EV.length;
         }
         
         // Shuffle members to pick random participants
@@ -51,7 +55,7 @@ const generateRegistrations = (): TournamentRegistration[] => {
             let buyInCount = (tournament.rebuyLimit > 0 && Math.random() > 0.7) ? 2 : 1;
             
             // Override for Test Case: Single Buy-in to ensure Prize Pool matches exactly
-            if (tournament.id === 'live-test-breaks' || tournament.id === 'live-test-breaks-split') {
+            if (tournament.id === 'live-test-breaks' || tournament.id === 'live-test-breaks-split' || tournament.id === 'live-test-hyper') {
                 buyInCount = 1;
             }
 
@@ -101,6 +105,9 @@ const generateRegistrations = (): TournamentRegistration[] => {
                 if (tournament.id === 'live-test-breaks' || tournament.id === 'live-test-breaks-split') {
                     // Apply Specific Test Stack
                     finalChips = TEST_CHIPS_OUT[index] !== undefined ? TEST_CHIPS_OUT[index] : 0;
+                } else if (tournament.id === 'live-test-hyper') {
+                    // Apply ChipEV Test Stack
+                    finalChips = TEST_CHIPS_EV[index] !== undefined ? TEST_CHIPS_EV[index] : 0;
                 } else {
                     // Everyone has starting stack + variance
                     finalChips = tournament.startingChips * buyInCount; 
