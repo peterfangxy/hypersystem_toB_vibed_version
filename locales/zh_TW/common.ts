@@ -26,5 +26,15 @@ export default {
     "message": "您確定要刪除 <bold>{{name}}</bold> 嗎？此操作無法復原。",
     "confirm": "是的，刪除",
     "cancel": "取消，保留"
+  },
+  "filter": {
+    "sortAsc": "升序排序",
+    "sortDesc": "降序排序",
+    "selectAll": "全選",
+    "clear": "清除",
+    "reset": "重設",
+    "apply": "套用",
+    "from": "從",
+    "to": "至"
   }
 };

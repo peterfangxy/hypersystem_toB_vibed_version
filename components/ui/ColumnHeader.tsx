@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   ArrowUp, 
@@ -13,6 +14,7 @@ import {
   ArrowUpAZ
 } from 'lucide-react';
 import { THEME } from '../../theme';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export type SortDirection = 'asc' | 'desc';
 export type FilterType = 'multi-select' | 'date-range' | 'text';
@@ -48,6 +50,7 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = ({
   currentFilter,
   onFilter
 }) => {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -115,7 +118,7 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = ({
         return (
             <div className="p-3 space-y-3 min-w-[240px]">
                 <div className="space-y-1">
-                    <label className="text-xs text-gray-500 uppercase font-bold block">From</label>
+                    <label className="text-xs text-gray-500 uppercase font-bold block">{t('common.filter.from')}</label>
                     <input 
                         type="date" 
                         value={start}
@@ -124,7 +127,7 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = ({
                     />
                 </div>
                 <div className="space-y-1">
-                    <label className="text-xs text-gray-500 uppercase font-bold block">To</label>
+                    <label className="text-xs text-gray-500 uppercase font-bold block">{t('common.filter.to')}</label>
                     <input 
                         type="date" 
                         value={end}
@@ -158,9 +161,9 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = ({
         return (
             <div className="flex flex-col min-w-[220px] max-h-[300px]">
                 <div className="p-2 border-b border-[#333] flex gap-2 text-xs">
-                    <button type="button" onClick={selectAll} className="text-brand-green hover:underline">Select All</button>
+                    <button type="button" onClick={selectAll} className="text-brand-green hover:underline">{t('common.filter.selectAll')}</button>
                     <span className="text-gray-600">|</span>
-                    <button type="button" onClick={clearSelection} className="text-gray-400 hover:text-white hover:underline">Clear</button>
+                    <button type="button" onClick={clearSelection} className="text-gray-400 hover:text-white hover:underline">{t('common.filter.clear')}</button>
                 </div>
                 <div className="overflow-y-auto p-1 flex-1 space-y-0.5">
                     {filterOptions.map((option, idx) => {
@@ -225,7 +228,7 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = ({
                                     className={`flex items-center gap-3 w-full p-2 rounded text-left transition-colors ${isSorted && currentSort?.direction === 'asc' ? 'bg-brand-green/10 text-brand-green' : 'text-gray-400 hover:bg-[#222] hover:text-white'}`}
                                 >
                                     <ArrowDownAZ size={16} />
-                                    <span className="text-sm font-medium">Sort Ascending</span>
+                                    <span className="text-sm font-medium">{t('common.filter.sortAsc')}</span>
                                     {isSorted && currentSort?.direction === 'asc' && <Check size={14} className="ml-auto" />}
                                 </button>
                                 <button 
@@ -233,7 +236,7 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = ({
                                     className={`flex items-center gap-3 w-full p-2 rounded text-left transition-colors ${isSorted && currentSort?.direction === 'desc' ? 'bg-brand-green/10 text-brand-green' : 'text-gray-400 hover:bg-[#222] hover:text-white'}`}
                                 >
                                     <ArrowUpAZ size={16} />
-                                    <span className="text-sm font-medium">Sort Descending</span>
+                                    <span className="text-sm font-medium">{t('common.filter.sortDesc')}</span>
                                     {isSorted && currentSort?.direction === 'desc' && <Check size={14} className="ml-auto" />}
                                 </button>
                             </div>
@@ -248,13 +251,13 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = ({
                                 onClick={clearFilter}
                                 className="px-3 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-white hover:bg-[#222] transition-colors"
                             >
-                                Reset
+                                {t('common.filter.reset')}
                             </button>
                             <button 
                                 onClick={applyFilter}
                                 className="px-3 py-1.5 rounded-lg text-xs font-bold bg-brand-green text-black hover:bg-[#05a357] transition-colors"
                             >
-                                Apply
+                                {t('common.filter.apply')}
                             </button>
                         </div>
                     </div>
