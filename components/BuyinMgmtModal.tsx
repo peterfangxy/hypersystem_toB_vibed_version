@@ -6,7 +6,8 @@ import {
   Save, 
   AlertCircle,
   Wallet,
-  Check
+  Check,
+  Lock
 } from 'lucide-react';
 import { Tournament, TournamentRegistration, Member, PokerTable, TournamentTransaction } from '../types';
 import * as DataService from '../services/dataService';
@@ -36,6 +37,7 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
     const [transactions, setTransactions] = useState<TournamentTransaction[]>([]);
     const [walletBalance, setWalletBalance] = useState<number>(0);
     const [initialAllocatedDeposit, setInitialAllocatedDeposit] = useState<number>(0);
+    const [lockedTransactionIds, setLockedTransactionIds] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         if (isOpen && registration) {
@@ -45,6 +47,15 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                 : [];
             
             setTransactions(txs);
+
+            // Identify transactions that were already paid and saved (Locked)
+            const locked = new Set<string>();
+            if (registration.transactions) {
+                registration.transactions.forEach(tx => {
+                    if (tx.isPaid) locked.add(tx.id);
+                });
+            }
+            setLockedTransactionIds(locked);
 
             // Calculate initial allocated deposit for this specific registration
             // This is funds already deducted from the user's wallet for this tournament
@@ -107,27 +118,34 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
         onClose();
     };
 
-    const calculateRowNet = (tx: TournamentTransaction) => {
+    // Helper to calculate row stats and validation
+    const getRowState = (tx: TournamentTransaction) => {
         const totalDiscount = (tx.rebuyDiscount || 0) + (tx.membershipDiscount || 0) + (tx.voucherDiscount || 0) + (tx.campaignDiscount || 0);
-        return Math.max(0, baseCost - totalDiscount);
+        
+        // Maximum amount that can be paid (Net Payable before Deposit)
+        // If discounts exceed base, this is 0.
+        const netBeforeDeposit = Math.max(0, baseCost - totalDiscount);
+        
+        // Validation: Deposit cannot exceed the payable amount
+        const isDepositInvalid = (tx.depositPaid || 0) > netBeforeDeposit;
+        
+        // Cash to be paid
+        const cash = Math.max(0, netBeforeDeposit - (tx.depositPaid || 0));
+
+        return { netBeforeDeposit, isDepositInvalid, cash };
     };
 
-    const calculateRowCash = (tx: TournamentTransaction) => {
-        if (tx.isPaid) return 0; // If marked as paid, no outstanding cash
-        const net = calculateRowNet(tx);
-        return Math.max(0, net - (tx.depositPaid || 0));
-    };
-
-    // Summaries
-    const totalNetPayable = transactions.reduce((sum, tx) => sum + calculateRowNet(tx), 0);
+    // Summaries & Validations
+    const totalCashDue = transactions.reduce((sum, tx) => sum + getRowState(tx).cash, 0);
     const totalDepositPaid = transactions.reduce((sum, tx) => sum + (tx.depositPaid || 0), 0);
-    const totalCashOutstanding = transactions.reduce((sum, tx) => sum + calculateRowCash(tx), 0);
-
-    // Validation
+    
     const isOverBalance = totalDepositPaid > effectiveAvailableFunds;
+    const isAnyDepositInvalid = transactions.some(tx => getRowState(tx).isDepositInvalid);
+    const allPaid = transactions.every(tx => tx.isPaid);
+
+    const canSave = !isOverBalance && !isAnyDepositInvalid && allPaid;
 
     // Grid Layout Definition
-    // Columns: Index, Time, Type, BaseCost, RebuyDisc, MemDisc, Voucher, Campaign, Deposit, Net, Paid, Action
     const gridClass = "grid grid-cols-[3rem_4.5rem_4.5rem_5rem_1fr_1fr_1fr_1fr_1fr_5rem_3.5rem_3rem] gap-2 items-center";
 
     return (
@@ -141,18 +159,18 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
             <form onSubmit={handleSave} className="flex flex-col flex-1 overflow-hidden h-[80vh]">
                 <div className="flex-1 overflow-x-auto overflow-y-auto bg-[#111]">
                     <div className="min-w-[1000px] p-4">
-                        {/* Sticky Grid Header - Matches StructureForm Style */}
+                        {/* Sticky Grid Header */}
                         <div className={`sticky top-0 z-10 ${gridClass} p-2 bg-[#111] border-b border-[#222] text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 shadow-sm`}>
                             <div className="text-center pl-2">#</div>
                             <div className="text-center">{t('tournaments.buyinModal.headers.time')}</div>
                             <div className="text-center">{t('tournaments.buyinModal.headers.type')}</div>
                             <div className="text-center">{t('tournaments.buyinModal.headers.base')}</div>
-                            <div className="text-center">{t('tournaments.buyinModal.headers.rebuy')}</div>
-                            <div className="text-center">{t('tournaments.buyinModal.headers.member')}</div>
-                            <div className="text-center">{t('tournaments.buyinModal.headers.voucher')}</div>
-                            <div className="text-center">{t('tournaments.buyinModal.headers.campaign')}</div>
-                            <div className="text-center">{t('tournaments.buyinModal.headers.deposit')}</div>
-                            <div className="text-center">{t('tournaments.buyinModal.headers.net')}</div>
+                            <div className="text-center text-blue-400">{t('tournaments.buyinModal.headers.rebuy')}</div>
+                            <div className="text-center text-blue-400">{t('tournaments.buyinModal.headers.member')}</div>
+                            <div className="text-center text-blue-400">{t('tournaments.buyinModal.headers.voucher')}</div>
+                            <div className="text-center text-blue-400">{t('tournaments.buyinModal.headers.campaign')}</div>
+                            <div className="text-center text-brand-green">{t('tournaments.buyinModal.headers.deposit')}</div>
+                            <div className="text-center text-brand-green">{t('tournaments.buyinModal.headers.cash')}</div>
                             <div className="text-center">{t('tournaments.buyinModal.headers.paid')}</div>
                             <div className="text-center"></div>
                         </div>
@@ -165,7 +183,9 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                                 </div>
                             ) : (
                                 transactions.map((tx, idx) => {
-                                    const net = calculateRowNet(tx);
+                                    const { cash, isDepositInvalid } = getRowState(tx);
+                                    const isLocked = lockedTransactionIds.has(tx.id);
+
                                     return (
                                         <div key={tx.id} className={`${gridClass} p-2 rounded-lg hover:bg-[#1A1A1A] border border-transparent hover:border-[#333] transition-colors group`}>
                                             {/* Index */}
@@ -191,58 +211,81 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                                                 ${baseCost.toLocaleString()}
                                             </div>
                                             
-                                            {/* Inputs */}
-                                            {['rebuyDiscount', 'membershipDiscount', 'voucherDiscount', 'campaignDiscount', 'depositPaid'].map((field) => (
-                                                <div key={field}>
-                                                    <NumberInput 
-                                                        value={(tx as any)[field]}
-                                                        onChange={(val) => handleTransactionChange(idx, field as keyof TournamentTransaction, val ?? 0)}
-                                                        min={0}
-                                                        allowEmpty={true}
-                                                        enableScroll={false}
-                                                        align="center"
-                                                        size="sm"
-                                                        variant="transparent"
-                                                        className={`w-full border rounded-lg ${
-                                                            field === 'depositPaid' && isOverBalance 
-                                                            ? 'border-red-500/50 bg-red-900/10' 
-                                                            : 'border-[#333] bg-[#222]'
-                                                        }`}
-                                                        placeholder="0"
-                                                    />
-                                                </div>
-                                            ))}
+                                            {/* Inputs (Discounts & Deposit) */}
+                                            {['rebuyDiscount', 'membershipDiscount', 'voucherDiscount', 'campaignDiscount', 'depositPaid'].map((field) => {
+                                                const isDiscount = ['rebuyDiscount', 'membershipDiscount', 'voucherDiscount', 'campaignDiscount'].includes(field);
+                                                const isDeposit = field === 'depositPaid';
+                                                
+                                                // Determine Text Color based on Column Type
+                                                let textColorClass = 'text-gray-300';
+                                                if (isDiscount) textColorClass = 'text-blue-400 font-medium';
+                                                if (isDeposit) textColorClass = 'text-brand-green font-bold';
 
-                                            {/* Net Payable */}
+                                                return (
+                                                    <div key={field} className="relative group/input">
+                                                        <NumberInput 
+                                                            value={(tx as any)[field]}
+                                                            onChange={(val) => handleTransactionChange(idx, field as keyof TournamentTransaction, val ?? 0)}
+                                                            min={0}
+                                                            allowEmpty={true}
+                                                            enableScroll={false}
+                                                            align="center"
+                                                            size="sm"
+                                                            variant="transparent"
+                                                            disabled={isLocked} 
+                                                            className={`w-full border rounded-lg ${textColorClass} ${
+                                                                isDeposit 
+                                                                    ? (isDepositInvalid || isOverBalance ? 'border-red-500/50 bg-red-900/10 text-red-200' : (isLocked ? 'border-transparent text-gray-500' : 'border-[#333] bg-[#222]'))
+                                                                    : (isLocked ? 'border-transparent text-gray-500' : 'border-[#333] bg-[#222]')
+                                                            }`}
+                                                            placeholder="0"
+                                                        />
+                                                        {isDeposit && isDepositInvalid && (
+                                                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-red-500 text-white text-[10px] rounded opacity-0 group-hover/input:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-20">
+                                                                {t('tournaments.buyinModal.validation.exceedsPayable')}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+
+                                            {/* Cash Column */}
                                             <div className="text-center">
-                                                <div className="font-bold text-white font-mono text-sm">${net.toLocaleString()}</div>
+                                                <div className="font-bold text-brand-green font-mono text-sm">${cash.toLocaleString()}</div>
                                             </div>
                                             
                                             {/* Paid Toggle */}
                                             <div className="flex justify-center">
                                                 <button
                                                     type="button"
+                                                    disabled={isLocked}
                                                     onClick={() => handleTransactionChange(idx, 'isPaid', !tx.isPaid)}
                                                     className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors border ${
                                                         tx.isPaid 
-                                                        ? 'bg-green-500/20 border-green-500 text-green-500' 
+                                                        ? 'bg-green-500/20 border-green-500 text-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]' 
                                                         : 'bg-[#222] border-[#444] text-gray-600 hover:border-gray-500'
-                                                    }`}
-                                                    title={tx.isPaid ? "Mark as Unpaid" : "Mark as Paid"}
+                                                    } ${isLocked ? 'cursor-not-allowed opacity-80' : ''}`}
+                                                    title={isLocked ? "Paid (Locked)" : (tx.isPaid ? "Mark as Unpaid" : "Mark as Paid")}
                                                 >
-                                                    {tx.isPaid && <Check size={16} strokeWidth={3} />}
+                                                    {tx.isPaid ? <Check size={16} strokeWidth={3} /> : null}
                                                 </button>
                                             </div>
 
                                             {/* Delete Action */}
-                                            <div className="flex justify-center opacity-50 group-hover:opacity-100 transition-opacity">
-                                                <button 
-                                                    type="button"
-                                                    onClick={() => handleRemoveTransaction(idx)}
-                                                    className="p-1.5 text-gray-600 hover:text-red-500 rounded hover:bg-[#333] transition-colors"
-                                                >
-                                                    <Trash2 size={14} />
-                                                </button>
+                                            <div className="flex justify-center">
+                                                {isLocked ? (
+                                                    <div title="Locked (Saved)">
+                                                        <Lock size={14} className="text-gray-600 opacity-50" />
+                                                    </div>
+                                                ) : (
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => handleRemoveTransaction(idx)}
+                                                        className="p-1.5 text-gray-600 hover:text-red-500 rounded hover:bg-[#333] transition-colors opacity-50 group-hover:opacity-100"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     );
@@ -278,15 +321,15 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                 <div className="p-6 border-t border-[#222] bg-[#171717] flex justify-between items-center shrink-0">
                     <div className="flex gap-8">
                         <div>
-                            <span className="text-gray-500 text-xs font-bold uppercase block mb-1">{t('tournaments.buyinModal.summary.net')}</span>
-                            <span className="text-xl font-bold text-white font-mono">${totalNetPayable.toLocaleString()}</span>
+                            <span className="text-gray-500 text-xs font-bold uppercase block mb-1">{t('tournaments.buyinModal.summary.totalCash')}</span>
+                            <span className="text-xl font-bold text-white font-mono">${totalCashDue.toLocaleString()}</span>
                         </div>
                         <div>
                             <span className="text-gray-500 text-xs font-bold uppercase block mb-1 flex items-center gap-1.5">
                                 {t('tournaments.buyinModal.summary.deposit')}
                                 {isOverBalance && <AlertCircle size={14} className="text-red-500" />}
                             </span>
-                            <span className={`text-xl font-bold font-mono ${isOverBalance ? 'text-red-500' : 'text-brand-green'}`}>
+                            <span className={`text-xl font-bold font-mono ${isOverBalance ? 'text-red-500' : 'text-blue-400'}`}>
                                 ${totalDepositPaid.toLocaleString()}
                             </span>
                             <div className="text-[10px] text-gray-500 flex items-center gap-1.5 mt-1">
@@ -294,24 +337,39 @@ export const BuyinMgmtModal: React.FC<BuyinMgmtModalProps> = ({ isOpen, onClose,
                                 {t('tournaments.buyinModal.summary.avail')}: ${effectiveAvailableFunds.toLocaleString()}
                             </div>
                         </div>
-                        <div className="pl-8 border-l border-[#333]">
-                            <span className="text-gray-500 text-xs font-bold uppercase block mb-1">{t('tournaments.buyinModal.summary.outstanding')}</span>
-                            <span className="text-2xl font-bold text-white font-mono">${totalCashOutstanding.toLocaleString()}</span>
-                        </div>
                     </div>
-                    <button 
-                        type="submit"
-                        disabled={isOverBalance}
-                        className={`px-8 py-3 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 ${
-                            isOverBalance 
-                            ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
-                            : THEME.buttonPrimary
-                        }`}
-                        title={isOverBalance ? "Insufficient wallet balance" : ""}
-                    >
-                        <Save size={20} />
-                        {t('tournaments.buyinModal.save')}
-                    </button>
+                    
+                    <div className="flex flex-col items-end gap-2">
+                        <button 
+                            type="submit"
+                            disabled={!canSave}
+                            className={`px-8 py-3 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 transition-all ${
+                                !canSave
+                                ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-[#333]' 
+                                : THEME.buttonPrimary
+                            }`}
+                            title={!allPaid ? t('tournaments.buyinModal.validation.allEntriesPaidTooltip') : (isAnyDepositInvalid ? t('tournaments.buyinModal.validation.invalidDepositTooltip') : "")}
+                        >
+                            <Save size={20} />
+                            {t('tournaments.buyinModal.save')}
+                        </button>
+                        
+                        {!allPaid && !isAnyDepositInvalid && !isOverBalance && (
+                            <span className="text-xs text-orange-500 font-bold animate-pulse">
+                                {t('tournaments.buyinModal.validation.markAllPaid')}
+                            </span>
+                        )}
+                        {isAnyDepositInvalid && (
+                            <span className="text-xs text-red-500 font-bold">
+                                {t('tournaments.buyinModal.validation.invalidDeposit')}
+                            </span>
+                        )}
+                        {isOverBalance && (
+                            <span className="text-xs text-red-500 font-bold animate-pulse">
+                                {t('tournaments.buyinModal.validation.insufficientBalance')}
+                            </span>
+                        )}
+                    </div>
                 </div>
             </form>
         </Modal>

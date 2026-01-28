@@ -13,6 +13,7 @@ import { EnrichedRegistration } from '../BuyinMgmtModal';
 import { useLanguage } from '../../contexts/LanguageContext';
 import NumberInput from '../ui/NumberInput';
 import StatusBadge, { StatusVariant } from '../ui/StatusBadge';
+import { ENABLE_SEAT_VALIDATION } from '../../featureFlags';
 
 interface TournamentPlayerListProps {
   registrations: EnrichedRegistration[];
@@ -139,7 +140,7 @@ const TournamentPlayerList: React.FC<TournamentPlayerListProps> = ({
                                 >
                                     <option value="" disabled>Seat</option>
                                     {reg.assignedTable && Array.from({ length: reg.assignedTable.capacity }, (_, i) => i + 1).map(num => {
-                                        const isTaken = occupiedSeatsByTable.get(reg.tableId!)?.has(num) && reg.seatNumber !== num;
+                                        const isTaken = ENABLE_SEAT_VALIDATION && occupiedSeatsByTable.get(reg.tableId!)?.has(num) && reg.seatNumber !== num;
                                         return (
                                             <option key={num} value={num} disabled={isTaken}>
                                                 {num} {isTaken ? '(x)' : ''}

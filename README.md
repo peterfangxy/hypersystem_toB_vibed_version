@@ -12,7 +12,7 @@ This application serves as a complete solution for managing members, running com
 ### 1. 🏆 Tournament Operations
 *   **Complete Lifecycle**: Schedule -> Registration -> Live Play -> Reconciliation -> Completion.
 *   **Live Management**:
-    *   **Seating Logic**: Auto-balancing logic and seat assignment.
+    *   **Seating Logic**: Flexible seating assignments with optional validation.
     *   **Buy-in Management**: Track Re-buys, Add-ons, and fees with support for vouchers and campaigns.
     *   **Player & Chip Tracking**: Monitor chips in play vs. counted chips for security.
 *   **Payout Engine**:
@@ -44,7 +44,20 @@ This application serves as a complete solution for managing members, running com
 
 ### 6. 🛡️ Admin & Security
 *   **RBAC (Role-Based Access Control)**: Granular permission system (View/Edit/No Access) per module.
-*   **Audit Logs**: comprehensive tracking of system actions, logins, and sensitive data changes.
+*   **Audit Logs**: Comprehensive tracking of system actions, logins, and sensitive data changes.
+
+---
+
+## ⚙️ Configuration & Feature Flags
+
+The application behavior can be customized via `src/featureFlags.ts`. This allows for environment-specific toggles without changing core logic.
+
+*   **`ENABLE_SEAT_VALIDATION`** (`boolean`):
+    *   `true`: Enforces strict seat availability. Players cannot be assigned to an occupied seat.
+    *   `false`: (Default) Allows manual overrides and double-booking seats. Useful for fast-paced store operations where the system tracks entry rather than strict physical seating.
+*   **`USE_MOCK_DATA`** (`boolean`):
+    *   `true`: (Default) Bypasses Supabase and uses local `localStorage` with seeded mock data. Ideal for demos and offline development.
+    *   `false`: Attempts to connect to the configured Supabase backend for persistent data storage.
 
 ---
 
@@ -63,7 +76,7 @@ This application serves as a complete solution for managing members, running com
 *   **Hybrid Sync**: 
     *   Primary reads/writes go to `localStorage` for instant UI updates and offline capability.
     *   `services/broadcastService.ts` handles cross-tab synchronization using the Broadcast Channel API.
-    *   Supabase integration hooks are present in `members.ts` for cloud synchronization (optional/configurable).
+    *   Supabase integration hooks are available via the `USE_MOCK_DATA` flag.
 
 ### Project Structure
 
@@ -83,17 +96,9 @@ This application serves as a complete solution for managing members, running com
 │   ├── seeds/          # Mock data generators
 │   └── analytics...    # Business logic services
 ├── types/              # TypeScript definitions
-│   ├── models.ts       # Core entities (Member, Tournament)
-│   ├── ui.ts           # View-specific types (ClockConfig)
-│   └── enums.ts        # Shared constants
 ├── utils/              # Helper functions (Math, Validation, Payouts)
-└── views/              # Main page views (Router destinations)
-    ├── clocks/         # Clock list and runners
-    ├── dashboard/      # Analytics dashboard
-    ├── members/        # Member management
-    ├── settings/       # System configuration
-    ├── structures/     # Blind & Payout structure editors
-    └── tournaments/    # Tournament lists & templates
+├── views/              # Main page views (Router destinations)
+└── featureFlags.ts     # Global configuration toggles
 ```
 
 ---
@@ -111,7 +116,7 @@ This application serves as a complete solution for managing members, running com
     ```
 
 3.  **Initial Setup**: 
-    The app will automatically seed `localStorage` with sample data (Members, Tournaments, Clock Layouts) on the first load.
+    The app will automatically seed `localStorage` with sample data (Members, Tournaments, Clock Layouts) on the first load if `USE_MOCK_DATA` is enabled.
 
 ---
 

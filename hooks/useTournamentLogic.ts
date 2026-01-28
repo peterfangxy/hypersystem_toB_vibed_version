@@ -4,6 +4,7 @@ import { Tournament, TournamentRegistration, Member, PokerTable, RegistrationSta
 import * as DataService from '../services/dataService';
 import { broadcast, subscribe } from '../services/broadcastService';
 import { EnrichedRegistration } from '../components/BuyinMgmtModal';
+import { ENABLE_SEAT_VALIDATION } from '../featureFlags';
 
 export const useTournamentLogic = (tournament: Tournament) => {
     const [registrations, setRegistrations] = useState<TournamentRegistration[]>([]);
@@ -159,7 +160,8 @@ export const useTournamentLogic = (tournament: Tournament) => {
         if (validSeat > table.capacity) validSeat = 1;
         if (validSeat < 1) validSeat = 1;
 
-        if (occupied && occupied.has(validSeat)) {
+        // FEATURE FLAG CHECK
+        if (ENABLE_SEAT_VALIDATION && occupied && occupied.has(validSeat)) {
             // Simple "find next available" logic or fail
             let found = false;
             for (let i = 1; i <= table.capacity; i++) {

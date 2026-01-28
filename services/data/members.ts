@@ -1,13 +1,10 @@
+
 import { Member, TierDefinition, MemberStatus } from '../../types';
 import { SEED_MEMBERS } from '../mockData';
 import { supabase, isSupabaseAvailable } from '../supabaseClient';
 import { getLocalData, setLocalData, MEMBERS_KEY, TIERS_KEY } from './storage';
 import type { Database } from '../../supabaseSchema';
-
-// --- CONFIGURATION ---
-// Set this to true to force using local mock data (bypass Supabase)
-// Useful for demos or when backend is WIP.
-export const USE_MOCK_DATA = true;
+import { USE_MOCK_DATA } from '../../featureFlags';
 
 // --- Helpers ---
 

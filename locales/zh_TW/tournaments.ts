@@ -31,7 +31,13 @@ export default {
   "addPlayerModal": {
     "title": "新增玩家",
     "searchPlaceholder": "搜尋可用會員...",
-    "noResults": "找不到可用會員"
+    "noResults": "找不到可用會員",
+    "headers": {
+        "member": "會員",
+        "id": "ID",
+        "contact": "聯絡資訊",
+        "action": "操作"
+    }
   },
   "buyinModal": {
     "title": "費用明細",
@@ -44,21 +50,31 @@ export default {
       "voucher": "優惠券",
       "campaign": "活動折扣",
       "deposit": "預存扣款",
+      "cash": "現金",
       "net": "應付",
       "paid": "已付"
     },
     "types": {
       "buyIn": "買入",
-      "reBuy": "重入 / 加購"
+      "reBuy": "重入"
     },
     "empty": "無交易記錄。請點擊下方「新增」。",
     "addBtn": "新增",
     "limitReached": "已達賽事上限 (最大 {{max}})",
     "summary": {
       "net": "總應付金額",
+      "totalCash": "總現金",
       "deposit": "預存已扣",
       "outstanding": "待支付",
       "avail": "可用"
+    },
+    "validation": {
+        "exceedsPayable": "超過應付金額",
+        "markAllPaid": "* 必須將所有項目標記為已付款才能儲存",
+        "invalidDeposit": "* 預存扣款不能超過應付金額",
+        "insufficientBalance": "* 錢包餘額不足",
+        "allEntriesPaidTooltip": "必須將所有項目標記為已付款",
+        "invalidDepositTooltip": "預存金額無效"
     },
     "save": "儲存變更"
   },

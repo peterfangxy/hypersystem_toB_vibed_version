@@ -31,7 +31,13 @@ export default {
   "addPlayerModal": {
     "title": "Add Player",
     "searchPlaceholder": "Search available members...",
-    "noResults": "No available members found"
+    "noResults": "No available members found",
+    "headers": {
+        "member": "Member",
+        "id": "ID",
+        "contact": "Contact",
+        "action": "Action"
+    }
   },
   "buyinModal": {
     "title": "Payment Breakdown",
@@ -44,21 +50,31 @@ export default {
       "voucher": "Voucher",
       "campaign": "Campaign",
       "deposit": "Deposit Pay",
+      "cash": "Cash",
       "net": "Net",
       "paid": "Paid"
     },
     "types": {
       "buyIn": "Buy-in",
-      "reBuy": "Re-buy / Add-on"
+      "reBuy": "Re-buy"
     },
     "empty": "No transactions recorded. Click \"Add\" below.",
     "addBtn": "Add",
     "limitReached": "Tournament Limit Reached (Max {{max}})",
     "summary": {
       "net": "Total Net Payable",
+      "totalCash": "Total Cash",
       "deposit": "Total Deposit Paid",
       "outstanding": "Outstanding",
       "avail": "Avail"
+    },
+    "validation": {
+        "exceedsPayable": "Exceeds payable",
+        "markAllPaid": "* Mark all as Paid to save",
+        "invalidDeposit": "* Deposit cannot exceed payable amount",
+        "insufficientBalance": "* Insufficient wallet balance",
+        "allEntriesPaidTooltip": "All entries must be marked as Paid",
+        "invalidDepositTooltip": "Invalid deposit amount"
     },
     "save": "Save Changes"
   },
